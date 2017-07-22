@@ -24,3 +24,6 @@ doc/
 .idea/
 
 *.swp
+
+# Go
+src/
