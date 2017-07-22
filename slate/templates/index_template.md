@@ -35,10 +35,6 @@ and Javscript, and the gRPC REST proxy.
 {{ method.description }}
 
 ```shell
-$ lncli walletbalance
-{
-    "balance": 19999.9899
-}
 ```
 
 ```python
@@ -68,14 +64,22 @@ $ lncli walletbalance
 
 ### {{ method.request_type }}
 
+{% if method.request_message.fields | length == 0 %}
+This request has no parameters.
+{% else %}
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- {% for field in method.request_message.fields %}
 {{ field.name }} | {{ field.type }} | {{ field.label }} | {{ field.description }} {% endfor %}
+{% endif %}
 
 ### {{ method.response_type }}
 
+{% if method.response_message.fields | length == 0 %}
+This response is empty.
+{% else %}
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- {% for field in method.response_message.fields %}
 {{ field.name }} | {{ field.type }} | {{ field.label }} | {{ field.description }} {% endfor %}
+{% endif %}
 
 {% endfor %}

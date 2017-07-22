@@ -61,16 +61,20 @@ and Javscript, and the gRPC REST proxy.
 
 ### QueryRoutesRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 pub_key | string | optional |  
 amt | int64 | optional |  
 
+
 ### QueryRoutesResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 routes | Route | repeated |  
+
 
 
 
@@ -112,10 +116,12 @@ routes | Route | repeated |
 
 ### GetInfoRequest
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This request has no parameters.
+
 
 ### GetInfoResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
@@ -129,6 +135,7 @@ block_hash | string | optional |
 synced_to_chain | bool | optional |  
 testnet | bool | optional |  
 chains | string | repeated |  
+
 
 
 
@@ -161,14 +168,17 @@ chains | string | repeated |
 
 ### NewWitnessAddressRequest
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This request has no parameters.
+
 
 ### NewAddressResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 address | string | optional |  
+
 
 
 
@@ -209,6 +219,7 @@ address | string | optional |
 
 ### OpenChannelRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 target_peer_id | int32 | optional |  
@@ -218,13 +229,16 @@ local_funding_amount | int64 | optional |
 push_sat | int64 | optional |  
 num_confs | uint32 | optional |  
 
+
 ### OpenStatusUpdate
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 chan_pending | PendingUpdate | optional |  
 confirmation | ConfirmationUpdate | optional |  
 chan_open | ChannelOpenUpdate | optional |  
+
 
 
 
@@ -263,10 +277,12 @@ chan_open | ChannelOpenUpdate | optional |
 
 ### GetTransactionsRequest
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This request has no parameters.
+
 
 ### Transaction
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
@@ -277,6 +293,7 @@ block_hash | string | optional |
 block_height | int32 | optional |  
 time_stamp | int64 | optional |  
 total_fees | int64 | optional |  
+
 
 
 
@@ -312,17 +329,21 @@ total_fees | int64 | optional |
 
 ### VerifyMessageRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 msg | bytes | optional |  
 signature | string | optional |  
 
+
 ### VerifyMessageResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 valid | bool | optional |  
 pubkey | string | optional |  
+
 
 
 
@@ -363,6 +384,7 @@ pubkey | string | optional |
 
 ### SendRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 dest | bytes | optional |  
@@ -372,13 +394,16 @@ payment_hash | bytes | optional |
 payment_hash_string | string | optional |  
 payment_request | string | optional |  
 
+
 ### SendResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 payment_error | string | optional |  
 payment_preimage | bytes | optional |  
 payment_route | Route | optional |  
+
 
 
 
@@ -416,19 +441,23 @@ payment_route | Route | optional |
 
 ### CloseChannelRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 channel_point | ChannelPoint | optional |  
 time_limit | int64 | optional |  
 force | bool | optional |  
 
+
 ### CloseStatusUpdate
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 close_pending | PendingUpdate | optional |  
 confirmation | ConfirmationUpdate | optional |  
 chan_close | ChannelCloseUpdate | optional |  
+
 
 
 
@@ -462,15 +491,18 @@ chan_close | ChannelCloseUpdate | optional |
 
 ### ChannelGraphRequest
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This request has no parameters.
+
 
 ### ChannelGraph
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 nodes | LightningNode | repeated |  
 edges | ChannelEdge | repeated |  
+
 
 
 
@@ -511,11 +543,14 @@ edges | ChannelEdge | repeated |
 
 ### ChanInfoRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 chan_id | uint64 | optional |  
 
+
 ### ChannelEdge
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
@@ -527,6 +562,7 @@ node2_pub | string | optional |
 capacity | int64 | optional |  
 node1_policy | RoutingPolicy | optional |  
 node2_policy | RoutingPolicy | optional |  
+
 
 
 
@@ -569,6 +605,7 @@ node2_policy | RoutingPolicy | optional |
 
 ### Invoice
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 memo | string | optional |  
@@ -581,12 +618,15 @@ creation_date | int64 | optional |
 settle_date | int64 | optional |  
 payment_request | string | optional |  
 
+
 ### AddInvoiceResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 r_hash | bytes | optional |  
 payment_request | string | optional |  
+
 
 
 
@@ -617,13 +657,15 @@ payment_request | string | optional |
 
 ### DeleteAllPaymentsRequest
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This request has no parameters.
+
 
 ### DeleteAllPaymentsResponse
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This response is empty.
+
 
 
 
@@ -659,17 +701,21 @@ Field | Type | Label | Description
 
 ### PayReqString
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 pay_req | string | optional |  
 
+
 ### PayReq
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 destination | string | optional |  
 payment_hash | string | optional |  
 num_satoshis | int64 | optional |  
+
 
 
 
@@ -704,16 +750,20 @@ num_satoshis | int64 | optional |
 
 ### ConnectPeerRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 addr | LightningAddress | optional |  
 perm | bool | optional |  
 
+
 ### ConnectPeerResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 peer_id | int32 | optional |  
+
 
 
 
@@ -748,16 +798,19 @@ peer_id | int32 | optional |
 
 ### GraphTopologySubscription
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This request has no parameters.
+
 
 ### GraphTopologyUpdate
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 node_updates | NodeUpdate | repeated |  
 channel_updates | ChannelEdgeUpdate | repeated |  
 closed_chans | ClosedChannelUpdate | repeated |  
+
 
 
 
@@ -790,14 +843,17 @@ closed_chans | ClosedChannelUpdate | repeated |
 
 ### ChannelBalanceRequest
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This request has no parameters.
+
 
 ### ChannelBalanceResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 balance | int64 | optional |  
+
 
 
 
@@ -838,10 +894,12 @@ balance | int64 | optional |
 
 ### NetworkInfoRequest
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This request has no parameters.
+
 
 ### NetworkInfo
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
@@ -854,6 +912,7 @@ total_network_capacity | int64 | optional |
 avg_channel_size | double | optional |  
 min_channel_size | int64 | optional |  
 max_channel_size | int64 | optional |  
+
 
 
 
@@ -887,15 +946,19 @@ max_channel_size | int64 | optional |
 
 ### SendManyRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 AddrToAmount | AddrToAmountEntry | repeated |  
 
+
 ### SendManyResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 txid | string | optional |  
+
 
 
 
@@ -929,15 +992,19 @@ txid | string | optional |
 
 ### ListInvoiceRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 pending_only | bool | optional |  
 
+
 ### ListInvoiceResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 invoices | Invoice | repeated |  
+
 
 
 
@@ -968,13 +1035,15 @@ invoices | Invoice | repeated |
 
 ### StopRequest
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This request has no parameters.
+
 
 ### StopResponse
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This response is empty.
+
 
 
 
@@ -1010,17 +1079,21 @@ Field | Type | Label | Description
 
 ### NodeInfoRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 pub_key | string | optional |  
 
+
 ### NodeInfo
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 node | LightningNode | optional |  
 num_channels | uint32 | optional |  
 total_capacity | int64 | optional |  
+
 
 
 
@@ -1056,10 +1129,12 @@ total_capacity | int64 | optional |
 
 ### PendingChannelRequest
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This request has no parameters.
+
 
 ### PendingChannelResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
@@ -1067,6 +1142,7 @@ total_limbo_balance | int64 | optional |
 pending_open_channels | PendingOpenChannel | repeated |  
 pending_closing_channels | ClosedChannel | repeated |  
 pending_force_closing_channels | ForceClosedChannel | repeated |  
+
 
 
 
@@ -1099,14 +1175,17 @@ pending_force_closing_channels | ForceClosedChannel | repeated |
 
 ### GetTransactionsRequest
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This request has no parameters.
+
 
 ### TransactionDetails
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 transactions | Transaction | repeated |  
+
 
 
 
@@ -1140,15 +1219,19 @@ transactions | Transaction | repeated |
 
 ### SignMessageRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 msg | bytes | optional |  
 
+
 ### SignMessageResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 signature | string | optional |  
+
 
 
 
@@ -1182,15 +1265,19 @@ signature | string | optional |
 
 ### WalletBalanceRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 witness_only | bool | optional |  
 
+
 ### WalletBalanceResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 balance | int64 | optional |  
+
 
 
 
@@ -1223,14 +1310,17 @@ balance | int64 | optional |
 
 ### ListPaymentsRequest
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This request has no parameters.
+
 
 ### ListPaymentsResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 payments | Payment | repeated |  
+
 
 
 
@@ -1273,12 +1363,15 @@ payments | Payment | repeated |
 
 ### PaymentHash
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 r_hash_str | string | optional |  
 r_hash | bytes | optional |  
 
+
 ### Invoice
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
@@ -1291,6 +1384,7 @@ settled | bool | optional |
 creation_date | int64 | optional |  
 settle_date | int64 | optional |  
 payment_request | string | optional |  
+
 
 
 
@@ -1331,10 +1425,12 @@ payment_request | string | optional |
 
 ### InvoiceSubscription
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This request has no parameters.
+
 
 ### Invoice
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
@@ -1347,6 +1443,7 @@ settled | bool | optional |
 creation_date | int64 | optional |  
 settle_date | int64 | optional |  
 payment_request | string | optional |  
+
 
 
 
@@ -1379,14 +1476,17 @@ payment_request | string | optional |
 
 ### ListChannelsRequest
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This request has no parameters.
+
 
 ### ListChannelsResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 channels | ActiveChannel | repeated |  
+
 
 
 
@@ -1427,6 +1527,7 @@ channels | ActiveChannel | repeated |
 
 ### SendRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 dest | bytes | optional |  
@@ -1436,13 +1537,16 @@ payment_hash | bytes | optional |
 payment_hash_string | string | optional |  
 payment_request | string | optional |  
 
+
 ### SendResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 payment_error | string | optional |  
 payment_preimage | bytes | optional |  
 payment_route | Route | optional |  
+
 
 
 
@@ -1474,14 +1578,17 @@ payment_route | Route | optional |
 
 ### DisconnectPeerRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 pub_key | string | optional |  
 
+
 ### DisconnectPeerResponse
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This response is empty.
+
 
 
 
@@ -1522,6 +1629,7 @@ Field | Type | Label | Description
 
 ### OpenChannelRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 target_peer_id | int32 | optional |  
@@ -1531,13 +1639,16 @@ local_funding_amount | int64 | optional |
 push_sat | int64 | optional |  
 num_confs | uint32 | optional |  
 
+
 ### ChannelPoint
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 funding_txid | bytes | optional |  
 funding_txid_str | string | optional |  
 output_index | uint32 | optional |  
+
 
 
 
@@ -1570,14 +1681,17 @@ output_index | uint32 | optional |
 
 ### ListPeersRequest
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This request has no parameters.
+
 
 ### ListPeersResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 peers | Peer | repeated |  
+
 
 
 
@@ -1612,16 +1726,20 @@ peers | Peer | repeated |
 
 ### DebugLevelRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 show | bool | optional |  
 level_spec | string | optional |  
 
+
 ### DebugLevelResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 sub_systems | string | optional |  
+
 
 
 
@@ -1655,15 +1773,19 @@ sub_systems | string | optional |
 
 ### NewAddressRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 type | AddressType | optional |  
 
+
 ### NewAddressResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 address | string | optional |  
+
 
 
 
@@ -1695,14 +1817,17 @@ address | string | optional |
 
 ### SetAliasRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 new_alias | string | optional |  
 
+
 ### SetAliasResponse
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
+
+This response is empty.
+
 
 
 
@@ -1737,14 +1862,18 @@ Field | Type | Label | Description
 
 ### SendCoinsRequest
 
+
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 addr | string | optional |  
 amount | int64 | optional |  
 
+
 ### SendCoinsResponse
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 txid | string | optional |  
+
 
