@@ -130,9 +130,9 @@ def construct_method_order():
     return ordering
 
 
-def generate_slate_docs():
+def render_slate_docs():
     """
-    Given a template, a proto file, and its JSON representation, generates full
+    Given a template, a proto file, and its JSON representation, renders full
     Slate documentation of the `lnd` API.
 
     Location of
@@ -199,4 +199,4 @@ def generate_slate_docs():
         file_out.write(rendered_docs)
 
 
-generate_slate_docs()
+render_slate_docs()
