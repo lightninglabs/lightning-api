@@ -1,6 +1,8 @@
 #!/usr/local/bin/python
 from jinja2 import Environment, PackageLoader, select_autoescape
+
 import json
+import re
 
 
 def json_proto_to_rpc_dict():
@@ -108,20 +110,49 @@ def json_proto_to_rpc_dict():
     return rpc_methods
 
 
+def construct_method_order():
+    """
+    Reads from rpc.proto to parse an ordering for transactions
+    """
+
+    # Construct ordering from rpc.proto
+    proto_lines = open('rpc.proto').readlines()
+
+    ordering = {}
+    counter = 0
+    for line in proto_lines:
+        tokenized_line = re.split(' |\(|\)', line.strip())
+        if len(tokenized_line) >= 1 and tokenized_line[0] == 'rpc':
+            rpc_name = tokenized_line[1]
+            ordering[rpc_name] = counter
+            counter += 1
+
+    return ordering
+
+
 def generate_slate_docs():
     """
-    Given a template and the JSON representation of a proto file, generates
-    full Slate documentation of the `lnd` API.
+    Given a template, a proto file, and its JSON representation, generates full
+    Slate documentation of the `lnd` API.
 
     Location of
+    - proto file: `rpc.proto`
     - proto JSON: `rpc.json`
     - template: `slate/templates/index_template.md`
     - Slate markdown output: `source/index.html.md`
     """
 
+    # Construct the ordering of methods from rpc.proto
+    ordering = construct_method_order()
+
     # Read the json representation of the proto and construct a Python dict of
     # the methods and messages
     rpc_methods = json_proto_to_rpc_dict()
+
+    # Add the ordering information into the parsed rpc methods
+    for method in rpc_methods.itervalues():
+        index = ordering[method['name']]
+        method['index'] = index
 
     # Load some example parameters
     example = {
@@ -154,7 +185,9 @@ def generate_slate_docs():
     )
     template = env.get_template('index_template.md')
 
+    # Convert the methods into a dictionary orderedy by index
     methods_list = [v for k, v in rpc_methods.iteritems()]
+    methods_list.sort(key=lambda m: m['index'])
 
     rendered_docs = template.render(
         methods=methods_list,

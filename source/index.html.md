@@ -30,7 +30,7 @@ and Javscript, and the gRPC REST proxy.
 
 
 
-# QueryRoutes
+# WalletBalance
 
 
 
@@ -42,9 +42,8 @@ and Javscript, and the gRPC REST proxy.
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.QueryRoutes(ln.QueryRoutesRequest(
-        pub_key=<YOUR_PARAM>,
-        amt=<YOUR_PARAM>,
+>>> response = stub.WalletBalance(ln.WalletBalanceRequest(
+        witness_only=<YOUR_PARAM>,
     ))
 
 ```
@@ -54,26 +53,578 @@ and Javscript, and the gRPC REST proxy.
 ```python
 
 { 
-    routes: <Route>,
+    balance: <int64>,
 }
 
 ```
 
-### QueryRoutesRequest
+### WalletBalanceRequest
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+witness_only | bool | optional |  
+
+
+### WalletBalanceResponse
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+balance | int64 | optional |  
+
+
+
+
+# ChannelBalance
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+
+>>> response = stub.ChannelBalance(ln.ChannelBalanceRequest())
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    balance: <int64>,
+}
+
+```
+
+### ChannelBalanceRequest
+
+
+This request has no parameters.
+
+
+### ChannelBalanceResponse
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+balance | int64 | optional |  
+
+
+
+
+# GetTransactions
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+
+>>> response = stub.GetTransactions(ln.GetTransactionsRequest())
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    transactions: <Transaction>,
+}
+
+```
+
+### GetTransactionsRequest
+
+
+This request has no parameters.
+
+
+### TransactionDetails
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+transactions | Transaction | repeated |  
+
+
+
+
+# SendCoins
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+>>> response = stub.SendCoins(ln.SendCoinsRequest(
+        addr=<YOUR_PARAM>,
+        amount=<YOUR_PARAM>,
+    ))
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    txid: <string>,
+}
+
+```
+
+### SendCoinsRequest
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+addr | string | optional |  
+amount | int64 | optional |  
+
+
+### SendCoinsResponse
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+txid | string | optional |  
+
+
+
+
+# SubscribeTransactions
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+
+>>> response = stub.SubscribeTransactions(ln.GetTransactionsRequest())
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    tx_hash: <string>,
+    amount: <int64>,
+    num_confirmations: <int32>,
+    block_hash: <string>,
+    block_height: <int32>,
+    time_stamp: <int64>,
+    total_fees: <int64>,
+}
+
+```
+
+### GetTransactionsRequest
+
+
+This request has no parameters.
+
+
+### Transaction
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+tx_hash | string | optional |  
+amount | int64 | optional |  
+num_confirmations | int32 | optional |  
+block_hash | string | optional |  
+block_height | int32 | optional |  
+time_stamp | int64 | optional |  
+total_fees | int64 | optional |  
+
+
+
+
+# SendMany
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+>>> response = stub.SendMany(ln.SendManyRequest(
+        AddrToAmount=<YOUR_PARAM>,
+    ))
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    txid: <string>,
+}
+
+```
+
+### SendManyRequest
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+AddrToAmount | AddrToAmountEntry | repeated |  
+
+
+### SendManyResponse
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+txid | string | optional |  
+
+
+
+
+# NewAddress
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+>>> response = stub.NewAddress(ln.NewAddressRequest(
+        type=<YOUR_PARAM>,
+    ))
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    address: <string>,
+}
+
+```
+
+### NewAddressRequest
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+type | AddressType | optional |  
+
+
+### NewAddressResponse
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+address | string | optional |  
+
+
+
+
+# NewWitnessAddress
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+
+>>> response = stub.NewWitnessAddress(ln.NewWitnessAddressRequest())
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    address: <string>,
+}
+
+```
+
+### NewWitnessAddressRequest
+
+
+This request has no parameters.
+
+
+### NewAddressResponse
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+address | string | optional |  
+
+
+
+
+# SignMessage
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+>>> response = stub.SignMessage(ln.SignMessageRequest(
+        msg=<YOUR_PARAM>,
+    ))
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    signature: <string>,
+}
+
+```
+
+### SignMessageRequest
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+msg | bytes | optional |  
+
+
+### SignMessageResponse
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+signature | string | optional |  
+
+
+
+
+# VerifyMessage
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+>>> response = stub.VerifyMessage(ln.VerifyMessageRequest(
+        msg=<YOUR_PARAM>,
+        signature=<YOUR_PARAM>,
+    ))
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    valid: <bool>,
+    pubkey: <string>,
+}
+
+```
+
+### VerifyMessageRequest
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+msg | bytes | optional |  
+signature | string | optional |  
+
+
+### VerifyMessageResponse
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+valid | bool | optional |  
+pubkey | string | optional |  
+
+
+
+
+# ConnectPeer
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+>>> response = stub.ConnectPeer(ln.ConnectPeerRequest(
+        addr=<YOUR_PARAM>,
+        perm=<YOUR_PARAM>,
+    ))
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    peer_id: <int32>,
+}
+
+```
+
+### ConnectPeerRequest
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+addr | LightningAddress | optional |  
+perm | bool | optional |  
+
+
+### ConnectPeerResponse
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+peer_id | int32 | optional |  
+
+
+
+
+# DisconnectPeer
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+>>> response = stub.DisconnectPeer(ln.DisconnectPeerRequest(
+        pub_key=<YOUR_PARAM>,
+    ))
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{}
+
+```
+
+### DisconnectPeerRequest
 
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 pub_key | string | optional |  
-amt | int64 | optional |  
 
 
-### QueryRoutesResponse
+### DisconnectPeerResponse
+
+
+This response is empty.
+
+
+
+
+# ListPeers
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+
+>>> response = stub.ListPeers(ln.ListPeersRequest())
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    peers: <Peer>,
+}
+
+```
+
+### ListPeersRequest
+
+
+This request has no parameters.
+
+
+### ListPeersResponse
 
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-routes | Route | repeated |  
+peers | Peer | repeated |  
 
 
 
@@ -139,7 +690,7 @@ chains | string | repeated |
 
 
 
-# NewWitnessAddress
+# PendingChannels
 
 
 
@@ -152,7 +703,7 @@ chains | string | repeated |
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
 
->>> response = stub.NewWitnessAddress(ln.NewWitnessAddressRequest())
+>>> response = stub.PendingChannels(ln.PendingChannelRequest())
 
 ```
 
@@ -161,23 +712,132 @@ chains | string | repeated |
 ```python
 
 { 
-    address: <string>,
+    total_limbo_balance: <int64>,
+    pending_open_channels: <PendingOpenChannel>,
+    pending_closing_channels: <ClosedChannel>,
+    pending_force_closing_channels: <ForceClosedChannel>,
 }
 
 ```
 
-### NewWitnessAddressRequest
+### PendingChannelRequest
 
 
 This request has no parameters.
 
 
-### NewAddressResponse
+### PendingChannelResponse
 
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-address | string | optional |  
+total_limbo_balance | int64 | optional |  
+pending_open_channels | PendingOpenChannel | repeated |  
+pending_closing_channels | ClosedChannel | repeated |  
+pending_force_closing_channels | ForceClosedChannel | repeated |  
+
+
+
+
+# ListChannels
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+
+>>> response = stub.ListChannels(ln.ListChannelsRequest())
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    channels: <ActiveChannel>,
+}
+
+```
+
+### ListChannelsRequest
+
+
+This request has no parameters.
+
+
+### ListChannelsResponse
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+channels | ActiveChannel | repeated |  
+
+
+
+
+# OpenChannelSync
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+>>> response = stub.OpenChannelSync(ln.OpenChannelRequest(
+        target_peer_id=<YOUR_PARAM>,
+        node_pubkey=<YOUR_PARAM>,
+        node_pubkey_string=<YOUR_PARAM>,
+        local_funding_amount=<YOUR_PARAM>,
+        push_sat=<YOUR_PARAM>,
+        num_confs=<YOUR_PARAM>,
+    ))
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    funding_txid: <bytes>,
+    funding_txid_str: <string>,
+    output_index: <uint32>,
+}
+
+```
+
+### OpenChannelRequest
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+target_peer_id | int32 | optional |  
+node_pubkey | bytes | optional |  
+node_pubkey_string | string | optional |  
+local_funding_amount | int64 | optional |  
+push_sat | int64 | optional |  
+num_confs | uint32 | optional |  
+
+
+### ChannelPoint
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+funding_txid | bytes | optional |  
+funding_txid_str | string | optional |  
+output_index | uint32 | optional |  
 
 
 
@@ -242,7 +902,7 @@ chan_open | ChannelOpenUpdate | optional |
 
 
 
-# SubscribeTransactions
+# CloseChannel
 
 
 
@@ -254,64 +914,10 @@ chan_open | ChannelOpenUpdate | optional |
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.SubscribeTransactions(ln.GetTransactionsRequest())
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    tx_hash: <string>,
-    amount: <int64>,
-    num_confirmations: <int32>,
-    block_hash: <string>,
-    block_height: <int32>,
-    time_stamp: <int64>,
-    total_fees: <int64>,
-}
-
-```
-
-### GetTransactionsRequest
-
-
-This request has no parameters.
-
-
-### Transaction
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-tx_hash | string | optional |  
-amount | int64 | optional |  
-num_confirmations | int32 | optional |  
-block_hash | string | optional |  
-block_height | int32 | optional |  
-time_stamp | int64 | optional |  
-total_fees | int64 | optional |  
-
-
-
-
-# VerifyMessage
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
->>> response = stub.VerifyMessage(ln.VerifyMessageRequest(
-        msg=<YOUR_PARAM>,
-        signature=<YOUR_PARAM>,
+>>> response = stub.CloseChannel(ln.CloseChannelRequest(
+        channel_point=<YOUR_PARAM>,
+        time_limit=<YOUR_PARAM>,
+        force=<YOUR_PARAM>,
     ))
 
 ```
@@ -321,28 +927,91 @@ total_fees | int64 | optional |
 ```python
 
 { 
-    valid: <bool>,
-    pubkey: <string>,
+    close_pending: <PendingUpdate>,
+    confirmation: <ConfirmationUpdate>,
+    chan_close: <ChannelCloseUpdate>,
 }
 
 ```
 
-### VerifyMessageRequest
+### CloseChannelRequest
 
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-msg | bytes | optional |  
-signature | string | optional |  
+channel_point | ChannelPoint | optional |  
+time_limit | int64 | optional |  
+force | bool | optional |  
 
 
-### VerifyMessageResponse
+### CloseStatusUpdate
 
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-valid | bool | optional |  
-pubkey | string | optional |  
+close_pending | PendingUpdate | optional |  
+confirmation | ConfirmationUpdate | optional |  
+chan_close | ChannelCloseUpdate | optional |  
+
+
+
+
+# SendPayment
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+>>> response = stub.SendPayment(ln.SendRequest(
+        dest=<YOUR_PARAM>,
+        dest_string=<YOUR_PARAM>,
+        amt=<YOUR_PARAM>,
+        payment_hash=<YOUR_PARAM>,
+        payment_hash_string=<YOUR_PARAM>,
+        payment_request=<YOUR_PARAM>,
+    ))
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    payment_error: <string>,
+    payment_preimage: <bytes>,
+    payment_route: <Route>,
+}
+
+```
+
+### SendRequest
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+dest | bytes | optional |  
+dest_string | string | optional |  
+amt | int64 | optional |  
+payment_hash | bytes | optional |  
+payment_hash_string | string | optional |  
+payment_request | string | optional |  
+
+
+### SendResponse
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+payment_error | string | optional |  
+payment_preimage | bytes | optional |  
+payment_route | Route | optional |  
 
 
 
@@ -403,165 +1072,6 @@ Field | Type | Label | Description
 payment_error | string | optional |  
 payment_preimage | bytes | optional |  
 payment_route | Route | optional |  
-
-
-
-
-# CloseChannel
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
->>> response = stub.CloseChannel(ln.CloseChannelRequest(
-        channel_point=<YOUR_PARAM>,
-        time_limit=<YOUR_PARAM>,
-        force=<YOUR_PARAM>,
-    ))
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    close_pending: <PendingUpdate>,
-    confirmation: <ConfirmationUpdate>,
-    chan_close: <ChannelCloseUpdate>,
-}
-
-```
-
-### CloseChannelRequest
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-channel_point | ChannelPoint | optional |  
-time_limit | int64 | optional |  
-force | bool | optional |  
-
-
-### CloseStatusUpdate
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-close_pending | PendingUpdate | optional |  
-confirmation | ConfirmationUpdate | optional |  
-chan_close | ChannelCloseUpdate | optional |  
-
-
-
-
-# DescribeGraph
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.DescribeGraph(ln.ChannelGraphRequest())
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    nodes: <LightningNode>,
-    edges: <ChannelEdge>,
-}
-
-```
-
-### ChannelGraphRequest
-
-
-This request has no parameters.
-
-
-### ChannelGraph
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-nodes | LightningNode | repeated |  
-edges | ChannelEdge | repeated |  
-
-
-
-
-# GetChanInfo
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
->>> response = stub.GetChanInfo(ln.ChanInfoRequest(
-        chan_id=<YOUR_PARAM>,
-    ))
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    channel_id: <uint64>,
-    chan_point: <string>,
-    last_update: <uint32>,
-    node1_pub: <string>,
-    node2_pub: <string>,
-    capacity: <int64>,
-    node1_policy: <RoutingPolicy>,
-    node2_policy: <RoutingPolicy>,
-}
-
-```
-
-### ChanInfoRequest
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-chan_id | uint64 | optional |  
-
-
-### ChannelEdge
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-channel_id | uint64 | optional |  
-chan_point | string | optional |  
-last_update | uint32 | optional |  
-node1_pub | string | optional |  
-node2_pub | string | optional |  
-capacity | int64 | optional |  
-node1_policy | RoutingPolicy | optional |  
-node2_policy | RoutingPolicy | optional |  
 
 
 
@@ -630,338 +1140,6 @@ payment_request | string | optional |
 
 
 
-# DeleteAllPayments
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.DeleteAllPayments(ln.DeleteAllPaymentsRequest())
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{}
-
-```
-
-### DeleteAllPaymentsRequest
-
-
-This request has no parameters.
-
-
-### DeleteAllPaymentsResponse
-
-
-This response is empty.
-
-
-
-
-# DecodePayReq
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
->>> response = stub.DecodePayReq(ln.PayReqString(
-        pay_req=<YOUR_PARAM>,
-    ))
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    destination: <string>,
-    payment_hash: <string>,
-    num_satoshis: <int64>,
-}
-
-```
-
-### PayReqString
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-pay_req | string | optional |  
-
-
-### PayReq
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-destination | string | optional |  
-payment_hash | string | optional |  
-num_satoshis | int64 | optional |  
-
-
-
-
-# ConnectPeer
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
->>> response = stub.ConnectPeer(ln.ConnectPeerRequest(
-        addr=<YOUR_PARAM>,
-        perm=<YOUR_PARAM>,
-    ))
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    peer_id: <int32>,
-}
-
-```
-
-### ConnectPeerRequest
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-addr | LightningAddress | optional |  
-perm | bool | optional |  
-
-
-### ConnectPeerResponse
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-peer_id | int32 | optional |  
-
-
-
-
-# SubscribeChannelGraph
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.SubscribeChannelGraph(ln.GraphTopologySubscription())
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    node_updates: <NodeUpdate>,
-    channel_updates: <ChannelEdgeUpdate>,
-    closed_chans: <ClosedChannelUpdate>,
-}
-
-```
-
-### GraphTopologySubscription
-
-
-This request has no parameters.
-
-
-### GraphTopologyUpdate
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-node_updates | NodeUpdate | repeated |  
-channel_updates | ChannelEdgeUpdate | repeated |  
-closed_chans | ClosedChannelUpdate | repeated |  
-
-
-
-
-# ChannelBalance
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.ChannelBalance(ln.ChannelBalanceRequest())
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    balance: <int64>,
-}
-
-```
-
-### ChannelBalanceRequest
-
-
-This request has no parameters.
-
-
-### ChannelBalanceResponse
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-balance | int64 | optional |  
-
-
-
-
-# GetNetworkInfo
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.GetNetworkInfo(ln.NetworkInfoRequest())
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    graph_diameter: <uint32>,
-    avg_out_degree: <double>,
-    max_out_degree: <uint32>,
-    num_nodes: <uint32>,
-    num_channels: <uint32>,
-    total_network_capacity: <int64>,
-    avg_channel_size: <double>,
-    min_channel_size: <int64>,
-    max_channel_size: <int64>,
-}
-
-```
-
-### NetworkInfoRequest
-
-
-This request has no parameters.
-
-
-### NetworkInfo
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-graph_diameter | uint32 | optional |  
-avg_out_degree | double | optional |  
-max_out_degree | uint32 | optional |  
-num_nodes | uint32 | optional |  
-num_channels | uint32 | optional |  
-total_network_capacity | int64 | optional |  
-avg_channel_size | double | optional |  
-min_channel_size | int64 | optional |  
-max_channel_size | int64 | optional |  
-
-
-
-
-# SendMany
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
->>> response = stub.SendMany(ln.SendManyRequest(
-        AddrToAmount=<YOUR_PARAM>,
-    ))
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    txid: <string>,
-}
-
-```
-
-### SendManyRequest
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-AddrToAmount | AddrToAmountEntry | repeated |  
-
-
-### SendManyResponse
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-txid | string | optional |  
-
-
-
-
 # ListInvoices
 
 
@@ -1004,322 +1182,6 @@ pending_only | bool | optional |
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 invoices | Invoice | repeated |  
-
-
-
-
-# StopDaemon
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.StopDaemon(ln.StopRequest())
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{}
-
-```
-
-### StopRequest
-
-
-This request has no parameters.
-
-
-### StopResponse
-
-
-This response is empty.
-
-
-
-
-# GetNodeInfo
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
->>> response = stub.GetNodeInfo(ln.NodeInfoRequest(
-        pub_key=<YOUR_PARAM>,
-    ))
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    node: <LightningNode>,
-    num_channels: <uint32>,
-    total_capacity: <int64>,
-}
-
-```
-
-### NodeInfoRequest
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-pub_key | string | optional |  
-
-
-### NodeInfo
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-node | LightningNode | optional |  
-num_channels | uint32 | optional |  
-total_capacity | int64 | optional |  
-
-
-
-
-# PendingChannels
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.PendingChannels(ln.PendingChannelRequest())
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    total_limbo_balance: <int64>,
-    pending_open_channels: <PendingOpenChannel>,
-    pending_closing_channels: <ClosedChannel>,
-    pending_force_closing_channels: <ForceClosedChannel>,
-}
-
-```
-
-### PendingChannelRequest
-
-
-This request has no parameters.
-
-
-### PendingChannelResponse
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-total_limbo_balance | int64 | optional |  
-pending_open_channels | PendingOpenChannel | repeated |  
-pending_closing_channels | ClosedChannel | repeated |  
-pending_force_closing_channels | ForceClosedChannel | repeated |  
-
-
-
-
-# GetTransactions
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.GetTransactions(ln.GetTransactionsRequest())
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    transactions: <Transaction>,
-}
-
-```
-
-### GetTransactionsRequest
-
-
-This request has no parameters.
-
-
-### TransactionDetails
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-transactions | Transaction | repeated |  
-
-
-
-
-# SignMessage
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
->>> response = stub.SignMessage(ln.SignMessageRequest(
-        msg=<YOUR_PARAM>,
-    ))
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    signature: <string>,
-}
-
-```
-
-### SignMessageRequest
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-msg | bytes | optional |  
-
-
-### SignMessageResponse
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-signature | string | optional |  
-
-
-
-
-# WalletBalance
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
->>> response = stub.WalletBalance(ln.WalletBalanceRequest(
-        witness_only=<YOUR_PARAM>,
-    ))
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    balance: <int64>,
-}
-
-```
-
-### WalletBalanceRequest
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-witness_only | bool | optional |  
-
-
-### WalletBalanceResponse
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-balance | int64 | optional |  
-
-
-
-
-# ListPayments
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.ListPayments(ln.ListPaymentsRequest())
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    payments: <Payment>,
-}
-
-```
-
-### ListPaymentsRequest
-
-
-This request has no parameters.
-
-
-### ListPaymentsResponse
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-payments | Payment | repeated |  
 
 
 
@@ -1447,7 +1309,7 @@ payment_request | string | optional |
 
 
 
-# ListChannels
+# DecodePayReq
 
 
 
@@ -1459,56 +1321,8 @@ payment_request | string | optional |
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.ListChannels(ln.ListChannelsRequest())
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    channels: <ActiveChannel>,
-}
-
-```
-
-### ListChannelsRequest
-
-
-This request has no parameters.
-
-
-### ListChannelsResponse
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-channels | ActiveChannel | repeated |  
-
-
-
-
-# SendPayment
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
->>> response = stub.SendPayment(ln.SendRequest(
-        dest=<YOUR_PARAM>,
-        dest_string=<YOUR_PARAM>,
-        amt=<YOUR_PARAM>,
-        payment_hash=<YOUR_PARAM>,
-        payment_hash_string=<YOUR_PARAM>,
-        payment_request=<YOUR_PARAM>,
+>>> response = stub.DecodePayReq(ln.PayReqString(
+        pay_req=<YOUR_PARAM>,
     ))
 
 ```
@@ -1518,39 +1332,34 @@ channels | ActiveChannel | repeated |
 ```python
 
 { 
-    payment_error: <string>,
-    payment_preimage: <bytes>,
-    payment_route: <Route>,
+    destination: <string>,
+    payment_hash: <string>,
+    num_satoshis: <int64>,
 }
 
 ```
 
-### SendRequest
+### PayReqString
 
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-dest | bytes | optional |  
-dest_string | string | optional |  
-amt | int64 | optional |  
-payment_hash | bytes | optional |  
-payment_hash_string | string | optional |  
-payment_request | string | optional |  
+pay_req | string | optional |  
 
 
-### SendResponse
+### PayReq
 
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-payment_error | string | optional |  
-payment_preimage | bytes | optional |  
-payment_route | Route | optional |  
+destination | string | optional |  
+payment_hash | string | optional |  
+num_satoshis | int64 | optional |  
 
 
 
 
-# DisconnectPeer
+# ListPayments
 
 
 
@@ -1562,8 +1371,438 @@ payment_route | Route | optional |
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.DisconnectPeer(ln.DisconnectPeerRequest(
+
+>>> response = stub.ListPayments(ln.ListPaymentsRequest())
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    payments: <Payment>,
+}
+
+```
+
+### ListPaymentsRequest
+
+
+This request has no parameters.
+
+
+### ListPaymentsResponse
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+payments | Payment | repeated |  
+
+
+
+
+# DeleteAllPayments
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+
+>>> response = stub.DeleteAllPayments(ln.DeleteAllPaymentsRequest())
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{}
+
+```
+
+### DeleteAllPaymentsRequest
+
+
+This request has no parameters.
+
+
+### DeleteAllPaymentsResponse
+
+
+This response is empty.
+
+
+
+
+# DescribeGraph
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+
+>>> response = stub.DescribeGraph(ln.ChannelGraphRequest())
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    nodes: <LightningNode>,
+    edges: <ChannelEdge>,
+}
+
+```
+
+### ChannelGraphRequest
+
+
+This request has no parameters.
+
+
+### ChannelGraph
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+nodes | LightningNode | repeated |  
+edges | ChannelEdge | repeated |  
+
+
+
+
+# GetChanInfo
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+>>> response = stub.GetChanInfo(ln.ChanInfoRequest(
+        chan_id=<YOUR_PARAM>,
+    ))
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    channel_id: <uint64>,
+    chan_point: <string>,
+    last_update: <uint32>,
+    node1_pub: <string>,
+    node2_pub: <string>,
+    capacity: <int64>,
+    node1_policy: <RoutingPolicy>,
+    node2_policy: <RoutingPolicy>,
+}
+
+```
+
+### ChanInfoRequest
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+chan_id | uint64 | optional |  
+
+
+### ChannelEdge
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+channel_id | uint64 | optional |  
+chan_point | string | optional |  
+last_update | uint32 | optional |  
+node1_pub | string | optional |  
+node2_pub | string | optional |  
+capacity | int64 | optional |  
+node1_policy | RoutingPolicy | optional |  
+node2_policy | RoutingPolicy | optional |  
+
+
+
+
+# GetNodeInfo
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+>>> response = stub.GetNodeInfo(ln.NodeInfoRequest(
         pub_key=<YOUR_PARAM>,
+    ))
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    node: <LightningNode>,
+    num_channels: <uint32>,
+    total_capacity: <int64>,
+}
+
+```
+
+### NodeInfoRequest
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+pub_key | string | optional |  
+
+
+### NodeInfo
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+node | LightningNode | optional |  
+num_channels | uint32 | optional |  
+total_capacity | int64 | optional |  
+
+
+
+
+# QueryRoutes
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+>>> response = stub.QueryRoutes(ln.QueryRoutesRequest(
+        pub_key=<YOUR_PARAM>,
+        amt=<YOUR_PARAM>,
+    ))
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    routes: <Route>,
+}
+
+```
+
+### QueryRoutesRequest
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+pub_key | string | optional |  
+amt | int64 | optional |  
+
+
+### QueryRoutesResponse
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+routes | Route | repeated |  
+
+
+
+
+# GetNetworkInfo
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+
+>>> response = stub.GetNetworkInfo(ln.NetworkInfoRequest())
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    graph_diameter: <uint32>,
+    avg_out_degree: <double>,
+    max_out_degree: <uint32>,
+    num_nodes: <uint32>,
+    num_channels: <uint32>,
+    total_network_capacity: <int64>,
+    avg_channel_size: <double>,
+    min_channel_size: <int64>,
+    max_channel_size: <int64>,
+}
+
+```
+
+### NetworkInfoRequest
+
+
+This request has no parameters.
+
+
+### NetworkInfo
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+graph_diameter | uint32 | optional |  
+avg_out_degree | double | optional |  
+max_out_degree | uint32 | optional |  
+num_nodes | uint32 | optional |  
+num_channels | uint32 | optional |  
+total_network_capacity | int64 | optional |  
+avg_channel_size | double | optional |  
+min_channel_size | int64 | optional |  
+max_channel_size | int64 | optional |  
+
+
+
+
+# StopDaemon
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+
+>>> response = stub.StopDaemon(ln.StopRequest())
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{}
+
+```
+
+### StopRequest
+
+
+This request has no parameters.
+
+
+### StopResponse
+
+
+This response is empty.
+
+
+
+
+# SubscribeChannelGraph
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+
+>>> response = stub.SubscribeChannelGraph(ln.GraphTopologySubscription())
+
+```
+
+> `response` will be structured similar to this:
+
+```python
+
+{ 
+    node_updates: <NodeUpdate>,
+    channel_updates: <ChannelEdgeUpdate>,
+    closed_chans: <ClosedChannelUpdate>,
+}
+
+```
+
+### GraphTopologySubscription
+
+
+This request has no parameters.
+
+
+### GraphTopologyUpdate
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+node_updates | NodeUpdate | repeated |  
+channel_updates | ChannelEdgeUpdate | repeated |  
+closed_chans | ClosedChannelUpdate | repeated |  
+
+
+
+
+# SetAlias
+
+
+
+```shell
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> channel = grpc.insecure_channel('localhost:10009')
+>>> stub = lnrpc.LightningStub(channel)
+>>> response = stub.SetAlias(ln.SetAliasRequest(
+        new_alias=<YOUR_PARAM>,
     ))
 
 ```
@@ -1576,121 +1815,18 @@ payment_route | Route | optional |
 
 ```
 
-### DisconnectPeerRequest
+### SetAliasRequest
 
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-pub_key | string | optional |  
+new_alias | string | optional |  
 
 
-### DisconnectPeerResponse
+### SetAliasResponse
 
 
 This response is empty.
-
-
-
-
-# OpenChannelSync
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
->>> response = stub.OpenChannelSync(ln.OpenChannelRequest(
-        target_peer_id=<YOUR_PARAM>,
-        node_pubkey=<YOUR_PARAM>,
-        node_pubkey_string=<YOUR_PARAM>,
-        local_funding_amount=<YOUR_PARAM>,
-        push_sat=<YOUR_PARAM>,
-        num_confs=<YOUR_PARAM>,
-    ))
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    funding_txid: <bytes>,
-    funding_txid_str: <string>,
-    output_index: <uint32>,
-}
-
-```
-
-### OpenChannelRequest
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-target_peer_id | int32 | optional |  
-node_pubkey | bytes | optional |  
-node_pubkey_string | string | optional |  
-local_funding_amount | int64 | optional |  
-push_sat | int64 | optional |  
-num_confs | uint32 | optional |  
-
-
-### ChannelPoint
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-funding_txid | bytes | optional |  
-funding_txid_str | string | optional |  
-output_index | uint32 | optional |  
-
-
-
-
-# ListPeers
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.ListPeers(ln.ListPeersRequest())
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    peers: <Peer>,
-}
-
-```
-
-### ListPeersRequest
-
-
-This request has no parameters.
-
-
-### ListPeersResponse
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-peers | Peer | repeated |  
 
 
 
@@ -1739,141 +1875,5 @@ level_spec | string | optional |
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 sub_systems | string | optional |  
-
-
-
-
-# NewAddress
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
->>> response = stub.NewAddress(ln.NewAddressRequest(
-        type=<YOUR_PARAM>,
-    ))
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    address: <string>,
-}
-
-```
-
-### NewAddressRequest
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-type | AddressType | optional |  
-
-
-### NewAddressResponse
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-address | string | optional |  
-
-
-
-
-# SetAlias
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
->>> response = stub.SetAlias(ln.SetAliasRequest(
-        new_alias=<YOUR_PARAM>,
-    ))
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{}
-
-```
-
-### SetAliasRequest
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-new_alias | string | optional |  
-
-
-### SetAliasResponse
-
-
-This response is empty.
-
-
-
-
-# SendCoins
-
-
-
-```shell
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
->>> response = stub.SendCoins(ln.SendCoinsRequest(
-        addr=<YOUR_PARAM>,
-        amount=<YOUR_PARAM>,
-    ))
-
-```
-
-> `response` will be structured similar to this:
-
-```python
-
-{ 
-    txid: <string>,
-}
-
-```
-
-### SendCoinsRequest
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-addr | string | optional |  
-amount | int64 | optional |  
-
-
-### SendCoinsResponse
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-txid | string | optional |  
 
 
