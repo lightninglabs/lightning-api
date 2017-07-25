@@ -62,9 +62,10 @@ def json_proto_to_rpc_dict():
     rpc_messages = {}
     for file_message in file_messages:
         full_name = file_message['message_full_name']
+
         rpc_message = {
             'full_name': full_name,
-            'description': file_message.get('message_description'),
+            'description': file_message['message_description'],
             'extensions': file_message.get('message_extensions'),
             'display_name': file_message['message_name'],  # The standard name we will display
             'fields': [],

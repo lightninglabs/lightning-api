@@ -64,6 +64,7 @@ and Javscript, and the gRPC REST proxy.
 
 ### {{ method.request_type }}
 
+{{ method.request_message.description }}
 {% if method.request_message.fields | length == 0 %}
 This request has no parameters.
 {% else %}
@@ -74,6 +75,7 @@ Field | Type | Label | Description
 
 ### {{ method.response_type }}
 
+{{ method.response_message.description }}
 {% if method.response_message.fields | length == 0 %}
 This response is empty.
 {% else %}
