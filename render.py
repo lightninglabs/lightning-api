@@ -10,7 +10,8 @@ def json_proto_to_rpc_dict():
     Converts a JSON representation of a proto file as output by protoc-gen-doc
     into a Python dict representing the RPC methods, and returns it.
     """
-    # The full structure of a method:
+
+    # The example full structure of a method:
     # {
     #     'description': u'Field comment',
     #     'name': u'SignMessage',
@@ -31,6 +32,7 @@ def json_proto_to_rpc_dict():
     #             },
     #         ],
     #     },
+    #     'request_field_messages': {},
     #     'request_type': u'SignMessageRequest',
     #     'response_full_type': u'lnrpc.SignMessageResponse',
     #     'response_message': {
@@ -49,7 +51,32 @@ def json_proto_to_rpc_dict():
     #             },
     #         ],
     #     },
-    #     'response_type': u'SignMessageResponse'
+    #     'response_type': u'SignMessageResponse',
+    #     'response_field_messages': [{
+    #         'description': u'',
+    #         'display_name': u'ClosedChannel',
+    #         'extensions': [],
+    #         'fields': [
+    #             {
+    #                 'default_value': u'',
+    #                 'description': u'',
+    #                 'full_type': u'lnrpc.PendingChannelResponse.PendingChannel',
+    #                 'label': u'optional',
+    #                 'name': u'channel',
+    #                 'type': u'PendingChannel'
+    #             }, {
+    #                 'default_value': u'',
+    #                 'description': u'',
+    #                 'full_type': u'string',
+    #                 'label': u'optional',
+    #                 'name': u'closing_txid',
+    #                 'type': u'string'
+    #             }
+    #         ],
+    #         'full_name': u'lnrpc.PendingChannelResponse.ClosedChannel'
+    #     }, {
+    #         # ...
+    #     }]
     # }
 
     with open('rpc.json') as data_file:
@@ -105,8 +132,25 @@ def json_proto_to_rpc_dict():
     for _, method in rpc_methods.iteritems():
         request_full_type = method['request_full_type']
         response_full_type = method['response_full_type']
-        method['request_message'] = rpc_messages[request_full_type]
-        method['response_message'] = rpc_messages[response_full_type]
+        request_message = rpc_messages[request_full_type]
+        response_message = rpc_messages[response_full_type]
+        method['request_message'] = request_message
+        method['response_message'] = response_message
+
+        # Populate methods with references to messages referenced in the
+        # request and response messages
+        request_field_messages = []
+        response_field_messages = []
+        method['request_field_messages'] = request_field_messages
+        method['response_field_messages'] = response_field_messages
+        for request_field in request_message['fields']:
+            field_message = rpc_messages.get(request_field['full_type'])
+            if field_message is not None:
+                request_field_messages.append(field_message)
+        for response_field in response_message['fields']:
+            field_message = rpc_messages.get(response_field['full_type'])
+            if field_message is not None:
+                response_field_messages.append(field_message)
 
     return rpc_methods
 
@@ -131,7 +175,7 @@ def construct_method_order():
     return ordering
 
 
-def render_slate_docs():
+def render():
     """
     Given a template, a proto file, and its JSON representation, renders full
     Slate documentation of the `lnd` API.
@@ -155,30 +199,6 @@ def render_slate_docs():
         index = ordering[method['name']]
         method['index'] = index
 
-    # Load some example parameters
-    example = {
-        # Example parameters for a listchannels command
-        # NOTE Perhaps these should be grouped by message?
-        'pubkey': "02244b8eff01be9f7b4ec1d73ab10fc36da48b01a685ac90ed09a63fe94ec08d0a",
-        'channel_point': "2622b779a8acca471a738b0796cd62e4457b79b33265cbfa687aadccc329023a:0",
-        'chan_id': "495879744192512",
-        'capacity': 1000000,
-        'local_balance': 21001,
-        'commit_fee': 8688,
-        'commit_weight': 724,
-        'fee_per_kw': 12000,
-        'total_satoshis_received': 21001,
-        'num_updates': 9,
-        'pending_htlcs': \
-        """{
-          incoming: true
-          amount: 100
-          hash_lock:
-          'jv2\\232\\372\\200\\357BP\\332\\341\\320\\212\\337_0\\340r\\343t;\\247\\2107\\332\\260\\277\\251 ubK' expiration_height: 1
-        }
-        """,
-    }
-
     # Load from the `templates` dir of the `slate` Python package
     env = Environment(
         loader=PackageLoader('slate', 'templates'),
@@ -192,7 +212,6 @@ def render_slate_docs():
 
     rendered_docs = template.render(
         methods=methods_list,
-        example=example,
     ).encode('utf-8')
 
     # Write the file to the source directory. index.html.md is the default name
@@ -200,4 +219,4 @@ def render_slate_docs():
         file_out.write(rendered_docs)
 
 
-render_slate_docs()
+render()
