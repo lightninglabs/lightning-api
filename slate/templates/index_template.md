@@ -26,7 +26,9 @@ our [developer site](https://dev.lightning.community) and
 [tutorial](https://dev.lightning.community/tutorial).
 
 This site features API documentation for command line arguments, gRPC in Python
-and Javscript, and the gRPC REST proxy.
+and Javscript, and the gRPC REST proxy. The original `rpc.proto` file from which
+the gRPC documentation was generated can be found in the [lnd Github
+repo](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
 
 {% for method in methods %}
 
@@ -75,6 +77,7 @@ Field | Type | Label | Description
 
 {% for request_field_message in method.request_field_messages %}
 ### {{ request_field_message.display_name }}
+{{ request_field_message.description }}
 {% if method.request_message.fields | length == 0 %}
 This message has no parameters.
 {% else %}
@@ -97,6 +100,7 @@ Field | Type | Label | Description
 
 {% for response_field_message in method.response_field_messages %}
 ### {{ response_field_message.display_name }}
+{{ response_field_message.description }}
 {% if method.response_message.fields | length == 0 %}
 This message has no parameters.
 {% else %}
