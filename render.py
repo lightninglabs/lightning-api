@@ -92,7 +92,8 @@ def json_proto_to_rpc_dict():
 
         rpc_message = {
             'full_name': full_name,
-            'description': file_message['message_description'],
+            'description': file_message['message_description']
+            .replace('\n', ' ').replace('\r', ''),
             'extensions': file_message.get('message_extensions'),
             'display_name': file_message['message_name'],  # The standard name we will display
             'fields': [],
@@ -106,7 +107,8 @@ def json_proto_to_rpc_dict():
                 'name': field_name,
                 'type': field['field_type'],
                 'full_type': field['field_full_type'],
-                'description': field.get('field_description'),
+                'description': field.get('field_description')
+                .replace('\n', ' ').replace('\r', ''),
                 'label': field['field_label'],
                 'default_value': field['field_default_value'],
             })
@@ -119,7 +121,8 @@ def json_proto_to_rpc_dict():
         method_name = file_method['method_name']
         method = {
             'name': method_name,
-            'description': file_method['method_description'],
+            'description': file_method['method_description']
+            .replace('\n', ' ').replace('\r', ''),
             'request_type': file_method['method_request_type'],
             'request_full_type': file_method['method_request_full_type'],
             'response_type': file_method['method_response_type'],
