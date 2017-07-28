@@ -37,9 +37,11 @@ repo](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
 {{ method.description }}
 
 ```shell
-{% if method.lncli_name %}
-$ lncli {{ method.lncli_name }}
-{% endif %}
+{% if method.lncli_name %}$ {{ method.lncli_info.usage }}{% endif %}
+{% if method.lncli_name %}{% for option in method.lncli_info.options %}
+# {{ option }}
+{% endfor %}{% endif %}
+
 ```
 
 ```python
@@ -54,8 +56,6 @@ $ lncli {{ method.lncli_name }}
     ))
 {% endif %}
 ```
-
-> `response` will be structured similar to this:
 
 ```python
 {% if method.response_message.fields | length == 0 %}
