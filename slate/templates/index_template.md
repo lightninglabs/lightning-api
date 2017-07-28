@@ -37,6 +37,9 @@ repo](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
 {{ method.description }}
 
 ```shell
+{% if method.lncli_name %}
+$ lncli {{ method.lncli_name }}
+{% endif %}
 ```
 
 ```python

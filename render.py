@@ -5,6 +5,38 @@ import json
 import re
 
 
+def parse_out_lncli(description):
+    # Example input:
+    # /** lncli: `getinfo`
+    # GetInfo serves a request.
+    # It returns info.
+    # */
+
+    # Example output:
+    # ('getinfo', "GetInfo serves a request. It returns info.")
+
+    if description is None:
+        return None, None
+
+    lncli_name = None
+    # Match lncli: `lncli_name` or lncli:`lncli_name`
+    match = re.search(r'(?:lncli:.?`)(.*)(?:`)', description)
+    if match:
+        # Get the lncli_name part between the tick marks
+        lncli_name = match.group(1)
+
+        # Remove beginning / trailing spaces
+        description = description.strip()
+
+        # Remove the lncli part from the description
+        description = description[len(match.group()):]
+
+    # Replace all new lines so that Slate markdown renders correctly
+    description = description.replace('\n', ' ').replace('\r', '')
+
+    return lncli_name, description
+
+
 def json_proto_to_rpc_dict():
     """
     Converts a JSON representation of a proto file as output by protoc-gen-doc
@@ -90,10 +122,12 @@ def json_proto_to_rpc_dict():
     for file_message in file_messages:
         full_name = file_message['message_full_name']
 
+        message_lncli_name, message_description = \
+            parse_out_lncli(file_message.get('message_description'))
         rpc_message = {
             'full_name': full_name,
-            'description': file_message['message_description']
-            .replace('\n', ' ').replace('\r', ''),
+            'lncli_name': message_lncli_name,
+            'description': message_description,
             'extensions': file_message.get('message_extensions'),
             'display_name': file_message['message_name'],  # The standard name we will display
             'fields': [],
@@ -103,12 +137,14 @@ def json_proto_to_rpc_dict():
 
         for field in file_message.get('message_fields'):
             field_name = field['field_name']
+            field_lncli_name, field_description = \
+                parse_out_lncli(field.get('field_description'))
             rpc_message['fields'].append({
                 'name': field_name,
+                'lncli_name': field_lncli_name,
                 'type': field['field_type'],
                 'full_type': field['field_full_type'],
-                'description': field.get('field_description')
-                .replace('\n', ' ').replace('\r', ''),
+                'description': field_description,
                 'label': field['field_label'],
                 'default_value': field['field_default_value'],
             })
@@ -119,10 +155,12 @@ def json_proto_to_rpc_dict():
     lightning_service = file_services[0]
     for file_method in lightning_service['service_methods']:
         method_name = file_method['method_name']
+        method_lncli_name, method_description = \
+            parse_out_lncli(file_method['method_description'])
         method = {
             'name': method_name,
-            'description': file_method['method_description']
-            .replace('\n', ' ').replace('\r', ''),
+            'lncli_name': method_lncli_name,
+            'description': method_description,
             'request_type': file_method['method_request_type'],
             'request_full_type': file_method['method_request_full_type'],
             'response_type': file_method['method_response_type'],
