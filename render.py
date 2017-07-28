@@ -3,6 +3,7 @@ from jinja2 import Environment, PackageLoader, select_autoescape
 
 import json
 import re
+import subprocess
 
 
 def parse_out_lncli(description):
@@ -47,6 +48,16 @@ def json_proto_to_rpc_dict():
     # {
     #     'description': u'Field comment',
     #     'name': u'SignMessage',
+    #     'lncli_name': 'signmessage',
+    #     'lncli_info': {
+    #         'usage': u'lncli sendcoins [command options] addr amt',
+    #         'description': u'Send amt coins in satoshis to the BASE58 encoded bitcoin address addr. Positional arguments and flags can be used interchangeably but not at the same time!',
+    #         'name': u'lncli sendcoins - send bitcoin on-chain to an address',
+    #         'options': [
+    #             u'--addr value  the BASE58 encoded bitcoin address to send coins to on-chain',
+    #             u'--amt value   the number of bitcoin denominated in satoshis to send (default: 0)'
+    #         ]
+    #     }
     #     'request_full_type': u'lnrpc.SignMessageRequest',
     #     'request_message': {
     #         'description': u'Filler comment',
@@ -216,6 +227,58 @@ def construct_method_order():
     return ordering
 
 
+def parse_lncli_help(command):
+    # Example output:
+    # {
+    #     'usage': u'lncli sendcoins [command options] addr amt',
+    #     'description': u'Send amt coins in satoshis to the BASE58 encoded bitcoin address addr. Positional arguments and flags can be used interchangeably but not at the same time!',
+    #     'name': u'lncli sendcoins - send bitcoin on-chain to an address',
+    #     'options': [
+    #         u'--addr value  the BASE58 encoded bitcoin address to send coins to on-chain',
+    #         u'--amt value   the number of bitcoin denominated in satoshis to send (default: 0)'
+    #     ]
+    # }
+
+    subprocess.call(['lncli', command, '-h'])
+    help_output = subprocess.check_output(['lncli', command, '-h'])\
+        .decode('utf-8')\
+        .split('\n')
+
+    lncli_info = {
+        'name': None,
+        'usage': None,
+        'options': [],
+        'description': [],
+    }
+    section_headers = set(['NAME:', 'USAGE:', 'DESCRIPTION:', 'OPTIONS:'])
+
+    while len(help_output) > 0:
+        section = help_output.pop(0).strip()
+        if section == '':
+            continue
+        assert section in section_headers, "Should not have reached a section header"
+
+        while len(help_output) > 0 and help_output[0] not in section_headers:
+            line = help_output.pop(0).strip()
+
+            if line == '':
+                continue
+
+            if section == 'NAME:':
+                lncli_info['name'] = line
+            elif section == 'USAGE:':
+                lncli_info['usage'] = line
+            elif section == 'DESCRIPTION:':
+                lncli_info['description'].append(line)
+            elif section == 'OPTIONS:':
+                lncli_info['options'].append(line)
+
+    # Join the description into a single line if it was multiline
+    lncli_info['description'] = ' '.join(lncli_info['description'])
+
+    return lncli_info
+
+
 def render():
     """
     Given a template, a proto file, and its JSON representation, renders full
@@ -235,10 +298,15 @@ def render():
     # the methods and messages
     rpc_methods = json_proto_to_rpc_dict()
 
-    # Add the ordering information into the parsed rpc methods
     for method in rpc_methods.itervalues():
+        # Add the ordering information into the parsed rpc methods
         index = ordering[method['name']]
         method['index'] = index
+
+        # Make calls to lncli -h and populate the method with that information
+        lncli_name = method.get('lncli_name')
+        if lncli_name:
+            method['lncli_info'] = parse_lncli_help(lncli_name)
 
     # Load from the `templates` dir of the `slate` Python package
     env = Environment(
