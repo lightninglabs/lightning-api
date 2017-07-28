@@ -47,10 +47,21 @@ this repo is the Mac OS X version. If running the `protoc -I. ...` command below
 correctly outputs a new `rpc.json` file for you, you may skip this step.
 
 ```shell
-# Generate the rpc.json file from rpc.proto, so that generate_slate_docs.py can
+# Generate the rpc.json file from rpc.proto, so that render.py can
 # parse it
 protoc -I. -I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis --doc_out=json,rpc.json:. rpc.proto
 ```
+
+Now, ensure that you have
+[`lnd` installed](http://http://dev.lightning.community/installation/)
+and your `$GOPATH` set, so that `lncli` is available from the command line.
+Let's run the script to generate our local Slate docs:
+```shell
+python render.py
+```
+
+Now that you're all set up, you can just run `./update_and_render.sh` to
+automatically pull the latest rpc.proto and generate the local Slate docs
 
 ## Deployment
 
@@ -81,3 +92,5 @@ bundle exec middleman build --clean
 ```
 s3_website push
 ```
+
+In the future, you can just run `./deploy.sh` to deploy automatically.
