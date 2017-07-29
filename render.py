@@ -279,6 +279,56 @@ def parse_lncli_help(command):
     return lncli_info
 
 
+def parse_out_streaming():
+    """
+    Parses rpc.proto to see if methods are streaming or not
+    This information can't be gleaned from rpc.json since protoc-gen-doc does
+    not return this information
+    """
+
+    with open('rpc.proto') as data_file:
+        lines = data_file.readlines()
+
+    streaming_info = {}
+
+    for line in lines:
+        streaming_request = False
+        streaming_response = False
+
+        # Ex1: '   rpc SendPayment(stream SendRequest)returns( stream SendResponse )'
+        # Ex2: '    rpc SubscribeTransactions (GetTransactionsRequest) returns (stream Transaction);'
+        match = re.search(r'(?:rpc )(.*)(?: ?\()(?: ?)(.*)(?:\) ?returns ?\()(?: ?)(.*)\)', line)
+
+        if line.strip()[:len('rpc')] == 'rpc':
+            pass
+
+        # If this is a line defining a rpc method
+        if match:
+            # Ex1: 'SendPayment'
+            # Ex2: 'SubscribeTransactions'
+            method_name = match.group(1).strip()
+
+            # Ex1: 'stream SendRequest'
+            # Ex2: 'GetTransactionsRequest'
+            method_request = match.group(2).strip()
+
+            # Ex1: 'stream SendRequest'
+            # Ex2: 'stream Transaction'
+            method_response = match.group(3).strip()
+
+            # If the response string starts with 'stream'
+            if method_response[:len('stream')] == 'stream':
+                streaming_response = True
+
+                # If the request string starts with 'stream'
+                if method_request[:len('stream')] == 'stream':
+                    streaming_request = True
+
+            streaming_info[method_name] = (streaming_request, streaming_response)
+
+    return streaming_info
+
+
 def render():
     """
     Given a template, a proto file, and its JSON representation, renders full
@@ -298,6 +348,9 @@ def render():
     # the methods and messages
     rpc_methods = json_proto_to_rpc_dict()
 
+    # Parse out the streaming info from rpc.proto
+    streaming_info = parse_out_streaming()
+
     for method in rpc_methods.itervalues():
         # Add the ordering information into the parsed rpc methods
         index = ordering[method['name']]
@@ -307,6 +360,10 @@ def render():
         lncli_name = method.get('lncli_name')
         if lncli_name:
             method['lncli_info'] = parse_lncli_help(lncli_name)
+
+        streaming_request, streaming_response = streaming_info[method['name']]
+        method['streaming_request'] = streaming_request
+        method['streaming_response'] = streaming_response
 
     # Load from the `templates` dir of the `slate` Python package
     env = Environment(

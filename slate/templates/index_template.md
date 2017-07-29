@@ -67,7 +67,7 @@ repo](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
 {% endif %}
 ```
 
-### {{ method.request_type }}
+### gRPC Request: {{ method.request_type }} {% if method.streaming_request %}(Streaming){% endif %}
 
 {{ method.request_message.description }}
 {% if method.request_message.fields | length == 0 %}
@@ -90,7 +90,7 @@ Field | Type | Label | Description
 {% endif %}
 {% endfor %}
 
-### {{ method.response_type }}
+### gRPC Response: {{ method.response_type }} {% if method.streaming_response %}(Streaming){% endif %}
 
 {{ method.response_message.description }}
 {% if method.response_message.fields | length == 0 %}
