@@ -63,7 +63,7 @@ $ lncli walletbalance [command options] [arguments...]
 
 ```
 
-### WalletBalanceRequest
+### gRPC Request: WalletBalanceRequest 
 
 
 
@@ -74,7 +74,7 @@ witness_only | bool | optional | If only witness outputs should be considered wh
 
 
 
-### WalletBalanceResponse
+### gRPC Response: WalletBalanceResponse 
 
 
 
@@ -115,7 +115,7 @@ $ lncli channelbalance [arguments...]
 
 ```
 
-### ChannelBalanceRequest
+### gRPC Request: ChannelBalanceRequest 
 
 
 
@@ -124,7 +124,7 @@ This request has no parameters.
 
 
 
-### ChannelBalanceResponse
+### gRPC Response: ChannelBalanceResponse 
 
 
 
@@ -165,7 +165,7 @@ $ lncli listchaintxns [arguments...]
 
 ```
 
-### GetTransactionsRequest
+### gRPC Request: GetTransactionsRequest 
 
 
 
@@ -174,7 +174,7 @@ This request has no parameters.
 
 
 
-### TransactionDetails
+### gRPC Response: TransactionDetails 
 
 
 
@@ -235,7 +235,7 @@ $ lncli sendcoins [command options] addr amt
 
 ```
 
-### SendCoinsRequest
+### gRPC Request: SendCoinsRequest 
 
 
 
@@ -247,7 +247,7 @@ amount | int64 | optional | The amount in satoshis to send
 
 
 
-### SendCoinsResponse
+### gRPC Response: SendCoinsResponse 
 
 
 
@@ -294,7 +294,7 @@ SubscribeTransactions creates a uni-directional stream from the server to the cl
 
 ```
 
-### GetTransactionsRequest
+### gRPC Request: GetTransactionsRequest 
 
 
 
@@ -303,7 +303,7 @@ This request has no parameters.
 
 
 
-### Transaction
+### gRPC Response: Transaction (Streaming)
 
 
 
@@ -351,7 +351,7 @@ $ lncli sendmany send-json-string
 
 ```
 
-### SendManyRequest
+### gRPC Request: SendManyRequest 
 
 `send-json-string` decodes addresses and the amount to send respectively in the following format. `'{"ExampleAddr": NumCoinsInSatoshis, "SecondAddr": NumCoins}'`
 
@@ -371,7 +371,7 @@ value | int64 | optional |
 
 
 
-### SendManyResponse
+### gRPC Response: SendManyResponse 
 
 
 
@@ -413,7 +413,7 @@ $ lncli newaddress address-type
 
 ```
 
-### NewAddressRequest
+### gRPC Request: NewAddressRequest 
 
 `AddressType` has to be one of:  - `p2wkh`: Push to witness key hash (`WITNESS_PUBKEY_HASH` = 0) - `np2wkh`: Push to nested witness key hash (`NESTED_PUBKEY_HASH` = 1) - `p2pkh`:  Push to public key hash (`PUBKEY_HASH` = 2)
 
@@ -424,7 +424,7 @@ type | AddressType | optional | The address type
 
 
 
-### NewAddressResponse
+### gRPC Response: NewAddressResponse 
 
 
 
@@ -465,7 +465,7 @@ NewAddress creates a new witness address under control of the local wallet.
 
 ```
 
-### NewWitnessAddressRequest
+### gRPC Request: NewWitnessAddressRequest 
 
 
 
@@ -474,7 +474,7 @@ This request has no parameters.
 
 
 
-### NewAddressResponse
+### gRPC Response: NewAddressResponse 
 
 
 
@@ -518,7 +518,7 @@ $ lncli signmessage [command options] msg
 
 ```
 
-### SignMessageRequest
+### gRPC Request: SignMessageRequest 
 
 
 
@@ -529,7 +529,7 @@ msg | bytes | optional | The message to be signed
 
 
 
-### SignMessageResponse
+### gRPC Response: SignMessageResponse 
 
 
 
@@ -577,7 +577,7 @@ $ lncli verifymessage [command options] msg signature
 
 ```
 
-### VerifyMessageRequest
+### gRPC Request: VerifyMessageRequest 
 
 
 
@@ -589,7 +589,7 @@ signature | string | optional | The signature to be verifed over the given messa
 
 
 
-### VerifyMessageResponse
+### gRPC Response: VerifyMessageResponse 
 
 
 
@@ -637,7 +637,7 @@ $ lncli connect [command options] <pubkey>@host
 
 ```
 
-### ConnectPeerRequest
+### gRPC Request: ConnectPeerRequest 
 
 
 
@@ -658,7 +658,7 @@ host | string | optional | The network location of the lightning node, e.g. `69.
 
 
 
-### ConnectPeerResponse
+### gRPC Response: ConnectPeerResponse 
 
 
 
@@ -700,7 +700,7 @@ $ lncli disconnect [command options] <pubkey>
 
 ```
 
-### DisconnectPeerRequest
+### gRPC Request: DisconnectPeerRequest 
 
 
 
@@ -711,7 +711,7 @@ pub_key | string | optional | The pubkey of the node to disconnect from
 
 
 
-### DisconnectPeerResponse
+### gRPC Response: DisconnectPeerResponse 
 
 
 
@@ -750,7 +750,7 @@ $ lncli listpeers [arguments...]
 
 ```
 
-### ListPeersRequest
+### gRPC Request: ListPeersRequest 
 
 
 
@@ -759,7 +759,7 @@ This request has no parameters.
 
 
 
-### ListPeersResponse
+### gRPC Response: ListPeersResponse 
 
 
 
@@ -825,7 +825,7 @@ $ lncli getinfo [arguments...]
 
 ```
 
-### GetInfoRequest
+### gRPC Request: GetInfoRequest 
 
 
 
@@ -834,7 +834,7 @@ This request has no parameters.
 
 
 
-### GetInfoResponse
+### gRPC Response: GetInfoResponse 
 
 
 
@@ -893,7 +893,7 @@ $ lncli pendingchannels [command options] [arguments...]
 
 ```
 
-### PendingChannelRequest
+### gRPC Request: PendingChannelRequest 
 
 
 
@@ -902,7 +902,7 @@ This request has no parameters.
 
 
 
-### PendingChannelResponse
+### gRPC Response: PendingChannelResponse 
 
 
 
@@ -982,7 +982,7 @@ $ lncli listchannels [command options] [arguments...]
 
 ```
 
-### ListChannelsRequest
+### gRPC Request: ListChannelsRequest 
 
 
 
@@ -991,7 +991,7 @@ This request has no parameters.
 
 
 
-### ListChannelsResponse
+### gRPC Response: ListChannelsResponse 
 
 
 
@@ -1061,7 +1061,7 @@ OpenChannelSync is a synchronous version of the OpenChannel RPC call. This call 
 
 ```
 
-### OpenChannelRequest
+### gRPC Request: OpenChannelRequest 
 
 
 
@@ -1076,7 +1076,7 @@ push_sat | int64 | optional | The number of satoshis to push to the remote side 
 
 
 
-### ChannelPoint
+### gRPC Response: ChannelPoint 
 
 
 
@@ -1138,7 +1138,7 @@ $ lncli openchannel [command options] node-key local-amt push-amt [num-confs]
 
 ```
 
-### OpenChannelRequest
+### gRPC Request: OpenChannelRequest 
 
 
 
@@ -1153,7 +1153,7 @@ push_sat | int64 | optional | The number of satoshis to push to the remote side 
 
 
 
-### OpenStatusUpdate
+### gRPC Response: OpenStatusUpdate (Streaming)
 
 
 
@@ -1238,7 +1238,7 @@ $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
 
 ```
 
-### CloseChannelRequest
+### gRPC Request: CloseChannelRequest 
 
 
 
@@ -1261,7 +1261,7 @@ output_index | uint32 | optional | The index of the output of the funding transa
 
 
 
-### CloseStatusUpdate
+### gRPC Response: CloseStatusUpdate (Streaming)
 
 
 
@@ -1350,7 +1350,7 @@ $ lncli sendpayment [command options] (destination amount payment_hash | --pay_r
 
 ```
 
-### SendRequest
+### gRPC Request: SendRequest (Streaming)
 
 
 
@@ -1366,7 +1366,7 @@ payment_request | string | optional | PaymentRequest is a bare-bones invoice for
 
 
 
-### SendResponse
+### gRPC Response: SendResponse (Streaming)
 
 
 
@@ -1428,7 +1428,7 @@ SendPaymentSync is the synchronous non-streaming version of SendPayment. This RP
 
 ```
 
-### SendRequest
+### gRPC Request: SendRequest 
 
 
 
@@ -1444,7 +1444,7 @@ payment_request | string | optional | PaymentRequest is a bare-bones invoice for
 
 
 
-### SendResponse
+### gRPC Response: SendResponse 
 
 
 
@@ -1516,7 +1516,7 @@ $ lncli addinvoice [command options] value preimage
 
 ```
 
-### Invoice
+### gRPC Request: Invoice 
 
 
 
@@ -1535,7 +1535,7 @@ payment_request | string | optional | PaymentRequest is a bare-bones invoice for
 
 
 
-### AddInvoiceResponse
+### gRPC Response: AddInvoiceResponse 
 
 
 
@@ -1580,7 +1580,7 @@ $ lncli listinvoices [command options] [arguments...]
 
 ```
 
-### ListInvoiceRequest
+### gRPC Request: ListInvoiceRequest 
 
 
 
@@ -1591,7 +1591,7 @@ pending_only | bool | optional | Toggles if all invoices should be returned, or 
 
 
 
-### ListInvoiceResponse
+### gRPC Response: ListInvoiceResponse 
 
 
 
@@ -1660,7 +1660,7 @@ $ lncli lookupinvoice [command options] rhash
 
 ```
 
-### PaymentHash
+### gRPC Request: PaymentHash 
 
 
 
@@ -1672,7 +1672,7 @@ r_hash | bytes | optional | The payment hash of the invoice to be looked up.
 
 
 
-### Invoice
+### gRPC Response: Invoice 
 
 
 
@@ -1729,7 +1729,7 @@ SubscribeInvoices returns a uni-directional stream (sever -> client) for notifyi
 
 ```
 
-### InvoiceSubscription
+### gRPC Request: InvoiceSubscription 
 
 
 
@@ -1738,7 +1738,7 @@ This request has no parameters.
 
 
 
-### Invoice
+### gRPC Response: Invoice (Streaming)
 
 
 
@@ -1792,7 +1792,7 @@ $ lncli decodepayreq [command options] pay_req
 
 ```
 
-### PayReqString
+### gRPC Request: PayReqString 
 
 
 
@@ -1803,7 +1803,7 @@ pay_req | string | optional | The payment request string to be decoded
 
 
 
-### PayReq
+### gRPC Response: PayReq 
 
 
 
@@ -1846,7 +1846,7 @@ $ lncli listpayments [arguments...]
 
 ```
 
-### ListPaymentsRequest
+### gRPC Request: ListPaymentsRequest 
 
 
 
@@ -1855,7 +1855,7 @@ This request has no parameters.
 
 
 
-### ListPaymentsResponse
+### gRPC Response: ListPaymentsResponse 
 
 
 
@@ -1906,7 +1906,7 @@ DeleteAllPayments deletes all outgoing payments from DB.
 
 ```
 
-### DeleteAllPaymentsRequest
+### gRPC Request: DeleteAllPaymentsRequest 
 
 
 
@@ -1915,7 +1915,7 @@ This request has no parameters.
 
 
 
-### DeleteAllPaymentsResponse
+### gRPC Response: DeleteAllPaymentsResponse 
 
 
 
@@ -1957,7 +1957,7 @@ $ lncli describegraph [command options] [arguments...]
 
 ```
 
-### ChannelGraphRequest
+### gRPC Request: ChannelGraphRequest 
 
 
 
@@ -1966,7 +1966,7 @@ This request has no parameters.
 
 
 
-### ChannelGraph
+### gRPC Response: ChannelGraph 
 
 ChannelGraph returns a new instance of the directed channel graph.
 
@@ -2044,7 +2044,7 @@ $ lncli getchaninfo [command options] chan_id
 
 ```
 
-### ChanInfoRequest
+### gRPC Request: ChanInfoRequest 
 
 
 
@@ -2055,7 +2055,7 @@ chan_id | uint64 | optional | ChannelID is the unique channel ID for the channel
 
 
 
-### ChannelEdge
+### gRPC Response: ChannelEdge 
 
 ChannelEdgeInfo represents a fully authenticated channel along with all its unique attributes. Once an authenticated channel announcement has been processed on the network, then a instance of ChannelEdgeInfo encapsulating the channels attributes is stored. The other portions relevant to routing policy of a channel are stored within a ChannelEdgePolicy for each direction of the channel.
 
@@ -2130,7 +2130,7 @@ $ lncli getnodeinfo [command options] [arguments...]
 
 ```
 
-### NodeInfoRequest
+### gRPC Request: NodeInfoRequest 
 
 
 
@@ -2141,7 +2141,7 @@ pub_key | string | optional | The 33-byte hex-encoded compressed public of the t
 
 
 
-### NodeInfo
+### gRPC Response: NodeInfo 
 
 
 
@@ -2201,7 +2201,7 @@ $ lncli queryroutes [command options] dest amt
 
 ```
 
-### QueryRoutesRequest
+### gRPC Request: QueryRoutesRequest 
 
 
 
@@ -2213,7 +2213,7 @@ amt | int64 | optional | The amount to send expressed in satoshis
 
 
 
-### QueryRoutesResponse
+### gRPC Response: QueryRoutesResponse 
 
 
 
@@ -2273,7 +2273,7 @@ $ lncli getnetworkinfo [arguments...]
 
 ```
 
-### NetworkInfoRequest
+### gRPC Request: NetworkInfoRequest 
 
 
 
@@ -2282,7 +2282,7 @@ This request has no parameters.
 
 
 
-### NetworkInfo
+### gRPC Response: NetworkInfo 
 
 
 
@@ -2329,7 +2329,7 @@ $ lncli stop [arguments...]
 
 ```
 
-### StopRequest
+### gRPC Request: StopRequest 
 
 
 
@@ -2338,7 +2338,7 @@ This request has no parameters.
 
 
 
-### StopResponse
+### gRPC Response: StopResponse 
 
 
 
@@ -2379,7 +2379,7 @@ SubscribeChannelGraph launches a streaming RPC that allows the caller to receive
 
 ```
 
-### GraphTopologySubscription
+### gRPC Request: GraphTopologySubscription 
 
 
 
@@ -2388,7 +2388,7 @@ This request has no parameters.
 
 
 
-### GraphTopologyUpdate
+### gRPC Response: GraphTopologyUpdate (Streaming)
 
 
 
@@ -2465,7 +2465,7 @@ SetAlias sets the alias for this node; e.g. "alice"
 
 ```
 
-### SetAliasRequest
+### gRPC Request: SetAliasRequest 
 
 
 
@@ -2476,7 +2476,7 @@ new_alias | string | optional |
 
 
 
-### SetAliasResponse
+### gRPC Response: SetAliasResponse 
 
 
 
@@ -2521,7 +2521,7 @@ $ lncli debuglevel [command options] [arguments...]
 
 ```
 
-### DebugLevelRequest
+### gRPC Request: DebugLevelRequest 
 
 
 
@@ -2533,7 +2533,7 @@ level_spec | string | optional |
 
 
 
-### DebugLevelResponse
+### gRPC Response: DebugLevelResponse 
 
 
 
