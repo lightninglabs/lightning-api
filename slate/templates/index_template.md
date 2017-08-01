@@ -50,24 +50,21 @@ repo](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
 {% if method.lncli_name %}{% for option in method.lncli_info.options %}
 # {{ option }}
 {% endfor %}{% endif %}
-
 ```
 
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
->>> stub = lnrpc.LightningStub(channel)
-{% if method.request_message.fields | length == 0 %}
->>> response = stub.{{ method.name }}(ln.{{ method.request_type }}())
-{% else %}>>> response = stub.{{ method.name }}(ln.{{ method.request_type }}({% for field in method.request_message.fields %}
-        {{ field.name }}=<YOUR_PARAM>,{% endfor %}
-    ))
-{% endif %}
-
-{% if method.response_message.fields | length == 0 %}
-{}
-{% else %}
+>>> stub = lnrpc.LightningStub(channel){% if method.streaming_request %}
+{% include 'streaming_request.html' %}{% else %}
+>>> request = {% include 'request_obj.html' %}{% endif %}
+>>> response{% if method.streaming_response %}_iterable{% endif %} = stub.{{ method.name }}(request{% if method.streaming_request %}_iterable{% endif %})
+>>> {% if method.streaming_response %}for response in response_iterable:
+    # Do something
+    print response
+{% else %}response{% endif %}
+{% if method.response_message.fields | length == 0 %}{}{% else %}
 { {% for field in method.response_message.fields %}
     {{ field.name }}: <{{ field.type }}>,{% endfor %}
 }

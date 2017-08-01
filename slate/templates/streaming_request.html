@@ -1,0 +1,9 @@
+# Define a generator
+>>> def request_iterable(low, high):
+        # Initialization code here
+        while True:
+            request = ln.{{ method.request_type }}({% if method.request_message.fields | length == 0 %}){% else %}{% for field in method.request_message.fields %}
+                {{ field.name }}=<YOUR_PARAM>,{% endfor %}
+            ){% endif %}
+            yield request
+            # Alter parameters here
