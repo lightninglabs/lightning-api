@@ -34,13 +34,15 @@ repo](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
 
 # WalletBalance
 
+### Simple RPC
+
+
  WalletBalance returns the sum of all confirmed unspent outputs under control by the wallet. This method can be modified by having the request specify only witness outputs should be factored into the final output sum.
 
 ```shell
 $ lncli walletbalance [command options] [arguments...]
 
 # --witness_only  if only witness outputs should be considered when calculating the wallet's balance
-
 
 ```
 
@@ -49,13 +51,11 @@ $ lncli walletbalance [command options] [arguments...]
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.WalletBalance(ln.WalletBalanceRequest(
+>>> request = ln.WalletBalanceRequest(
         witness_only=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
+    )
+>>> response = stub.WalletBalance(request)
+>>> response
 
 { 
     balance: <int64>,
@@ -89,11 +89,13 @@ balance | int64 | optional | The balance of the wallet
 
 # ChannelBalance
 
+### Simple RPC
+
+
  ChannelBalance returns the total available channel flow across all open channels in satoshis.
 
 ```shell
 $ lncli channelbalance [arguments...]
-
 
 ```
 
@@ -102,12 +104,9 @@ $ lncli channelbalance [arguments...]
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.ChannelBalance(ln.ChannelBalanceRequest())
-
-```
-
-```python
+>>> request = ln.ChannelBalanceRequest()
+>>> response = stub.ChannelBalance(request)
+>>> response
 
 { 
     balance: <int64>,
@@ -139,11 +138,13 @@ balance | int64 | optional | Sum of balance of channels denominated in satoshis
 
 # GetTransactions
 
+### Simple RPC
+
+
  GetTransactions returns a list describing all the known transactions relevant to the wallet.
 
 ```shell
 $ lncli listchaintxns [arguments...]
-
 
 ```
 
@@ -152,12 +153,9 @@ $ lncli listchaintxns [arguments...]
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.GetTransactions(ln.GetTransactionsRequest())
-
-```
-
-```python
+>>> request = ln.GetTransactionsRequest()
+>>> response = stub.GetTransactions(request)
+>>> response
 
 { 
     transactions: <Transaction>,
@@ -203,6 +201,9 @@ total_fees | int64 | optional | Fees paid for this transaction
 
 # SendCoins
 
+### Simple RPC
+
+
  SendCoins executes a request to send coins to a particular address. Unlike SendMany, this RPC call only allows creating a single output at a time.
 
 ```shell
@@ -212,7 +213,6 @@ $ lncli sendcoins [command options] addr amt
 
 # --amt value   the number of bitcoin denominated in satoshis to send (default: 0)
 
-
 ```
 
 ```python
@@ -220,14 +220,12 @@ $ lncli sendcoins [command options] addr amt
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.SendCoins(ln.SendCoinsRequest(
+>>> request = ln.SendCoinsRequest(
         addr=<YOUR_PARAM>,
         amount=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
+    )
+>>> response = stub.SendCoins(request)
+>>> response
 
 { 
     txid: <string>,
@@ -262,10 +260,12 @@ txid | string | optional | The transaction ID of the transaction
 
 # SubscribeTransactions
 
+### Response-streaming RPC
+
+
 SubscribeTransactions creates a uni-directional stream from the server to the client in which any newly discovered transactions relevant to the wallet are sent over.
 
 ```shell
-
 
 
 ```
@@ -275,12 +275,12 @@ SubscribeTransactions creates a uni-directional stream from the server to the cl
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
+>>> request = ln.GetTransactionsRequest()
+>>> response_iterable = stub.SubscribeTransactions(request)
+>>> for response in response_iterable:
+    # Do something
+    print response
 
->>> response = stub.SubscribeTransactions(ln.GetTransactionsRequest())
-
-```
-
-```python
 
 { 
     tx_hash: <string>,
@@ -324,11 +324,13 @@ total_fees | int64 | optional | Fees paid for this transaction
 
 # SendMany
 
+### Simple RPC
+
+
  SendMany handles a request for a transaction create multiple specified outputs in parallel.
 
 ```shell
 $ lncli sendmany send-json-string
-
 
 ```
 
@@ -337,13 +339,11 @@ $ lncli sendmany send-json-string
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.SendMany(ln.SendManyRequest(
+>>> request = ln.SendManyRequest(
         AddrToAmount=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
+    )
+>>> response = stub.SendMany(request)
+>>> response
 
 { 
     txid: <string>,
@@ -386,11 +386,13 @@ txid | string | optional | The id of the transaction
 
 # NewAddress
 
+### Simple RPC
+
+
  NewAddress creates a new address under control of the local wallet.
 
 ```shell
 $ lncli newaddress address-type
-
 
 ```
 
@@ -399,13 +401,11 @@ $ lncli newaddress address-type
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.NewAddress(ln.NewAddressRequest(
+>>> request = ln.NewAddressRequest(
         type=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
+    )
+>>> response = stub.NewAddress(request)
+>>> response
 
 { 
     address: <string>,
@@ -439,10 +439,12 @@ address | string | optional | The newly generated wallet address
 
 # NewWitnessAddress
 
+### Simple RPC
+
+
 NewAddress creates a new witness address under control of the local wallet.
 
 ```shell
-
 
 
 ```
@@ -452,12 +454,9 @@ NewAddress creates a new witness address under control of the local wallet.
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.NewWitnessAddress(ln.NewWitnessAddressRequest())
-
-```
-
-```python
+>>> request = ln.NewWitnessAddressRequest()
+>>> response = stub.NewWitnessAddress(request)
+>>> response
 
 { 
     address: <string>,
@@ -489,13 +488,15 @@ address | string | optional | The newly generated wallet address
 
 # SignMessage
 
+### Simple RPC
+
+
  SignMessage signs a message with the resident node's private key. The returned signature string is `zbase32` encoded and pubkey recoverable, meaning that only the message digest and signature are needed for verification.
 
 ```shell
 $ lncli signmessage [command options] msg
 
 # --msg value  the message to sign
-
 
 ```
 
@@ -504,13 +505,11 @@ $ lncli signmessage [command options] msg
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.SignMessage(ln.SignMessageRequest(
+>>> request = ln.SignMessageRequest(
         msg=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
+    )
+>>> response = stub.SignMessage(request)
+>>> response
 
 { 
     signature: <string>,
@@ -544,6 +543,9 @@ signature | string | optional | The signature for the given message
 
 # VerifyMessage
 
+### Simple RPC
+
+
  VerifyMessage verifies a signature over a msg. The signature must be zbase32 encoded and signed by an active node in the resident node's channel database. In addition to returning the validity of the signature, VerifyMessage also returns the recovered pubkey from the signature.
 
 ```shell
@@ -553,7 +555,6 @@ $ lncli verifymessage [command options] msg signature
 
 # --sig value  the zbase32 encoded signature of the message
 
-
 ```
 
 ```python
@@ -561,14 +562,12 @@ $ lncli verifymessage [command options] msg signature
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.VerifyMessage(ln.VerifyMessageRequest(
+>>> request = ln.VerifyMessageRequest(
         msg=<YOUR_PARAM>,
         signature=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
+    )
+>>> response = stub.VerifyMessage(request)
+>>> response
 
 { 
     valid: <bool>,
@@ -605,6 +604,9 @@ pubkey | string | optional | The pubkey recovered from the signature
 
 # ConnectPeer
 
+### Simple RPC
+
+
  ConnectPeer attempts to establish a connection to a remote peer. This is at networking level, and is used for communication between nodes. This is distinct from establishing a channel with a peer.
 
 ```shell
@@ -614,7 +616,6 @@ $ lncli connect [command options] <pubkey>@host
 
 # If not, the call will be synchronous.
 
-
 ```
 
 ```python
@@ -622,14 +623,12 @@ $ lncli connect [command options] <pubkey>@host
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.ConnectPeer(ln.ConnectPeerRequest(
+>>> request = ln.ConnectPeerRequest(
         addr=<YOUR_PARAM>,
         perm=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
+    )
+>>> response = stub.ConnectPeer(request)
+>>> response
 
 { 
     peer_id: <int32>,
@@ -673,13 +672,15 @@ peer_id | int32 | optional | The id of the newly connected peer
 
 # DisconnectPeer
 
+### Simple RPC
+
+
  DisconnectPeer attempts to disconnect one peer from another identified by a given pubKey. In the case that we currently ahve a pending or active channel with the target peer, then
 
 ```shell
 $ lncli disconnect [command options] <pubkey>
 
 # --node_key value  The hex-encoded compressed public key of the peer to disconnect from
-
 
 ```
 
@@ -688,16 +689,12 @@ $ lncli disconnect [command options] <pubkey>
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.DisconnectPeer(ln.DisconnectPeerRequest(
+>>> request = ln.DisconnectPeerRequest(
         pub_key=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
-
+    )
+>>> response = stub.DisconnectPeer(request)
+>>> response
 {}
-
 ```
 
 ### gRPC Request: DisconnectPeerRequest 
@@ -724,11 +721,13 @@ This response is empty.
 
 # ListPeers
 
+### Simple RPC
+
+
  ListPeers returns a verbose listing of all currently active peers.
 
 ```shell
 $ lncli listpeers [arguments...]
-
 
 ```
 
@@ -737,12 +736,9 @@ $ lncli listpeers [arguments...]
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.ListPeers(ln.ListPeersRequest())
-
-```
-
-```python
+>>> request = ln.ListPeersRequest()
+>>> response = stub.ListPeers(request)
+>>> response
 
 { 
     peers: <Peer>,
@@ -790,11 +786,13 @@ ping_time | int64 | optional | Ping time to this peer
 
 # GetInfo
 
+### Simple RPC
+
+
  GetInfo serves a request to the "getinfo" RPC call. This call returns general information concerning the lightning node including its LN ID, identity address, and information concerning the number of open and pending channels.
 
 ```shell
 $ lncli getinfo [arguments...]
-
 
 ```
 
@@ -803,12 +801,9 @@ $ lncli getinfo [arguments...]
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.GetInfo(ln.GetInfoRequest())
-
-```
-
-```python
+>>> request = ln.GetInfoRequest()
+>>> response = stub.GetInfo(request)
+>>> response
 
 { 
     identity_pubkey: <string>,
@@ -858,6 +853,9 @@ chains | string | repeated | A list of active chains the node is connected to
 
 # PendingChannels
 
+### Simple RPC
+
+
  PendingChannels returns a list of all the channels that are currently considered "pending". A channel is pending if it has finished the funding workflow and is waiting for confirmations for the funding txn, or is in the process of closure, either initiated cooperatively or non-cooperatively.
 
 ```shell
@@ -869,7 +867,6 @@ $ lncli pendingchannels [command options] [arguments...]
 
 # --all, -a    display the status of channels in the process of being opened or closed
 
-
 ```
 
 ```python
@@ -877,12 +874,9 @@ $ lncli pendingchannels [command options] [arguments...]
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.PendingChannels(ln.PendingChannelRequest())
-
-```
-
-```python
+>>> request = ln.PendingChannelRequest()
+>>> response = stub.PendingChannels(request)
+>>> response
 
 { 
     total_limbo_balance: <int64>,
@@ -954,13 +948,15 @@ blocks_til_maturity | uint32 | optional | Remaining # of blocks until funds can 
 
 # ListChannels
 
+### Simple RPC
+
+
  ListChannels returns a description of all direct active, open channels the node knows of.
 
 ```shell
 $ lncli listchannels [command options] [arguments...]
 
 # --active_only, -a  only list channels which are currently active
-
 
 ```
 
@@ -969,12 +965,9 @@ $ lncli listchannels [command options] [arguments...]
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.ListChannels(ln.ListChannelsRequest())
-
-```
-
-```python
+>>> request = ln.ListChannelsRequest()
+>>> response = stub.ListChannels(request)
+>>> response
 
 { 
     channels: <ActiveChannel>,
@@ -1028,10 +1021,12 @@ pending_htlcs | HTLC | repeated | Htlcs is the list of active, uncleared HTLCs c
 
 # OpenChannelSync
 
+### Simple RPC
+
+
 OpenChannelSync is a synchronous version of the OpenChannel RPC call. This call is meant to be consumed by clients to the REST proxy. As with all other sync calls, all byte slices are instead to be populated as hex encoded strings.
 
 ```shell
-
 
 
 ```
@@ -1041,17 +1036,15 @@ OpenChannelSync is a synchronous version of the OpenChannel RPC call. This call 
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.OpenChannelSync(ln.OpenChannelRequest(
+>>> request = ln.OpenChannelRequest(
         target_peer_id=<YOUR_PARAM>,
         node_pubkey=<YOUR_PARAM>,
         node_pubkey_string=<YOUR_PARAM>,
         local_funding_amount=<YOUR_PARAM>,
         push_sat=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
+    )
+>>> response = stub.OpenChannelSync(request)
+>>> response
 
 { 
     funding_txid: <bytes>,
@@ -1093,6 +1086,9 @@ output_index | uint32 | optional | The index of the output of the funding transa
 
 # OpenChannel
 
+### Response-streaming RPC
+
+
   OpenChannel attempts to open a singly funded channel specified in the request to a remote peer.
 
 ```shell
@@ -1110,7 +1106,6 @@ $ lncli openchannel [command options] node-key local-amt push-amt [num-confs]
 
 # --block            block and wait until the channel is fully open
 
-
 ```
 
 ```python
@@ -1118,17 +1113,18 @@ $ lncli openchannel [command options] node-key local-amt push-amt [num-confs]
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.OpenChannel(ln.OpenChannelRequest(
+>>> request = ln.OpenChannelRequest(
         target_peer_id=<YOUR_PARAM>,
         node_pubkey=<YOUR_PARAM>,
         node_pubkey_string=<YOUR_PARAM>,
         local_funding_amount=<YOUR_PARAM>,
         push_sat=<YOUR_PARAM>,
-    ))
+    )
+>>> response_iterable = stub.OpenChannel(request)
+>>> for response in response_iterable:
+    # Do something
+    print response
 
-```
-
-```python
 
 { 
     chan_pending: <PendingUpdate>,
@@ -1197,6 +1193,9 @@ channel_point | ChannelPoint | optional |
 
 # CloseChannel
 
+### Response-streaming RPC
+
+
  CloseChannel attempts to close an active channel identified by its channel point. The actions of this method can additionally be augmented to attempt a force close after a timeout period in the case of an inactive peer.
 
 ```shell
@@ -1212,7 +1211,6 @@ $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
 
 # --block               block until the channel is closed
 
-
 ```
 
 ```python
@@ -1220,15 +1218,16 @@ $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.CloseChannel(ln.CloseChannelRequest(
+>>> request = ln.CloseChannelRequest(
         channel_point=<YOUR_PARAM>,
         time_limit=<YOUR_PARAM>,
         force=<YOUR_PARAM>,
-    ))
+    )
+>>> response_iterable = stub.CloseChannel(request)
+>>> for response in response_iterable:
+    # Do something
+    print response
 
-```
-
-```python
 
 { 
     close_pending: <PendingUpdate>,
@@ -1306,6 +1305,9 @@ success | bool | optional |
 
 # SendPayment
 
+### Bidirectional-streaming RPC
+
+
  SendPayment dispatches a bi-directional streaming RPC for sending payments through the Lightning Network. A single RPC invocation creates a persistent bi-directional stream allowing clients to rapidly send payments through the Lightning Network with a single persistent connection.
 
 ```shell
@@ -1321,7 +1323,6 @@ $ lncli sendpayment [command options] (destination amount payment_hash | --pay_r
 
 # --pay_req value                 a zbase32-check encoded payment request to fulfill
 
-
 ```
 
 ```python
@@ -1329,18 +1330,25 @@ $ lncli sendpayment [command options] (destination amount payment_hash | --pay_r
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.SendPayment(ln.SendRequest(
-        dest=<YOUR_PARAM>,
-        dest_string=<YOUR_PARAM>,
-        amt=<YOUR_PARAM>,
-        payment_hash=<YOUR_PARAM>,
-        payment_hash_string=<YOUR_PARAM>,
-        payment_request=<YOUR_PARAM>,
-    ))
+# Define a generator
+>>> def request_iterable(low, high):
+        # Initialization code here
+        while True:
+            request = ln.SendRequest(
+                dest=<YOUR_PARAM>,
+                dest_string=<YOUR_PARAM>,
+                amt=<YOUR_PARAM>,
+                payment_hash=<YOUR_PARAM>,
+                payment_hash_string=<YOUR_PARAM>,
+                payment_request=<YOUR_PARAM>,
+            )
+            yield request
+            # Alter parameters here
+>>> response_iterable = stub.SendPayment(request_iterable)
+>>> for response in response_iterable:
+    # Do something
+    print response
 
-```
-
-```python
 
 { 
     payment_error: <string>,
@@ -1394,10 +1402,12 @@ hops | Hop | repeated | Hops contains details concerning the specific forwarding
 
 # SendPaymentSync
 
+### Simple RPC
+
+
 SendPaymentSync is the synchronous non-streaming version of SendPayment. This RPC is intended to be consumed by clients of the REST proxy. Additionally, this RPC expects the destination's public key and the payment hash (if any) to be encoded as hex strings.
 
 ```shell
-
 
 
 ```
@@ -1407,18 +1417,16 @@ SendPaymentSync is the synchronous non-streaming version of SendPayment. This RP
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.SendPaymentSync(ln.SendRequest(
+>>> request = ln.SendRequest(
         dest=<YOUR_PARAM>,
         dest_string=<YOUR_PARAM>,
         amt=<YOUR_PARAM>,
         payment_hash=<YOUR_PARAM>,
         payment_hash_string=<YOUR_PARAM>,
         payment_request=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
+    )
+>>> response = stub.SendPaymentSync(request)
+>>> response
 
 { 
     payment_error: <string>,
@@ -1472,6 +1480,9 @@ hops | Hop | repeated | Hops contains details concerning the specific forwarding
 
 # AddInvoice
 
+### Simple RPC
+
+
  AddInvoice attempts to add a new invoice to the invoice database. Any duplicated invoices are rejected, therefore all invoices *must* have a unique payment preimage.
 
 ```shell
@@ -1485,7 +1496,6 @@ $ lncli addinvoice [command options] value preimage
 
 # --value value     the value of this invoice in satoshis (default: 0)
 
-
 ```
 
 ```python
@@ -1493,7 +1503,7 @@ $ lncli addinvoice [command options] value preimage
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.AddInvoice(ln.Invoice(
+>>> request = ln.Invoice(
         memo=<YOUR_PARAM>,
         receipt=<YOUR_PARAM>,
         r_preimage=<YOUR_PARAM>,
@@ -1503,11 +1513,9 @@ $ lncli addinvoice [command options] value preimage
         creation_date=<YOUR_PARAM>,
         settle_date=<YOUR_PARAM>,
         payment_request=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
+    )
+>>> response = stub.AddInvoice(request)
+>>> response
 
 { 
     r_hash: <bytes>,
@@ -1551,13 +1559,15 @@ payment_request | string | optional | PaymentRequest is a bare-bones invoice for
 
 # ListInvoices
 
+### Simple RPC
+
+
  ListInvoices returns a list of all the invoices currently stored within the database. Any active debug invoices are ignored.
 
 ```shell
 $ lncli listinvoices [command options] [arguments...]
 
 # --pending_only  toggles if all invoices should be returned, or only those that are currently unsettled
-
 
 ```
 
@@ -1566,13 +1576,11 @@ $ lncli listinvoices [command options] [arguments...]
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.ListInvoices(ln.ListInvoiceRequest(
+>>> request = ln.ListInvoiceRequest(
         pending_only=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
+    )
+>>> response = stub.ListInvoices(request)
+>>> response
 
 { 
     invoices: <Invoice>,
@@ -1622,13 +1630,15 @@ payment_request | string | optional | PaymentRequest is a bare-bones invoice for
 
 # LookupInvoice
 
+### Simple RPC
+
+
  LookupInvoice attemps to look up an invoice according to its payment hash. The passed payment hash *must* be exactly 32 bytes, if not an error is returned.
 
 ```shell
 $ lncli lookupinvoice [command options] rhash
 
 # --rhash value  the 32 byte payment hash of the invoice to query for, the hash should be a hex-encoded string
-
 
 ```
 
@@ -1637,14 +1647,12 @@ $ lncli lookupinvoice [command options] rhash
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.LookupInvoice(ln.PaymentHash(
+>>> request = ln.PaymentHash(
         r_hash_str=<YOUR_PARAM>,
         r_hash=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
+    )
+>>> response = stub.LookupInvoice(request)
+>>> response
 
 { 
     memo: <string>,
@@ -1695,10 +1703,12 @@ payment_request | string | optional | PaymentRequest is a bare-bones invoice for
 
 # SubscribeInvoices
 
+### Response-streaming RPC
+
+
 SubscribeInvoices returns a uni-directional stream (sever -> client) for notifying the client of newly added/settled invoices.
 
 ```shell
-
 
 
 ```
@@ -1708,12 +1718,12 @@ SubscribeInvoices returns a uni-directional stream (sever -> client) for notifyi
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
+>>> request = ln.InvoiceSubscription()
+>>> response_iterable = stub.SubscribeInvoices(request)
+>>> for response in response_iterable:
+    # Do something
+    print response
 
->>> response = stub.SubscribeInvoices(ln.InvoiceSubscription())
-
-```
-
-```python
 
 { 
     memo: <string>,
@@ -1761,13 +1771,15 @@ payment_request | string | optional | PaymentRequest is a bare-bones invoice for
 
 # DecodePayReq
 
+### Simple RPC
+
+
  DecodePayReq takes an encoded payment request string and attempts to decode it, returning a full description of the conditions encoded within the payment request.
 
 ```shell
 $ lncli decodepayreq [command options] pay_req
 
 # --pay_req value  the zpay32 encoded payment request
-
 
 ```
 
@@ -1776,13 +1788,11 @@ $ lncli decodepayreq [command options] pay_req
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.DecodePayReq(ln.PayReqString(
+>>> request = ln.PayReqString(
         pay_req=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
+    )
+>>> response = stub.DecodePayReq(request)
+>>> response
 
 { 
     destination: <string>,
@@ -1820,11 +1830,13 @@ num_satoshis | int64 | optional |
 
 # ListPayments
 
+### Simple RPC
+
+
  ListPayments returns a list of all outgoing payments.
 
 ```shell
 $ lncli listpayments [arguments...]
-
 
 ```
 
@@ -1833,12 +1845,9 @@ $ lncli listpayments [arguments...]
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.ListPayments(ln.ListPaymentsRequest())
-
-```
-
-```python
+>>> request = ln.ListPaymentsRequest()
+>>> response = stub.ListPayments(request)
+>>> response
 
 { 
     payments: <Payment>,
@@ -1882,10 +1891,12 @@ fee | int64 | optional | The fee paid for this payment in satoshis
 
 # DeleteAllPayments
 
+### Simple RPC
+
+
 DeleteAllPayments deletes all outgoing payments from DB.
 
 ```shell
-
 
 
 ```
@@ -1895,15 +1906,10 @@ DeleteAllPayments deletes all outgoing payments from DB.
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.DeleteAllPayments(ln.DeleteAllPaymentsRequest())
-
-```
-
-```python
-
+>>> request = ln.DeleteAllPaymentsRequest()
+>>> response = stub.DeleteAllPayments(request)
+>>> response
 {}
-
 ```
 
 ### gRPC Request: DeleteAllPaymentsRequest 
@@ -1928,13 +1934,15 @@ This response is empty.
 
 # DescribeGraph
 
+### Simple RPC
+
+
  DescribeGraph returns a description of the latest graph state from the PoV of the node. The graph information is partitioned into two components: all the nodes/vertexes, and all the edges that connect the vertexes themselves. As this is a directed graph, the edges also contain the node directional specific routing policy which includes: the time lock delta, fee information, etc.
 
 ```shell
 $ lncli describegraph [command options] [arguments...]
 
 # --render  If set, then an image of graph will be generated and displayed. The generated image is stored within the current directory with a file name of 'graph.svg'
-
 
 ```
 
@@ -1943,12 +1951,9 @@ $ lncli describegraph [command options] [arguments...]
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.DescribeGraph(ln.ChannelGraphRequest())
-
-```
-
-```python
+>>> request = ln.ChannelGraphRequest()
+>>> response = stub.DescribeGraph(request)
+>>> response
 
 { 
     nodes: <LightningNode>,
@@ -2008,13 +2013,15 @@ node2_policy | RoutingPolicy | optional |
 
 # GetChanInfo
 
+### Simple RPC
+
+
  GetChanInfo returns the latest authenticated network announcement for the given channel identified by its channel ID: an 8-byte integer which uniquely identifies the location of transaction's funding output within the block chain.
 
 ```shell
 $ lncli getchaninfo [command options] chan_id
 
 # --chan_id value  the 8-byte compact channel ID to query for (default: 0)
-
 
 ```
 
@@ -2023,13 +2030,11 @@ $ lncli getchaninfo [command options] chan_id
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.GetChanInfo(ln.ChanInfoRequest(
+>>> request = ln.ChanInfoRequest(
         chan_id=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
+    )
+>>> response = stub.GetChanInfo(request)
+>>> response
 
 { 
     channel_id: <uint64>,
@@ -2099,13 +2104,15 @@ fee_rate_milli_msat | int64 | optional |
 
 # GetNodeInfo
 
+### Simple RPC
+
+
  GetNodeInfo returns the latest advertised and aggregate authenticated channel information for the specified node identified by its public key.
 
 ```shell
 $ lncli getnodeinfo [command options] [arguments...]
 
 # --pub_key value  the 33-byte hex-encoded compressed public of the target node
-
 
 ```
 
@@ -2114,13 +2121,11 @@ $ lncli getnodeinfo [command options] [arguments...]
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.GetNodeInfo(ln.NodeInfoRequest(
+>>> request = ln.NodeInfoRequest(
         pub_key=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
+    )
+>>> response = stub.GetNodeInfo(request)
+>>> response
 
 { 
     node: <LightningNode>,
@@ -2169,6 +2174,9 @@ addresses | NodeAddress | repeated |
 
 # QueryRoutes
 
+### Simple RPC
+
+
  QueryRoutes attempts to query the daemons' Channel Router for a possible route to a target destination capable of carrying a specific amount of satoshis within the route's flow. The retuned route contains the full details required to craft and send an HTLC, also including the necessary information that should be present within the Sphinx packet encapsualted within the HTLC.
 
 ```shell
@@ -2178,7 +2186,6 @@ $ lncli queryroutes [command options] dest amt
 
 # --amt value   the amount to send expressed in satoshis (default: 0)
 
-
 ```
 
 ```python
@@ -2186,14 +2193,12 @@ $ lncli queryroutes [command options] dest amt
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.QueryRoutes(ln.QueryRoutesRequest(
+>>> request = ln.QueryRoutesRequest(
         pub_key=<YOUR_PARAM>,
         amt=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
+    )
+>>> response = stub.QueryRoutes(request)
+>>> response
 
 { 
     routes: <Route>,
@@ -2239,11 +2244,13 @@ hops | Hop | repeated | Hops contains details concerning the specific forwarding
 
 # GetNetworkInfo
 
+### Simple RPC
+
+
  GetNetworkInfo returns some basic stats about the known channel graph from the PoV of the node.
 
 ```shell
 $ lncli getnetworkinfo [arguments...]
-
 
 ```
 
@@ -2252,12 +2259,9 @@ $ lncli getnetworkinfo [arguments...]
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.GetNetworkInfo(ln.NetworkInfoRequest())
-
-```
-
-```python
+>>> request = ln.NetworkInfoRequest()
+>>> response = stub.GetNetworkInfo(request)
+>>> response
 
 { 
     graph_diameter: <uint32>,
@@ -2305,11 +2309,13 @@ max_channel_size | int64 | optional |
 
 # StopDaemon
 
+### Simple RPC
+
+
  StopDaemon will send a shutdown request to the interrupt handler, triggering a graceful shutdown of the daemon.
 
 ```shell
 $ lncli stop [arguments...]
-
 
 ```
 
@@ -2318,15 +2324,10 @@ $ lncli stop [arguments...]
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
-
->>> response = stub.StopDaemon(ln.StopRequest())
-
-```
-
-```python
-
+>>> request = ln.StopRequest()
+>>> response = stub.StopDaemon(request)
+>>> response
 {}
-
 ```
 
 ### gRPC Request: StopRequest 
@@ -2351,10 +2352,12 @@ This response is empty.
 
 # SubscribeChannelGraph
 
+### Response-streaming RPC
+
+
 SubscribeChannelGraph launches a streaming RPC that allows the caller to receive notifications upon any changes the channel graph topology from the review of the responding node. Events notified include: new nodes coming online, nodes updating their authenticated attributes, new channels being advertised, updates in the routing policy for a directional channel edge, and finally when prior channels are closed on-chain.
 
 ```shell
-
 
 
 ```
@@ -2364,12 +2367,12 @@ SubscribeChannelGraph launches a streaming RPC that allows the caller to receive
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
+>>> request = ln.GraphTopologySubscription()
+>>> response_iterable = stub.SubscribeChannelGraph(request)
+>>> for response in response_iterable:
+    # Do something
+    print response
 
->>> response = stub.SubscribeChannelGraph(ln.GraphTopologySubscription())
-
-```
-
-```python
 
 { 
     node_updates: <NodeUpdate>,
@@ -2440,10 +2443,12 @@ chan_point | ChannelPoint | optional |
 
 # SetAlias
 
+### Simple RPC
+
+
 SetAlias sets the alias for this node; e.g. "alice"
 
 ```shell
-
 
 
 ```
@@ -2453,16 +2458,12 @@ SetAlias sets the alias for this node; e.g. "alice"
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.SetAlias(ln.SetAliasRequest(
+>>> request = ln.SetAliasRequest(
         new_alias=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
-
+    )
+>>> response = stub.SetAlias(request)
+>>> response
 {}
-
 ```
 
 ### gRPC Request: SetAliasRequest 
@@ -2489,6 +2490,9 @@ This response is empty.
 
 # DebugLevel
 
+### Simple RPC
+
+
  DebugLevel allows a caller to programmatically set the logging verbosity of lnd. The logging can be targeted according to a coarse daemon-wide logging level, or in a granular fashion to specify the logging for a target sub-system.
 
 ```shell
@@ -2498,7 +2502,6 @@ $ lncli debuglevel [command options] [arguments...]
 
 # --level value  the level specification to target either a coarse logging level, or granular set of specific sub-systems with logging levels for each
 
-
 ```
 
 ```python
@@ -2506,14 +2509,12 @@ $ lncli debuglevel [command options] [arguments...]
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
->>> response = stub.DebugLevel(ln.DebugLevelRequest(
+>>> request = ln.DebugLevelRequest(
         show=<YOUR_PARAM>,
         level_spec=<YOUR_PARAM>,
-    ))
-
-```
-
-```python
+    )
+>>> response = stub.DebugLevel(request)
+>>> response
 
 { 
     sub_systems: <string>,

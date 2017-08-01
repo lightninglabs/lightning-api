@@ -359,6 +359,7 @@ def render():
         # Make calls to lncli -h and populate the method with that information
         lncli_name = method.get('lncli_name')
         if lncli_name:
+            # method['lncli_info'] = {}
             method['lncli_info'] = parse_lncli_help(lncli_name)
 
         streaming_request, streaming_response = streaming_info[method['name']]
@@ -385,4 +386,5 @@ def render():
         file_out.write(rendered_docs)
 
 
-render()
+if __name__ == '__main__':
+    render()
