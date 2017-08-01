@@ -33,6 +33,15 @@ repo](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
 {% for method in methods %}
 
 # {{ method.name }}
+{% if not method.streaming_request and not method.streaming_response %}
+### Simple RPC
+{% elif not method.streaming_request and method.streaming_response %}
+### Response-streaming RPC
+{% elif method.streaming_request and not method.streaming_response %}
+### Request-streaming RPC
+{% elif method.streaming_request and method.streaming_response %}
+### Bidirectional-streaming RPC
+{% endif %}
 
 {{ method.description }}
 
@@ -55,9 +64,7 @@ repo](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
         {{ field.name }}=<YOUR_PARAM>,{% endfor %}
     ))
 {% endif %}
-```
 
-```python
 {% if method.response_message.fields | length == 0 %}
 {}
 {% else %}
