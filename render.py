@@ -366,7 +366,7 @@ def render():
         method['streaming_request'] = streaming_request
         method['streaming_response'] = streaming_response
 
-    # Load from the `templates` dir of the `slate` Python package
+    # Load from the `templates` dir
     env = Environment(
         loader=FileSystemLoader('./templates'),
         autoescape=select_autoescape(['html', 'xml'])

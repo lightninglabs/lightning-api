@@ -55,13 +55,13 @@ protoc -I. -I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway/third_party/goog
 Now, ensure that you have
 [`lnd` installed](http://http://dev.lightning.community/installation/)
 and your `$GOPATH` set, so that `lncli` is available from the command line.
-Let's run the script to generate our local Slate docs:
+Let's run the script to render our local Slate docs:
 ```shell
 python render.py
 ```
 
 Now that you're all set up, you can just run `./update_and_render.sh` to
-automatically pull the latest rpc.proto and generate the local Slate docs
+automatically pull the latest rpc.proto and render the local Slate docs
 
 ## Deployment
 

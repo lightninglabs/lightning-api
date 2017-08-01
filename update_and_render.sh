@@ -6,3 +6,7 @@ protoc -I. -I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway/third_party/goog
 
 # Generate the new docs
 python render.py
+
+# Clean up
+rm rpc.proto
+rm rpc.json
