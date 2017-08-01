@@ -1,5 +1,5 @@
 #!/usr/local/bin/python
-from jinja2 import Environment, PackageLoader, select_autoescape
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 import json
 import re
@@ -337,7 +337,7 @@ def render():
     Location of
     - proto file: `rpc.proto`
     - proto JSON: `rpc.json`
-    - template: `slate/templates/index_template.md`
+    - template: `templates/index_template.md`
     - Slate markdown output: `source/index.html.md`
     """
 
@@ -368,7 +368,7 @@ def render():
 
     # Load from the `templates` dir of the `slate` Python package
     env = Environment(
-        loader=PackageLoader('slate', 'templates'),
+        loader=FileSystemLoader('./templates'),
         autoescape=select_autoescape(['html', 'xml'])
     )
     template = env.get_template('index_template.md')
