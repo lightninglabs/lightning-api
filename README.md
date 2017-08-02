@@ -29,8 +29,8 @@ You can now see the docs at `http://localhost:4567`.
 # Install Jinja for python templating
 pip install Jinja2
 
-# Set your $GOPATH to the current directory
-export GOPATH=`pwd`
+# Set your $GOPATH to a directory that has access to lncli
+export GOPATH="/path/to/lnd"
 export PATH=$PATH:$GOPATH/bin
 
 # Install annotations
