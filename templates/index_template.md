@@ -58,17 +58,10 @@ repo](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel){% if method.streaming_request %}
 {% include 'streaming_request.html' %}{% else %}
->>> request = {% include 'request_obj.html' %}{% endif %}
->>> response{% if method.streaming_response %}_iterable{% endif %} = stub.{{ method.name }}(request{% if method.streaming_request %}_iterable{% endif %})
->>> {% if method.streaming_response %}for response in response_iterable:
-    # Do something
-    print response
-{% else %}response{% endif %}
-{% if method.response_message.fields | length == 0 %}{}{% else %}
-{ {% for field in method.response_message.fields %}
-    {{ field.name }}: <{{ field.type }}>,{% endfor %}
-}
-{% endif %}
+{% include 'simple_request.html' %}{% endif %}{% if method.streaming_response %}
+{% include 'streaming_response.html' %}{% else %}
+{% include 'simple_response.html' %}{% endif %}
+{% include 'response_output.html' %}
 ```
 
 ### gRPC Request: {{ method.request_type }} {% if method.streaming_request %}(Streaming){% endif %}

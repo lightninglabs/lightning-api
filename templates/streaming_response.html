@@ -1,0 +1,3 @@
+>>> for response in stub.{{ method.name }}(request{% if method.streaming_request %}_iterable{% endif %}):
+    # Do something
+    print response
