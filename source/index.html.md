@@ -276,11 +276,9 @@ SubscribeTransactions creates a uni-directional stream from the server to the cl
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.GetTransactionsRequest()
->>> response_iterable = stub.SubscribeTransactions(request)
->>> for response in response_iterable:
+>>> for response in stub.SubscribeTransactions(request):
     # Do something
     print response
-
 
 { 
     tx_hash: <string>,
@@ -1120,11 +1118,9 @@ $ lncli openchannel [command options] node-key local-amt push-amt [num-confs]
         local_funding_amount=<YOUR_PARAM>,
         push_sat=<YOUR_PARAM>,
     )
->>> response_iterable = stub.OpenChannel(request)
->>> for response in response_iterable:
+>>> for response in stub.OpenChannel(request):
     # Do something
     print response
-
 
 { 
     chan_pending: <PendingUpdate>,
@@ -1223,11 +1219,9 @@ $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
         time_limit=<YOUR_PARAM>,
         force=<YOUR_PARAM>,
     )
->>> response_iterable = stub.CloseChannel(request)
->>> for response in response_iterable:
+>>> for response in stub.CloseChannel(request):
     # Do something
     print response
-
 
 { 
     close_pending: <PendingUpdate>,
@@ -1330,10 +1324,12 @@ $ lncli sendpayment [command options] (destination amount payment_hash | --pay_r
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
-# Define a generator
->>> def request_iterable(low, high):
+# Define a generator that returns an Iterable of SendRequest objects
+>>> def request_generator():
         # Initialization code here
+        print("Starting up")
         while True:
+            # Params here can be set as arguments to the generator
             request = ln.SendRequest(
                 dest=<YOUR_PARAM>,
                 dest_string=<YOUR_PARAM>,
@@ -1343,12 +1339,11 @@ $ lncli sendpayment [command options] (destination amount payment_hash | --pay_r
                 payment_request=<YOUR_PARAM>,
             )
             yield request
-            # Alter parameters here
->>> response_iterable = stub.SendPayment(request_iterable)
->>> for response in response_iterable:
+            # Do things between iterations here
+>>> request_iterable = request_generator()
+>>> for response in stub.SendPayment(request_iterable):
     # Do something
     print response
-
 
 { 
     payment_error: <string>,
@@ -1719,11 +1714,9 @@ SubscribeInvoices returns a uni-directional stream (sever -> client) for notifyi
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.InvoiceSubscription()
->>> response_iterable = stub.SubscribeInvoices(request)
->>> for response in response_iterable:
+>>> for response in stub.SubscribeInvoices(request):
     # Do something
     print response
-
 
 { 
     memo: <string>,
@@ -2368,11 +2361,9 @@ SubscribeChannelGraph launches a streaming RPC that allows the caller to receive
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.GraphTopologySubscription()
->>> response_iterable = stub.SubscribeChannelGraph(request)
->>> for response in response_iterable:
+>>> for response in stub.SubscribeChannelGraph(request):
     # Do something
     print response
-
 
 { 
     node_updates: <NodeUpdate>,
