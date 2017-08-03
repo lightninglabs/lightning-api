@@ -40,10 +40,11 @@ repo](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
  WalletBalance returns the sum of all confirmed unspent outputs under control by the wallet. This method can be modified by having the request specify only witness outputs should be factored into the final output sum.
 
 ```shell
+
+
 $ lncli walletbalance [command options] [arguments...]
 
 # --witness_only  if only witness outputs should be considered when calculating the wallet's balance
-
 ```
 
 ```python
@@ -92,9 +93,11 @@ balance | int64 | optional | The balance of the wallet
 ### Simple RPC
 
 
- ChannelBalance returns the total available channel flow across all open channels in satoshis.
+ ChannelBalance returns the total funds available across all open channels in satoshis.
 
 ```shell
+
+
 $ lncli channelbalance [arguments...]
 
 ```
@@ -144,6 +147,9 @@ balance | int64 | optional | Sum of balance of channels denominated in satoshis
  GetTransactions returns a list describing all the known transactions relevant to the wallet.
 
 ```shell
+
+# List all transactions an address of the wallet was involved in.
+
 $ lncli listchaintxns [arguments...]
 
 ```
@@ -207,12 +213,14 @@ total_fees | int64 | optional | Fees paid for this transaction
  SendCoins executes a request to send coins to a particular address. Unlike SendMany, this RPC call only allows creating a single output at a time.
 
 ```shell
+
+# Send amt coins in satoshis to the BASE58 encoded bitcoin address addr.
+# Positional arguments and flags can be used interchangeably but not at the same time!
+
 $ lncli sendcoins [command options] addr amt
 
 # --addr value  the BASE58 encoded bitcoin address to send coins to on-chain
-
 # --amt value   the number of bitcoin denominated in satoshis to send (default: 0)
-
 ```
 
 ```python
@@ -266,7 +274,6 @@ txid | string | optional | The transaction ID of the transaction
 SubscribeTransactions creates a uni-directional stream from the server to the client in which any newly discovered transactions relevant to the wallet are sent over.
 
 ```shell
-
 
 ```
 
@@ -325,9 +332,14 @@ total_fees | int64 | optional | Fees paid for this transaction
 ### Simple RPC
 
 
- SendMany handles a request for a transaction create multiple specified outputs in parallel.
+ SendMany handles a request for a transaction that creates multiple specified outputs in parallel.
 
 ```shell
+
+# create and broadcast a transaction paying the specified amount(s) to the passed address(es)
+# 'send-json-string' decodes addresses and the amount to send respectively in the following format.
+# '{"ExampleAddr": NumCoinsInSatoshis, "SecondAddr": NumCoins}'
+
 $ lncli sendmany send-json-string
 
 ```
@@ -390,6 +402,12 @@ txid | string | optional | The id of the transaction
  NewAddress creates a new address under control of the local wallet.
 
 ```shell
+
+# Generate a wallet new address. Address-types has to be one of:
+# - p2wkh:  Push to witness key hash
+# - np2wkh: Push to nested witness key hash
+# - p2pkh:  Push to public key hash
+
 $ lncli newaddress address-type
 
 ```
@@ -440,10 +458,9 @@ address | string | optional | The newly generated wallet address
 ### Simple RPC
 
 
-NewAddress creates a new witness address under control of the local wallet.
+NewWitnessAddress creates a new witness address under control of the local wallet.
 
 ```shell
-
 
 ```
 
@@ -489,13 +506,16 @@ address | string | optional | The newly generated wallet address
 ### Simple RPC
 
 
- SignMessage signs a message with the resident node's private key. The returned signature string is `zbase32` encoded and pubkey recoverable, meaning that only the message digest and signature are needed for verification.
+ SignMessage signs a message with this node's private key. The returned signature string is `zbase32` encoded and pubkey recoverable, meaning that only the message digest and signature are needed for verification.
 
 ```shell
+
+# Sign msg with the resident node's private key. Returns a the signature as a zbase32 string.
+# Positional arguments and flags can be used interchangeably but not at the same time!
+
 $ lncli signmessage [command options] msg
 
 # --msg value  the message to sign
-
 ```
 
 ```python
@@ -547,12 +567,16 @@ signature | string | optional | The signature for the given message
  VerifyMessage verifies a signature over a msg. The signature must be zbase32 encoded and signed by an active node in the resident node's channel database. In addition to returning the validity of the signature, VerifyMessage also returns the recovered pubkey from the signature.
 
 ```shell
+
+# Verify that the message was signed with a properly-formed signature.
+# The signature must be zbase32 encoded and signed with the private key of
+# an active node in the resident node's channel database.
+# Positional arguments and flags can be used interchangeably but not at the same time!
+
 $ lncli verifymessage [command options] msg signature
 
 # --msg value  the message to verify
-
 # --sig value  the zbase32 encoded signature of the message
-
 ```
 
 ```python
@@ -605,15 +629,15 @@ pubkey | string | optional | The pubkey recovered from the signature
 ### Simple RPC
 
 
- ConnectPeer attempts to establish a connection to a remote peer. This is at networking level, and is used for communication between nodes. This is distinct from establishing a channel with a peer.
+ ConnectPeer attempts to establish a connection to a remote peer. This is at the networking level, and is used for communication between nodes. This is distinct from establishing a channel with a peer.
 
 ```shell
+
+
 $ lncli connect [command options] <pubkey>@host
 
 # --perm  If set, the daemon will attempt to persistently connect to the target peer.
-
 # If not, the call will be synchronous.
-
 ```
 
 ```python
@@ -673,13 +697,14 @@ peer_id | int32 | optional | The id of the newly connected peer
 ### Simple RPC
 
 
- DisconnectPeer attempts to disconnect one peer from another identified by a given pubKey. In the case that we currently ahve a pending or active channel with the target peer, then
+ DisconnectPeer attempts to disconnect one peer from another identified by a given pubKey. In the case that we currently have a pending or active channel with the target peer, then this action will be not be allowed.
 
 ```shell
+
+
 $ lncli disconnect [command options] <pubkey>
 
 # --node_key value  The hex-encoded compressed public key of the peer to disconnect from
-
 ```
 
 ```python
@@ -725,6 +750,8 @@ This response is empty.
  ListPeers returns a verbose listing of all currently active peers.
 
 ```shell
+
+
 $ lncli listpeers [arguments...]
 
 ```
@@ -787,9 +814,11 @@ ping_time | int64 | optional | Ping time to this peer
 ### Simple RPC
 
 
- GetInfo serves a request to the "getinfo" RPC call. This call returns general information concerning the lightning node including its LN ID, identity address, and information concerning the number of open and pending channels.
+ GetInfo returns general information concerning the lightning node including it's identity pubkey, alias, the chains it is connected to, and information concerning the number of open+pending channels.
 
 ```shell
+
+
 $ lncli getinfo [arguments...]
 
 ```
@@ -857,14 +886,13 @@ chains | string | repeated | A list of active chains the node is connected to
  PendingChannels returns a list of all the channels that are currently considered "pending". A channel is pending if it has finished the funding workflow and is waiting for confirmations for the funding txn, or is in the process of closure, either initiated cooperatively or non-cooperatively.
 
 ```shell
+
+
 $ lncli pendingchannels [command options] [arguments...]
 
 # --open, -o   display the status of new pending channels
-
 # --close, -c  display the status of channels being closed
-
 # --all, -a    display the status of channels in the process of being opened or closed
-
 ```
 
 ```python
@@ -949,13 +977,14 @@ blocks_til_maturity | uint32 | optional | Remaining # of blocks until funds can 
 ### Simple RPC
 
 
- ListChannels returns a description of all direct active, open channels the node knows of.
+ ListChannels returns a description of all the open channels that this node is a participant in.
 
 ```shell
+
+
 $ lncli listchannels [command options] [arguments...]
 
 # --active_only, -a  only list channels which are currently active
-
 ```
 
 ```python
@@ -1022,10 +1051,9 @@ pending_htlcs | HTLC | repeated | Htlcs is the list of active, uncleared HTLCs c
 ### Simple RPC
 
 
-OpenChannelSync is a synchronous version of the OpenChannel RPC call. This call is meant to be consumed by clients to the REST proxy. As with all other sync calls, all byte slices are instead to be populated as hex encoded strings.
+OpenChannelSync is a synchronous version of the OpenChannel RPC call. This call is meant to be consumed by clients to the REST proxy. As with all other sync calls, all byte slices are intended to be populated as hex encoded strings.
 
 ```shell
-
 
 ```
 
@@ -1087,23 +1115,20 @@ output_index | uint32 | optional | The index of the output of the funding transa
 ### Response-streaming RPC
 
 
-  OpenChannel attempts to open a singly funded channel specified in the request to a remote peer.
+ OpenChannel attempts to open a singly funded channel specified in the request to a remote peer.
 
 ```shell
+
+# Attempt to open a new channel to an existing peer with the key node-key, optionally blocking until the channel is 'open'. The channel will be initialized with local-amt satoshis local and push-amt satoshis for the remote node. Once the channel is open, a channelPoint (txid:vout) of the funding output is returned. NOTE: peer_id and node_key are mutually exclusive, only one should be used, not both.
+
 $ lncli openchannel [command options] node-key local-amt push-amt [num-confs]
 
 # --peer_id value    the relative id of the peer to open a channel with (default: 0)
-
 # --node_key value   the identity public key of the target peer serialized in compressed format
-
 # --local_amt value  the number of satoshis the wallet should commit to the channel (default: 0)
-
 # --push_amt value   the number of satoshis to push to the remote side as part of the initial commitment state (default: 0)
-
 # --num_confs value  the number of confirmations required before the channel is considered 'open' (default: 1)
-
 # --block            block and wait until the channel is fully open
-
 ```
 
 ```python
@@ -1192,21 +1217,19 @@ channel_point | ChannelPoint | optional |
 ### Response-streaming RPC
 
 
- CloseChannel attempts to close an active channel identified by its channel point. The actions of this method can additionally be augmented to attempt a force close after a timeout period in the case of an inactive peer.
+ CloseChannel attempts to close an active channel identified by its channel outpoint (ChannelPoint). The actions of this method can additionally be augmented to attempt a force close after a timeout period in the case of an inactive peer.
 
 ```shell
+
+# Close an existing channel. The channel can be closed either cooperatively, or uncooperatively (forced).
+
 $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
 
 # --funding_txid value  the txid of the channel's funding transaction
-
 # --output_index value  the output index for the funding output of the funding transaction (default: 0)
-
 # --time_limit value    a relative deadline afterwhich the attempt should be abandoned
-
 # --force               after the time limit has passed, attempt an uncooperative closure
-
 # --block               block until the channel is closed
-
 ```
 
 ```python
@@ -1305,18 +1328,15 @@ success | bool | optional |
  SendPayment dispatches a bi-directional streaming RPC for sending payments through the Lightning Network. A single RPC invocation creates a persistent bi-directional stream allowing clients to rapidly send payments through the Lightning Network with a single persistent connection.
 
 ```shell
+
+
 $ lncli sendpayment [command options] (destination amount payment_hash | --pay_req=[payment request])
 
 # --dest value, -d value          the compressed identity pubkey of the payment recipient
-
 # --amt value, -a value           number of satoshis to send (default: 0)
-
 # --payment_hash value, -r value  the hash to use within the payment's HTLC
-
 # --debug_send                    use the debug rHash when sending the HTLC
-
 # --pay_req value                 a zbase32-check encoded payment request to fulfill
-
 ```
 
 ```python
@@ -1404,7 +1424,6 @@ SendPaymentSync is the synchronous non-streaming version of SendPayment. This RP
 
 ```shell
 
-
 ```
 
 ```python
@@ -1481,16 +1500,15 @@ hops | Hop | repeated | Hops contains details concerning the specific forwarding
  AddInvoice attempts to add a new invoice to the invoice database. Any duplicated invoices are rejected, therefore all invoices *must* have a unique payment preimage.
 
 ```shell
+
+# Add a new invoice, expressing intent for a future payment. The value of the invoice in satoshis and a 32 byte hash preimage are neccesary for the creation
+
 $ lncli addinvoice [command options] value preimage
 
 # --memo value      an optional memo to attach along with the invoice
-
 # --receipt value   an optional cryptographic receipt of payment
-
 # --preimage value  the hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage
-
 # --value value     the value of this invoice in satoshis (default: 0)
-
 ```
 
 ```python
@@ -1560,10 +1578,11 @@ payment_request | string | optional | PaymentRequest is a bare-bones invoice for
  ListInvoices returns a list of all the invoices currently stored within the database. Any active debug invoices are ignored.
 
 ```shell
+
+
 $ lncli listinvoices [command options] [arguments...]
 
 # --pending_only  toggles if all invoices should be returned, or only those that are currently unsettled
-
 ```
 
 ```python
@@ -1628,13 +1647,14 @@ payment_request | string | optional | PaymentRequest is a bare-bones invoice for
 ### Simple RPC
 
 
- LookupInvoice attemps to look up an invoice according to its payment hash. The passed payment hash *must* be exactly 32 bytes, if not an error is returned.
+ LookupInvoice attemps to look up an invoice according to its payment hash. The passed payment hash *must* be exactly 32 bytes, if not, an error is returned.
 
 ```shell
+
+
 $ lncli lookupinvoice [command options] rhash
 
 # --rhash value  the 32 byte payment hash of the invoice to query for, the hash should be a hex-encoded string
-
 ```
 
 ```python
@@ -1705,7 +1725,6 @@ SubscribeInvoices returns a uni-directional stream (sever -> client) for notifyi
 
 ```shell
 
-
 ```
 
 ```python
@@ -1770,10 +1789,12 @@ payment_request | string | optional | PaymentRequest is a bare-bones invoice for
  DecodePayReq takes an encoded payment request string and attempts to decode it, returning a full description of the conditions encoded within the payment request.
 
 ```shell
+
+# Decode the passed payment request revealing the destination, payment hash and value of the payment request
+
 $ lncli decodepayreq [command options] pay_req
 
 # --pay_req value  the zpay32 encoded payment request
-
 ```
 
 ```python
@@ -1829,6 +1850,8 @@ num_satoshis | int64 | optional |
  ListPayments returns a list of all outgoing payments.
 
 ```shell
+
+
 $ lncli listpayments [arguments...]
 
 ```
@@ -1891,7 +1914,6 @@ DeleteAllPayments deletes all outgoing payments from DB.
 
 ```shell
 
-
 ```
 
 ```python
@@ -1930,13 +1952,15 @@ This response is empty.
 ### Simple RPC
 
 
- DescribeGraph returns a description of the latest graph state from the PoV of the node. The graph information is partitioned into two components: all the nodes/vertexes, and all the edges that connect the vertexes themselves. As this is a directed graph, the edges also contain the node directional specific routing policy which includes: the time lock delta, fee information, etc.
+ DescribeGraph returns a description of the latest graph state from the point of view of the node. The graph information is partitioned into two components: all the nodes/vertexes, and all the edges that connect the vertexes themselves.  As this is a directed graph, the edges also contain the node directional specific routing policy which includes: the time lock delta, fee information, etc.
 
 ```shell
+
+# prints a human readable version of the known channel graph from the PoV of the node
+
 $ lncli describegraph [command options] [arguments...]
 
 # --render  If set, then an image of graph will be generated and displayed. The generated image is stored within the current directory with a file name of 'graph.svg'
-
 ```
 
 ```python
@@ -2009,13 +2033,15 @@ node2_policy | RoutingPolicy | optional |
 ### Simple RPC
 
 
- GetChanInfo returns the latest authenticated network announcement for the given channel identified by its channel ID: an 8-byte integer which uniquely identifies the location of transaction's funding output within the block chain.
+ GetChanInfo returns the latest authenticated network announcement for the given channel identified by its channel ID: an 8-byte integer which uniquely identifies the location of transaction's funding output within the blockchain.
 
 ```shell
+
+# prints out the latest authenticated state for a particular channel
+
 $ lncli getchaninfo [command options] chan_id
 
 # --chan_id value  the 8-byte compact channel ID to query for (default: 0)
-
 ```
 
 ```python
@@ -2100,13 +2126,15 @@ fee_rate_milli_msat | int64 | optional |
 ### Simple RPC
 
 
- GetNodeInfo returns the latest advertised and aggregate authenticated channel information for the specified node identified by its public key.
+ GetNodeInfo returns the latest advertised, aggregated, and authenticated channel information for the specified node identified by its public key.
 
 ```shell
+
+# prints out the latest authenticated node state for an advertised node
+
 $ lncli getnodeinfo [command options] [arguments...]
 
 # --pub_key value  the 33-byte hex-encoded compressed public of the target node
-
 ```
 
 ```python
@@ -2170,15 +2198,16 @@ addresses | NodeAddress | repeated |
 ### Simple RPC
 
 
- QueryRoutes attempts to query the daemons' Channel Router for a possible route to a target destination capable of carrying a specific amount of satoshis within the route's flow. The retuned route contains the full details required to craft and send an HTLC, also including the necessary information that should be present within the Sphinx packet encapsualted within the HTLC.
+ QueryRoutes attempts to query the daemon's Channel Router for a possible route to a target destination capable of carrying a specific amount of satoshis. The retuned route contains the full details required to craft and send an HTLC, also including the necessary information that should be present within the Sphinx packet encapsualted within the HTLC.
 
 ```shell
+
+# Queries the channel router for a potential path to the destination that has sufficient flow for the amount including fees
+
 $ lncli queryroutes [command options] dest amt
 
 # --dest value  the 33-byte hex-encoded public key for the payment destination
-
 # --amt value   the amount to send expressed in satoshis (default: 0)
-
 ```
 
 ```python
@@ -2240,9 +2269,12 @@ hops | Hop | repeated | Hops contains details concerning the specific forwarding
 ### Simple RPC
 
 
- GetNetworkInfo returns some basic stats about the known channel graph from the PoV of the node.
+ GetNetworkInfo returns some basic stats about the known channel graph from the point of view of the node.
 
 ```shell
+
+# returns a set of statistics pertaining to the known channel graph
+
 $ lncli getnetworkinfo [arguments...]
 
 ```
@@ -2308,6 +2340,9 @@ max_channel_size | int64 | optional |
  StopDaemon will send a shutdown request to the interrupt handler, triggering a graceful shutdown of the daemon.
 
 ```shell
+
+# Gracefully stop all daemon subsystems before stopping the daemon itself. This is equivalent to stopping it using CTRL-C.
+
 $ lncli stop [arguments...]
 
 ```
@@ -2348,10 +2383,9 @@ This response is empty.
 ### Response-streaming RPC
 
 
-SubscribeChannelGraph launches a streaming RPC that allows the caller to receive notifications upon any changes the channel graph topology from the review of the responding node. Events notified include: new nodes coming online, nodes updating their authenticated attributes, new channels being advertised, updates in the routing policy for a directional channel edge, and finally when prior channels are closed on-chain.
+SubscribeChannelGraph launches a streaming RPC that allows the caller to receive notifications upon any changes to the channel graph topology from the point of view of the responding node. Events notified include: new nodes coming online, nodes updating their authenticated attributes, new channels being advertised, updates in the routing policy for a directional channel edge, and when channels are closed on-chain.
 
 ```shell
-
 
 ```
 
@@ -2441,7 +2475,6 @@ SetAlias sets the alias for this node; e.g. "alice"
 
 ```shell
 
-
 ```
 
 ```python
@@ -2487,12 +2520,13 @@ This response is empty.
  DebugLevel allows a caller to programmatically set the logging verbosity of lnd. The logging can be targeted according to a coarse daemon-wide logging level, or in a granular fashion to specify the logging for a target sub-system.
 
 ```shell
+
+# Logging level for all subsystems {trace, debug, info, warn, error, critical} -- You may also specify <subsystem>=<level>,<subsystem2>=<level>,... to set the log level for individual subsystems -- Use show to list available subsystems
+
 $ lncli debuglevel [command options] [arguments...]
 
 # --show         if true, then the list of available sub-systems will be printed out
-
 # --level value  the level specification to target either a coarse logging level, or granular set of specific sub-systems with logging levels for each
-
 ```
 
 ```python

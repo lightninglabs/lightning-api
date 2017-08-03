@@ -273,9 +273,6 @@ def parse_lncli_help(command):
             elif section == 'OPTIONS:':
                 lncli_info['options'].append(line)
 
-    # Join the description into a single line if it was multiline
-    lncli_info['description'] = ' '.join(lncli_info['description'])
-
     return lncli_info
 
 

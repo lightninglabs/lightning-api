@@ -46,10 +46,12 @@ repo](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
 {{ method.description }}
 
 ```shell
-{% if method.lncli_name %}$ {{ method.lncli_info.usage }}{% endif %}
-{% if method.lncli_name %}{% for option in method.lncli_info.options %}
-# {{ option }}
-{% endfor %}{% endif %}
+{% if method.lncli_name %}{% for description_line in method.lncli_info.description %}
+# {{ description_line }}{% endfor %}
+
+$ {{ method.lncli_info.usage }}
+{% for option in method.lncli_info.options %}
+# {{ option }}{% endfor %}{% endif %}
 ```
 
 ```python
