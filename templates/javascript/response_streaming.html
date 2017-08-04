@@ -1,0 +1,15 @@
+> var call = lightning.{{ method.name_js }}({% if method.request_message.fields | length == 0 %}{}{% else %}{ {% for field in method.request_message.fields %}
+    {{ field.name }}: <YOUR_PARAM>,{% endfor %}
+  }{% endif %})
+
+> call.on('data', function(message) {
+    console.log(message);
+  });
+> call.on('end', function() {
+    // The server has finished sending
+    console.log("END");
+  });
+> call.on('status', function(status) {
+    // Process status
+    console.log("Current status: " + status);
+  });

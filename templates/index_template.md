@@ -4,6 +4,7 @@ title: API Reference
 language_tabs:
   - shell
   - python
+  - javascript
 
 toc_footers:
   - <a href='http://dev.lightning.community'>Developer site</a>
@@ -17,16 +18,18 @@ search: true
 
 # Introduction
 
-Welcome to the API documentation for LND, the Lightning Network
+Welcome to the API reference documentation for LND, the Lightning Network
 Daemon.
 
-This page serves purely as a reference, generally for those who already
-understand how to work with LND. If this is your first time, please check out
-our [developer site](https://dev.lightning.community) and
-[tutorial](https://dev.lightning.community/tutorial).
-
 This site features API documentation for command line arguments, gRPC in Python
-and Javscript, and the gRPC REST proxy. The original `rpc.proto` file from which
+/ Javascript, and the gRPC REST proxy.
+
+This page is intended for those who already understand how to work with LND. If
+this is your first time or you need a refresher, please check out the [guides
+page](https://dev.lightning.community/guides/) and
+[tutorial](https://dev.lightning.community/tutorial) on our developer site.
+
+Additionally, the original `rpc.proto` file from which
 the gRPC documentation was generated can be found in the [lnd Github
 repo](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
 
@@ -59,11 +62,24 @@ $ {{ method.lncli_info.usage }}
 >>> import grpc
 >>> channel = grpc.insecure_channel('localhost:10009')
 >>> stub = lnrpc.LightningStub(channel){% if method.streaming_request %}
-{% include 'streaming_request.html' %}{% else %}
-{% include 'simple_request.html' %}{% endif %}{% if method.streaming_response %}
-{% include 'streaming_response.html' %}{% else %}
-{% include 'simple_response.html' %}{% endif %}
-{% include 'response_output.html' %}
+{% include 'python/streaming_request.html' %}{% else %}
+{% include 'python/simple_request.html' %}{% endif %}{% if method.streaming_response %}
+{% include 'python/streaming_response.html' %}{% else %}
+{% include 'python/simple_response.html' %}{% endif %}
+{% include 'python/response_output.html' %}
+```
+
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+{% if not method.streaming_request and not method.streaming_response %} 
+{% include 'javascript/simple_rpc.html' %}{% elif not method.streaming_request and method.streaming_response %}
+{% include 'javascript/response_streaming.html' %}{% elif method.streaming_request and not method.streaming_response %}
+{% include 'javascript/request_streaming.html' %}{% else %}
+{% include 'javascript/bidirectional.html' %}{% endif %}
+{% include 'javascript/response_output.html' %}
 ```
 
 ### gRPC Request: {{ method.request_type }} {% if method.streaming_request %}(Streaming){% endif %}

@@ -1,0 +1,5 @@
+> call = lightning.{{ method.name_js }}({% if method.request_message.fields | length == 0 %}{}{% else %}{ {% for field in method.request_message.fields %}
+    {{ field.name }}: <YOUR_PARAM>,{% endfor %}
+  }{% endif %}, function(err, response) {
+    console.log('{{ method.name }}: ' + response);
+  })

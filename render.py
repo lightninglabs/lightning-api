@@ -141,6 +141,9 @@ def json_proto_to_rpc_dict():
             'description': message_description,
             'extensions': file_message.get('message_extensions'),
             'display_name': file_message['message_name'],  # The standard name we will display
+            # In javascript camelCase format
+            'display_name_js': file_message['message_name'][0].lower() +
+            file_message['message_name'][1:],
             'fields': [],
         }
         # Keyed by the canonical representation
@@ -170,6 +173,8 @@ def json_proto_to_rpc_dict():
             parse_out_lncli(file_method['method_description'])
         method = {
             'name': method_name,
+            # In javascript camelCase format
+            'name_js': method_name[0].lower() + method_name[1:],
             'lncli_name': method_lncli_name,
             'description': method_description,
             'request_type': file_method['method_request_type'],
