@@ -1,5 +1,6 @@
 # Lightning Network Daemon API Documentation Site
-API Documentation for the Lightning Network Daemon
+API Documentation for the Lightning Network Daemon, powered by
+[Slate](https://github.com/lord/slate)
 
 ## Running the site locally
 
