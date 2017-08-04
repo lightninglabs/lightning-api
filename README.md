@@ -71,27 +71,23 @@ repo](https://github.com/laurilehmijoki/s3_website) for more information.
 
 ### Steps
 
-1. Install `s3_website`
+1. Install Google Cloud SDK and authenticate into it:
 ```bash
-gem install s3_website
+brew cask install google-cloud-sdk
+gcloud auth login
 ```
 
-2. Add the deployment credentials for `s3_config.yml`
-```
-export LN_S3_ID="YOUR_S3_ID"
-export LN_S3_SECRET="YOUR_S3_SECRET"
-export LN_CLOUDFRONT_DISTRIBUTION_ID="YOUR_CLOUDFRONT_DISTRIBUTION_ID"
-```
-
-3. Build the website:
-```
+2. Build
+```bash
 bundle exec middleman build --clean
 ```
 
-4. Deploy the site from local changes:
-
-```
-s3_website push
+3. Push to Google Cloud Bucket
+```bash
+# -m use faster multithreaded uploads
+# -d delete remote files that aren't in the source
+# -r recurse into source subdirectories
+gsutil -m rsync -d -r ./_site gs://api.lightning.community
 ```
 
 In the future, you can just run `./deploy.sh` to deploy automatically.
