@@ -21,15 +21,15 @@ search: true
 Welcome to the API reference documentation for LND, the Lightning Network
 Daemon.
 
-This site features API documentation for command line arguments, gRPC in Python
-/ Javascript, and the gRPC REST proxy.
+This site features API documentation for command line arguments, gRPC in
+[Python](//dev.lightning.community/guides/python-grpc/) /
+[Javascript](//dev.lightning.community/guides/python-grpc/), and a REST proxy.
+It is intended for those who already understand how to work with LND. If this is
+your first time or you need a refresher, you may consider perusing our LND
+developer site featuring a tutorial, resources and guides at
+[dev.lightning.community](//dev.lightning.community).
 
-This page is intended for those who already understand how to work with LND. If
-this is your first time or you need a refresher, please check out the [guides
-page](https://dev.lightning.community/guides/) and
-[tutorial](https://dev.lightning.community/tutorial) on our developer site.
-
-Additionally, the original `rpc.proto` file from which
+If you prefer to just read code, the original `rpc.proto` file from which
 the gRPC documentation was generated can be found in the [lnd Github
 repo](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
 
