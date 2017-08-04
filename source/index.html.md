@@ -4,6 +4,7 @@ title: API Reference
 language_tabs:
   - shell
   - python
+  - javascript
 
 toc_footers:
   - <a href='http://dev.lightning.community'>Developer site</a>
@@ -17,16 +18,18 @@ search: true
 
 # Introduction
 
-Welcome to the API documentation for LND, the Lightning Network
+Welcome to the API reference documentation for LND, the Lightning Network
 Daemon.
 
-This page serves purely as a reference, generally for those who already
-understand how to work with LND. If this is your first time, please check out
-our [developer site](https://dev.lightning.community) and
-[tutorial](https://dev.lightning.community/tutorial).
-
 This site features API documentation for command line arguments, gRPC in Python
-and Javscript, and the gRPC REST proxy. The original `rpc.proto` file from which
+/ Javascript, and the gRPC REST proxy.
+
+This page is intended for those who already understand how to work with LND. If
+this is your first time or you need a refresher, please check out the [guides
+page](https://dev.lightning.community/guides/) and
+[tutorial](https://dev.lightning.community/tutorial) on our developer site.
+
+Additionally, the original `rpc.proto` file from which
 the gRPC documentation was generated can be found in the [lnd Github
 repo](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
 
@@ -57,6 +60,24 @@ $ lncli walletbalance [command options] [arguments...]
     )
 >>> response = stub.WalletBalance(request)
 >>> response
+
+{ 
+    balance: <int64>,
+}
+
+```
+
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.walletBalance({ 
+    witness_only: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('WalletBalance: ' + response);
+  })
 
 { 
     balance: <int64>,
@@ -117,6 +138,22 @@ $ lncli channelbalance [arguments...]
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.channelBalance({}, function(err, response) {
+    console.log('ChannelBalance: ' + response);
+  })
+
+{ 
+    balance: <int64>,
+}
+
+```
+
 ### gRPC Request: ChannelBalanceRequest 
 
 
@@ -132,7 +169,7 @@ This request has no parameters.
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-balance | int64 | optional | Sum of balance of channels denominated in satoshis 
+balance | int64 | optional | Sum of channels balances denominated in satoshis 
 
 
 
@@ -162,6 +199,22 @@ $ lncli listchaintxns [arguments...]
 >>> request = ln.GetTransactionsRequest()
 >>> response = stub.GetTransactions(request)
 >>> response
+
+{ 
+    transactions: <Transaction>,
+}
+
+```
+
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.getTransactions({}, function(err, response) {
+    console.log('GetTransactions: ' + response);
+  })
 
 { 
     transactions: <Transaction>,
@@ -241,6 +294,25 @@ $ lncli sendcoins [command options] addr amt
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.sendCoins({ 
+    addr: <YOUR_PARAM>,
+    amount: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('SendCoins: ' + response);
+  })
+
+{ 
+    txid: <string>,
+}
+
+```
+
 ### gRPC Request: SendCoinsRequest 
 
 
@@ -286,6 +358,38 @@ SubscribeTransactions creates a uni-directional stream from the server to the cl
 >>> for response in stub.SubscribeTransactions(request):
     # Do something
     print response
+
+{ 
+    tx_hash: <string>,
+    amount: <int64>,
+    num_confirmations: <int32>,
+    block_hash: <string>,
+    block_height: <int32>,
+    time_stamp: <int64>,
+    total_fees: <int64>,
+}
+
+```
+
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+
+> var call = lightning.subscribeTransactions({})
+
+> call.on('data', function(message) {
+    console.log(message);
+  });
+> call.on('end', function() {
+    // The server has finished sending
+    console.log("END");
+  });
+> call.on('status', function(status) {
+    // Process status
+    console.log("Current status: " + status);
+  });
 
 { 
     tx_hash: <string>,
@@ -361,9 +465,27 @@ $ lncli sendmany send-json-string
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.sendMany({ 
+    AddrToAmount: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('SendMany: ' + response);
+  })
+
+{ 
+    txid: <string>,
+}
+
+```
+
 ### gRPC Request: SendManyRequest 
 
-`send-json-string` decodes addresses and the amount to send respectively in the following format. `'{"ExampleAddr": NumCoinsInSatoshis, "SecondAddr": NumCoins}'`
+
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
@@ -429,9 +551,27 @@ $ lncli newaddress address-type
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.newAddress({ 
+    type: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('NewAddress: ' + response);
+  })
+
+{ 
+    address: <string>,
+}
+
+```
+
 ### gRPC Request: NewAddressRequest 
 
-`AddressType` has to be one of:  - `p2wkh`: Push to witness key hash (`WITNESS_PUBKEY_HASH` = 0) - `np2wkh`: Push to nested witness key hash (`NESTED_PUBKEY_HASH` = 1) - `p2pkh`:  Push to public key hash (`PUBKEY_HASH` = 2)
+`AddressType` has to be one of:  - `p2wkh`: Pay to witness key hash (`WITNESS_PUBKEY_HASH` = 0) - `np2wkh`: Pay to nested witness key hash (`NESTED_PUBKEY_HASH` = 1) - `p2pkh`:  Pay to public key hash (`PUBKEY_HASH` = 2)
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
@@ -472,6 +612,22 @@ NewWitnessAddress creates a new witness address under control of the local walle
 >>> request = ln.NewWitnessAddressRequest()
 >>> response = stub.NewWitnessAddress(request)
 >>> response
+
+{ 
+    address: <string>,
+}
+
+```
+
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.newWitnessAddress({}, function(err, response) {
+    console.log('NewWitnessAddress: ' + response);
+  })
 
 { 
     address: <string>,
@@ -528,6 +684,24 @@ $ lncli signmessage [command options] msg
     )
 >>> response = stub.SignMessage(request)
 >>> response
+
+{ 
+    signature: <string>,
+}
+
+```
+
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.signMessage({ 
+    msg: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('SignMessage: ' + response);
+  })
 
 { 
     signature: <string>,
@@ -598,6 +772,26 @@ $ lncli verifymessage [command options] msg signature
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.verifyMessage({ 
+    msg: <YOUR_PARAM>,
+    signature: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('VerifyMessage: ' + response);
+  })
+
+{ 
+    valid: <bool>,
+    pubkey: <string>,
+}
+
+```
+
 ### gRPC Request: VerifyMessageRequest 
 
 
@@ -651,6 +845,25 @@ $ lncli connect [command options] <pubkey>@host
     )
 >>> response = stub.ConnectPeer(request)
 >>> response
+
+{ 
+    peer_id: <int32>,
+}
+
+```
+
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.connectPeer({ 
+    addr: <YOUR_PARAM>,
+    perm: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('ConnectPeer: ' + response);
+  })
 
 { 
     peer_id: <int32>,
@@ -720,6 +933,20 @@ $ lncli disconnect [command options] <pubkey>
 {}
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.disconnectPeer({ 
+    pub_key: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('DisconnectPeer: ' + response);
+  })
+{}
+```
+
 ### gRPC Request: DisconnectPeerRequest 
 
 
@@ -764,6 +991,22 @@ $ lncli listpeers [arguments...]
 >>> request = ln.ListPeersRequest()
 >>> response = stub.ListPeers(request)
 >>> response
+
+{ 
+    peers: <Peer>,
+}
+
+```
+
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.listPeers({}, function(err, response) {
+    console.log('ListPeers: ' + response);
+  })
 
 { 
     peers: <Peer>,
@@ -847,6 +1090,31 @@ $ lncli getinfo [arguments...]
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.getInfo({}, function(err, response) {
+    console.log('GetInfo: ' + response);
+  })
+
+{ 
+    identity_pubkey: <string>,
+    alias: <string>,
+    num_pending_channels: <uint32>,
+    num_active_channels: <uint32>,
+    num_peers: <uint32>,
+    block_height: <uint32>,
+    block_hash: <string>,
+    synced_to_chain: <bool>,
+    testnet: <bool>,
+    chains: <string>,
+}
+
+```
+
 ### gRPC Request: GetInfoRequest 
 
 
@@ -869,8 +1137,8 @@ num_active_channels | uint32 | optional | Number of active channels
 num_peers | uint32 | optional | Number of peers 
 block_height | uint32 | optional | The node's current view of the height of the best block 
 block_hash | string | optional | The node's current view of the hash of the best block 
-synced_to_chain | bool | optional | If the wallet's view is synced to the main chain 
-testnet | bool | optional | If the current node is connected to testnet 
+synced_to_chain | bool | optional | Whether the wallet's view is synced to the main chain 
+testnet | bool | optional | Whether the current node is connected to testnet 
 chains | string | repeated | A list of active chains the node is connected to 
 
 
@@ -913,6 +1181,25 @@ $ lncli pendingchannels [command options] [arguments...]
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.pendingChannels({}, function(err, response) {
+    console.log('PendingChannels: ' + response);
+  })
+
+{ 
+    total_limbo_balance: <int64>,
+    pending_open_channels: <PendingOpenChannel>,
+    pending_closing_channels: <ClosedChannel>,
+    pending_force_closing_channels: <ForceClosedChannel>,
+}
+
+```
+
 ### gRPC Request: PendingChannelRequest 
 
 
@@ -943,9 +1230,9 @@ Field | Type | Label | Description
 channel | PendingChannel | optional | The pending channel 
 confirmation_height | uint32 | optional | The height at which this channel will be confirmed 
 blocks_till_open | uint32 | optional | The number of blocks until this channel is open 
-commit_fee | int64 | optional | CommitFee is the amount calculated to be paid in fees for the current set of commitment transactions. The fee amount is persisted with the channel in order to allow the fee amount to be removed and recalculated with each channel state update, including updates that happen after a system restart. 
+commit_fee | int64 | optional | The amount calculated to be paid in fees for the current set of commitment transactions. The fee amount is persisted with the channel in order to allow the fee amount to be removed and recalculated with each channel state update, including updates that happen after a system restart. 
 commit_weight | int64 | optional | The weight of the commitment transaction 
-fee_per_kw | int64 | optional | FeePerKw is the required number of satoshis per kilo-weight that the requester will pay at all times, for both the funding transaction and commitment transaction. This value can later be updated once the channel is open. 
+fee_per_kw | int64 | optional | The required number of satoshis per kilo-weight that the requester will pay at all times, for both the funding transaction and commitment transaction. This value can later be updated once the channel is open. 
 
 
 ### ClosedChannel
@@ -1002,6 +1289,22 @@ $ lncli listchannels [command options] [arguments...]
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.listChannels({}, function(err, response) {
+    console.log('ListChannels: ' + response);
+  })
+
+{ 
+    channels: <ActiveChannel>,
+}
+
+```
+
 ### gRPC Request: ListChannelsRequest 
 
 
@@ -1028,19 +1331,19 @@ Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 active | bool | optional | Whether this channel is active or not 
 remote_pubkey | string | optional | The identity pubkey of the remote node 
-channel_point | string | optional | ChannelPoint is the outpoint (txid:index) of the funding transaction. With this value, Bob will be able to generate a signature for Alice's version of the commitment transaction. 
-chan_id | uint64 | optional | ChannelID is the unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
+channel_point | string | optional | The outpoint (txid:index) of the funding transaction. With this value, Bob will be able to generate a signature for Alice's version of the commitment transaction. 
+chan_id | uint64 | optional | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
 capacity | int64 | optional | The total amount of funds held in this channel 
 local_balance | int64 | optional | This node's current balance in this channel 
 remote_balance | int64 | optional | The counterparty's current balance in this channel 
-commit_fee | int64 | optional | CommitFee is the amount calculated to be paid in fees for the current set of commitment transactions. The fee amount is persisted with the channel in order to allow the fee amount to be removed and recalculated with each channel state update, including updates that happen after a system restart. 
+commit_fee | int64 | optional | The amount calculated to be paid in fees for the current set of commitment transactions. The fee amount is persisted with the channel in order to allow the fee amount to be removed and recalculated with each channel state update, including updates that happen after a system restart. 
 commit_weight | int64 | optional | The weight of the commitment transaction 
-fee_per_kw | int64 | optional | FeePerKw is the required number of satoshis per kilo-weight that the requester will pay at all times, for both the funding transaction and commitment transaction. This value can later be updated once the channel is open. 
+fee_per_kw | int64 | optional | The required number of satoshis per kilo-weight that the requester will pay at all times, for both the funding transaction and commitment transaction. This value can later be updated once the channel is open. 
 unsettled_balance | int64 | optional | The unsettled balance in this channel 
-total_satoshis_sent | int64 | optional | TotalSatoshisSent is the total number of satoshis we've sent within this channel. 
-total_satoshis_received | int64 | optional | TotalSatoshisReceived is the total number of satoshis we've received within this channel. 
-num_updates | uint64 | optional | NumUpdates is the total number of updates conducted within this channel. 
-pending_htlcs | HTLC | repeated | Htlcs is the list of active, uncleared HTLCs currently pending within the channel. 
+total_satoshis_sent | int64 | optional | The total number of satoshis we've sent within this channel. 
+total_satoshis_received | int64 | optional | The total number of satoshis we've received within this channel. 
+num_updates | uint64 | optional | The total number of updates conducted within this channel. 
+pending_htlcs | HTLC | repeated | The list of active, uncleared HTLCs currently pending within the channel. 
 
 
 
@@ -1071,6 +1374,30 @@ OpenChannelSync is a synchronous version of the OpenChannel RPC call. This call 
     )
 >>> response = stub.OpenChannelSync(request)
 >>> response
+
+{ 
+    funding_txid: <bytes>,
+    funding_txid_str: <string>,
+    output_index: <uint32>,
+}
+
+```
+
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.openChannelSync({ 
+    target_peer_id: <YOUR_PARAM>,
+    node_pubkey: <YOUR_PARAM>,
+    node_pubkey_string: <YOUR_PARAM>,
+    local_funding_amount: <YOUR_PARAM>,
+    push_sat: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('OpenChannelSync: ' + response);
+  })
 
 { 
     funding_txid: <bytes>,
@@ -1121,13 +1448,12 @@ output_index | uint32 | optional | The index of the output of the funding transa
 
 # Attempt to open a new channel to an existing peer with the key node-key, optionally blocking until the channel is 'open'. The channel will be initialized with local-amt satoshis local and push-amt satoshis for the remote node. Once the channel is open, a channelPoint (txid:vout) of the funding output is returned. NOTE: peer_id and node_key are mutually exclusive, only one should be used, not both.
 
-$ lncli openchannel [command options] node-key local-amt push-amt [num-confs]
+$ lncli openchannel [command options] node-key local-amt push-amt
 
 # --peer_id value    the relative id of the peer to open a channel with (default: 0)
 # --node_key value   the identity public key of the target peer serialized in compressed format
 # --local_amt value  the number of satoshis the wallet should commit to the channel (default: 0)
 # --push_amt value   the number of satoshis to push to the remote side as part of the initial commitment state (default: 0)
-# --num_confs value  the number of confirmations required before the channel is considered 'open' (default: 1)
 # --block            block and wait until the channel is fully open
 ```
 
@@ -1146,6 +1472,40 @@ $ lncli openchannel [command options] node-key local-amt push-amt [num-confs]
 >>> for response in stub.OpenChannel(request):
     # Do something
     print response
+
+{ 
+    chan_pending: <PendingUpdate>,
+    confirmation: <ConfirmationUpdate>,
+    chan_open: <ChannelOpenUpdate>,
+}
+
+```
+
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+
+> var call = lightning.openChannel({ 
+    target_peer_id: <YOUR_PARAM>,
+    node_pubkey: <YOUR_PARAM>,
+    node_pubkey_string: <YOUR_PARAM>,
+    local_funding_amount: <YOUR_PARAM>,
+    push_sat: <YOUR_PARAM>,
+  })
+
+> call.on('data', function(message) {
+    console.log(message);
+  });
+> call.on('end', function() {
+    // The server has finished sending
+    console.log("END");
+  });
+> call.on('status', function(status) {
+    // Process status
+    console.log("Current status: " + status);
+  });
 
 { 
     chan_pending: <PendingUpdate>,
@@ -1254,13 +1614,45 @@ $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+
+> var call = lightning.closeChannel({ 
+    channel_point: <YOUR_PARAM>,
+    time_limit: <YOUR_PARAM>,
+    force: <YOUR_PARAM>,
+  })
+
+> call.on('data', function(message) {
+    console.log(message);
+  });
+> call.on('end', function() {
+    // The server has finished sending
+    console.log("END");
+  });
+> call.on('status', function(status) {
+    // Process status
+    console.log("Current status: " + status);
+  });
+
+{ 
+    close_pending: <PendingUpdate>,
+    confirmation: <ConfirmationUpdate>,
+    chan_close: <ChannelCloseUpdate>,
+}
+
+```
+
 ### gRPC Request: CloseChannelRequest 
 
 
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-channel_point | ChannelPoint | optional | ChannelPoint is the outpoint (txid:index) of the funding transaction. With this value, Bob will be able to generate a signature for Alice's version of the commitment transaction. 
+channel_point | ChannelPoint | optional | The outpoint (txid:index) of the funding transaction. With this value, Bob will be able to generate a signature for Alice's version of the commitment transaction. 
 time_limit | int64 | optional | a relative deadline afterwhich the attempt should be abandoned 
 force | bool | optional | after the time limit has passed, attempt an uncooperative closure 
 
@@ -1373,6 +1765,35 @@ $ lncli sendpayment [command options] (destination amount payment_hash | --pay_r
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+
+> var call = lightning.sendPayment({});
+
+> call.on('data', function(message) {
+    console.log(message);
+  });
+
+  > call.write({ 
+    dest: <YOUR_PARAM>,
+    dest_string: <YOUR_PARAM>,
+    amt: <YOUR_PARAM>,
+    payment_hash: <YOUR_PARAM>,
+    payment_hash_string: <YOUR_PARAM>,
+    payment_request: <YOUR_PARAM>,
+  });
+
+{ 
+    payment_error: <string>,
+    payment_preimage: <bytes>,
+    payment_route: <Route>,
+}
+
+```
+
 ### gRPC Request: SendRequest (Streaming)
 
 
@@ -1384,7 +1805,7 @@ dest_string | string | optional | The hex-encoded identity pubkey of the payment
 amt | int64 | optional | Number of satoshis to send 
 payment_hash | bytes | optional | The hash to use within the payment's HTLC 
 payment_hash_string | string | optional | The hex-encoded hash to use within the payment's HTLC 
-payment_request | string | optional | PaymentRequest is a bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
 
 
 
@@ -1402,14 +1823,14 @@ payment_route | Route | optional |
 
 
 ### Route
-Route represents a path through the channel graph which runs over one or more channels in succession. This struct carries all the information required to craft the Sphinx onion packet, and send the payment along the first hop in the path. A route is only selected as valid if all the channels have sufficient capacity to carry the initial payment amount after fees are accounted for.
+A path through the channel graph which runs over one or more channels in succession. This struct carries all the information required to craft the Sphinx onion packet, and send the payment along the first hop in the path. A route is only selected as valid if all the channels have sufficient capacity to carry the initial payment amount after fees are accounted for.
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-total_time_lock | uint32 | optional | TotalTimeLock is the cumulative (final) time lock across the entire route. This is the CLTV value that should be extended to the first hop in the route. All other hops will decrement the time-lock as advertised, leaving enough time for all hops to wait for or present the payment preimage to complete the payment. 
-total_fees | int64 | optional | TotalFees is the sum of the fees paid at each hop within the final route. In the case of a one-hop payment, this value will be zero as we don't need to pay a fee it ourself. 
-total_amt | int64 | optional | TotalAmount is the total amount of funds required to complete a payment over this route. This value includes the cumulative fees at each hop. As a result, the HTLC extended to the first-hop in the route will need to have at least this many satoshis, otherwise the route will fail at an intermediate node due to an insufficient amount of fees. 
-hops | Hop | repeated | Hops contains details concerning the specific forwarding details at each hop. 
+total_time_lock | uint32 | optional | The cumulative (final) time lock across the entire route.  This is the CLTV value that should be extended to the first hop in the route. All other hops will decrement the time-lock as advertised, leaving enough time for all hops to wait for or present the payment preimage to complete the payment. 
+total_fees | int64 | optional | The sum of the fees paid at each hop within the final route.  In the case of a one-hop payment, this value will be zero as we don't need to pay a fee it ourself. 
+total_amt | int64 | optional | The total amount of funds required to complete a payment over this route. This value includes the cumulative fees at each hop. As a result, the HTLC extended to the first-hop in the route will need to have at least this many satoshis, otherwise the route will fail at an intermediate node due to an insufficient amount of fees. 
+hops | Hop | repeated | Contains details concerning the specific forwarding details at each hop. 
 
 
 
@@ -1450,6 +1871,31 @@ SendPaymentSync is the synchronous non-streaming version of SendPayment. This RP
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.sendPaymentSync({ 
+    dest: <YOUR_PARAM>,
+    dest_string: <YOUR_PARAM>,
+    amt: <YOUR_PARAM>,
+    payment_hash: <YOUR_PARAM>,
+    payment_hash_string: <YOUR_PARAM>,
+    payment_request: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('SendPaymentSync: ' + response);
+  })
+
+{ 
+    payment_error: <string>,
+    payment_preimage: <bytes>,
+    payment_route: <Route>,
+}
+
+```
+
 ### gRPC Request: SendRequest 
 
 
@@ -1461,7 +1907,7 @@ dest_string | string | optional | The hex-encoded identity pubkey of the payment
 amt | int64 | optional | Number of satoshis to send 
 payment_hash | bytes | optional | The hash to use within the payment's HTLC 
 payment_hash_string | string | optional | The hex-encoded hash to use within the payment's HTLC 
-payment_request | string | optional | PaymentRequest is a bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
 
 
 
@@ -1479,14 +1925,14 @@ payment_route | Route | optional |
 
 
 ### Route
-Route represents a path through the channel graph which runs over one or more channels in succession. This struct carries all the information required to craft the Sphinx onion packet, and send the payment along the first hop in the path. A route is only selected as valid if all the channels have sufficient capacity to carry the initial payment amount after fees are accounted for.
+A path through the channel graph which runs over one or more channels in succession. This struct carries all the information required to craft the Sphinx onion packet, and send the payment along the first hop in the path. A route is only selected as valid if all the channels have sufficient capacity to carry the initial payment amount after fees are accounted for.
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-total_time_lock | uint32 | optional | TotalTimeLock is the cumulative (final) time lock across the entire route. This is the CLTV value that should be extended to the first hop in the route. All other hops will decrement the time-lock as advertised, leaving enough time for all hops to wait for or present the payment preimage to complete the payment. 
-total_fees | int64 | optional | TotalFees is the sum of the fees paid at each hop within the final route. In the case of a one-hop payment, this value will be zero as we don't need to pay a fee it ourself. 
-total_amt | int64 | optional | TotalAmount is the total amount of funds required to complete a payment over this route. This value includes the cumulative fees at each hop. As a result, the HTLC extended to the first-hop in the route will need to have at least this many satoshis, otherwise the route will fail at an intermediate node due to an insufficient amount of fees. 
-hops | Hop | repeated | Hops contains details concerning the specific forwarding details at each hop. 
+total_time_lock | uint32 | optional | The cumulative (final) time lock across the entire route.  This is the CLTV value that should be extended to the first hop in the route. All other hops will decrement the time-lock as advertised, leaving enough time for all hops to wait for or present the payment preimage to complete the payment. 
+total_fees | int64 | optional | The sum of the fees paid at each hop within the final route.  In the case of a one-hop payment, this value will be zero as we don't need to pay a fee it ourself. 
+total_amt | int64 | optional | The total amount of funds required to complete a payment over this route. This value includes the cumulative fees at each hop. As a result, the HTLC extended to the first-hop in the route will need to have at least this many satoshis, otherwise the route will fail at an intermediate node due to an insufficient amount of fees. 
+hops | Hop | repeated | Contains details concerning the specific forwarding details at each hop. 
 
 
 
@@ -1537,6 +1983,33 @@ $ lncli addinvoice [command options] value preimage
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.addInvoice({ 
+    memo: <YOUR_PARAM>,
+    receipt: <YOUR_PARAM>,
+    r_preimage: <YOUR_PARAM>,
+    r_hash: <YOUR_PARAM>,
+    value: <YOUR_PARAM>,
+    settled: <YOUR_PARAM>,
+    creation_date: <YOUR_PARAM>,
+    settle_date: <YOUR_PARAM>,
+    payment_request: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('AddInvoice: ' + response);
+  })
+
+{ 
+    r_hash: <bytes>,
+    payment_request: <string>,
+}
+
+```
+
 ### gRPC Request: Invoice 
 
 
@@ -1551,7 +2024,7 @@ value | int64 | optional | The value of this invoice in satoshis
 settled | bool | optional | Whether this invoice has been fulfilled 
 creation_date | int64 | optional | When this invoice was created 
 settle_date | int64 | optional | When this invoice was settled 
-payment_request | string | optional | PaymentRequest is a bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
 
 
 
@@ -1563,7 +2036,7 @@ payment_request | string | optional | PaymentRequest is a bare-bones invoice for
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 r_hash | bytes | optional |  
-payment_request | string | optional | PaymentRequest is a bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
 
 
 
@@ -1595,6 +2068,24 @@ $ lncli listinvoices [command options] [arguments...]
     )
 >>> response = stub.ListInvoices(request)
 >>> response
+
+{ 
+    invoices: <Invoice>,
+}
+
+```
+
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.listInvoices({ 
+    pending_only: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('ListInvoices: ' + response);
+  })
 
 { 
     invoices: <Invoice>,
@@ -1636,7 +2127,7 @@ value | int64 | optional | The value of this invoice in satoshis
 settled | bool | optional | Whether this invoice has been fulfilled 
 creation_date | int64 | optional | When this invoice was created 
 settle_date | int64 | optional | When this invoice was settled 
-payment_request | string | optional | PaymentRequest is a bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
 
 
 
@@ -1683,6 +2174,33 @@ $ lncli lookupinvoice [command options] rhash
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.lookupInvoice({ 
+    r_hash_str: <YOUR_PARAM>,
+    r_hash: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('LookupInvoice: ' + response);
+  })
+
+{ 
+    memo: <string>,
+    receipt: <bytes>,
+    r_preimage: <bytes>,
+    r_hash: <bytes>,
+    value: <int64>,
+    settled: <bool>,
+    creation_date: <int64>,
+    settle_date: <int64>,
+    payment_request: <string>,
+}
+
+```
+
 ### gRPC Request: PaymentHash 
 
 
@@ -1709,7 +2227,7 @@ value | int64 | optional | The value of this invoice in satoshis
 settled | bool | optional | Whether this invoice has been fulfilled 
 creation_date | int64 | optional | When this invoice was created 
 settle_date | int64 | optional | When this invoice was settled 
-payment_request | string | optional | PaymentRequest is a bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
 
 
 
@@ -1751,6 +2269,40 @@ SubscribeInvoices returns a uni-directional stream (sever -> client) for notifyi
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+
+> var call = lightning.subscribeInvoices({})
+
+> call.on('data', function(message) {
+    console.log(message);
+  });
+> call.on('end', function() {
+    // The server has finished sending
+    console.log("END");
+  });
+> call.on('status', function(status) {
+    // Process status
+    console.log("Current status: " + status);
+  });
+
+{ 
+    memo: <string>,
+    receipt: <bytes>,
+    r_preimage: <bytes>,
+    r_hash: <bytes>,
+    value: <int64>,
+    settled: <bool>,
+    creation_date: <int64>,
+    settle_date: <int64>,
+    payment_request: <string>,
+}
+
+```
+
 ### gRPC Request: InvoiceSubscription 
 
 
@@ -1774,7 +2326,7 @@ value | int64 | optional | The value of this invoice in satoshis
 settled | bool | optional | Whether this invoice has been fulfilled 
 creation_date | int64 | optional | When this invoice was created 
 settle_date | int64 | optional | When this invoice was settled 
-payment_request | string | optional | PaymentRequest is a bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
 
 
 
@@ -1807,6 +2359,26 @@ $ lncli decodepayreq [command options] pay_req
     )
 >>> response = stub.DecodePayReq(request)
 >>> response
+
+{ 
+    destination: <string>,
+    payment_hash: <string>,
+    num_satoshis: <int64>,
+}
+
+```
+
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.decodePayReq({ 
+    pay_req: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('DecodePayReq: ' + response);
+  })
 
 { 
     destination: <string>,
@@ -1871,6 +2443,22 @@ $ lncli listpayments [arguments...]
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.listPayments({}, function(err, response) {
+    console.log('ListPayments: ' + response);
+  })
+
+{ 
+    payments: <Payment>,
+}
+
+```
+
 ### gRPC Request: ListPaymentsRequest 
 
 
@@ -1927,6 +2515,18 @@ DeleteAllPayments deletes all outgoing payments from DB.
 {}
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.deleteAllPayments({}, function(err, response) {
+    console.log('DeleteAllPayments: ' + response);
+  })
+{}
+```
+
 ### gRPC Request: DeleteAllPaymentsRequest 
 
 
@@ -1979,6 +2579,23 @@ $ lncli describegraph [command options] [arguments...]
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.describeGraph({}, function(err, response) {
+    console.log('DescribeGraph: ' + response);
+  })
+
+{ 
+    nodes: <LightningNode>,
+    edges: <ChannelEdge>,
+}
+
+```
+
 ### gRPC Request: ChannelGraphRequest 
 
 
@@ -1990,7 +2607,7 @@ This request has no parameters.
 
 ### gRPC Response: ChannelGraph 
 
-ChannelGraph returns a new instance of the directed channel graph.
+Returns a new instance of the directed channel graph.
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
@@ -2000,7 +2617,7 @@ edges | ChannelEdge | repeated | The list of `ChannelEdge`s in this channel grap
 
 
 ### LightningNode
-LightningNode represents an individual vertex/node within the channel graph. A node is connected to other nodes by one or more channel edges emanating from it. As the graph is directed, a node will also have an incoming edge attached to it for each outgoing edge.
+An individual vertex/node within the channel graph. A node is connected to other nodes by one or more channel edges emanating from it. As the graph is directed, a node will also have an incoming edge attached to it for each outgoing edge.
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
@@ -2011,11 +2628,11 @@ addresses | NodeAddress | repeated |
 
 
 ### ChannelEdge
-ChannelEdgeInfo represents a fully authenticated channel along with all its unique attributes. Once an authenticated channel announcement has been processed on the network, then a instance of ChannelEdgeInfo encapsulating the channels attributes is stored. The other portions relevant to routing policy of a channel are stored within a ChannelEdgePolicy for each direction of the channel.
+A fully authenticated channel along with all its unique attributes. Once an authenticated channel announcement has been processed on the network, then a instance of ChannelEdgeInfo encapsulating the channels attributes is stored. The other portions relevant to routing policy of a channel are stored within a ChannelEdgePolicy for each direction of the channel.
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-channel_id | uint64 | optional | ChannelID is the unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
+channel_id | uint64 | optional | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
 chan_point | string | optional |  
 last_update | uint32 | optional |  
 node1_pub | string | optional |  
@@ -2068,24 +2685,49 @@ $ lncli getchaninfo [command options] chan_id
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.getChanInfo({ 
+    chan_id: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('GetChanInfo: ' + response);
+  })
+
+{ 
+    channel_id: <uint64>,
+    chan_point: <string>,
+    last_update: <uint32>,
+    node1_pub: <string>,
+    node2_pub: <string>,
+    capacity: <int64>,
+    node1_policy: <RoutingPolicy>,
+    node2_policy: <RoutingPolicy>,
+}
+
+```
+
 ### gRPC Request: ChanInfoRequest 
 
 
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-chan_id | uint64 | optional | ChannelID is the unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
+chan_id | uint64 | optional | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
 
 
 
 
 ### gRPC Response: ChannelEdge 
 
-ChannelEdgeInfo represents a fully authenticated channel along with all its unique attributes. Once an authenticated channel announcement has been processed on the network, then a instance of ChannelEdgeInfo encapsulating the channels attributes is stored. The other portions relevant to routing policy of a channel are stored within a ChannelEdgePolicy for each direction of the channel.
+A fully authenticated channel along with all its unique attributes. Once an authenticated channel announcement has been processed on the network, then a instance of ChannelEdgeInfo encapsulating the channels attributes is stored. The other portions relevant to routing policy of a channel are stored within a ChannelEdgePolicy for each direction of the channel.
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-channel_id | uint64 | optional | ChannelID is the unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
+channel_id | uint64 | optional | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
 chan_point | string | optional |  
 last_update | uint32 | optional |  
 node1_pub | string | optional |  
@@ -2156,6 +2798,26 @@ $ lncli getnodeinfo [command options] [arguments...]
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.getNodeInfo({ 
+    pub_key: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('GetNodeInfo: ' + response);
+  })
+
+{ 
+    node: <LightningNode>,
+    num_channels: <uint32>,
+    total_capacity: <int64>,
+}
+
+```
+
 ### gRPC Request: NodeInfoRequest 
 
 
@@ -2173,14 +2835,14 @@ pub_key | string | optional | The 33-byte hex-encoded compressed public of the t
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-node | LightningNode | optional | LightningNode represents an individual vertex/node within the channel graph. A node is connected to other nodes by one or more channel edges emanating from it. As the graph is directed, a node will also have an incoming edge attached to it for each outgoing edge. 
+node | LightningNode | optional | An individual vertex/node within the channel graph. A node is connected to other nodes by one or more channel edges emanating from it. As the graph is directed, a node will also have an incoming edge attached to it for each outgoing edge. 
 num_channels | uint32 | optional |  
 total_capacity | int64 | optional |  
 
 
 
 ### LightningNode
-LightningNode represents an individual vertex/node within the channel graph. A node is connected to other nodes by one or more channel edges emanating from it. As the graph is directed, a node will also have an incoming edge attached to it for each outgoing edge.
+An individual vertex/node within the channel graph. A node is connected to other nodes by one or more channel edges emanating from it. As the graph is directed, a node will also have an incoming edge attached to it for each outgoing edge.
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
@@ -2228,6 +2890,25 @@ $ lncli queryroutes [command options] dest amt
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.queryRoutes({ 
+    pub_key: <YOUR_PARAM>,
+    amt: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('QueryRoutes: ' + response);
+  })
+
+{ 
+    routes: <Route>,
+}
+
+```
+
 ### gRPC Request: QueryRoutesRequest 
 
 
@@ -2251,14 +2932,14 @@ routes | Route | repeated |
 
 
 ### Route
-Route represents a path through the channel graph which runs over one or more channels in succession. This struct carries all the information required to craft the Sphinx onion packet, and send the payment along the first hop in the path. A route is only selected as valid if all the channels have sufficient capacity to carry the initial payment amount after fees are accounted for.
+A path through the channel graph which runs over one or more channels in succession. This struct carries all the information required to craft the Sphinx onion packet, and send the payment along the first hop in the path. A route is only selected as valid if all the channels have sufficient capacity to carry the initial payment amount after fees are accounted for.
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-total_time_lock | uint32 | optional | TotalTimeLock is the cumulative (final) time lock across the entire route. This is the CLTV value that should be extended to the first hop in the route. All other hops will decrement the time-lock as advertised, leaving enough time for all hops to wait for or present the payment preimage to complete the payment. 
-total_fees | int64 | optional | TotalFees is the sum of the fees paid at each hop within the final route. In the case of a one-hop payment, this value will be zero as we don't need to pay a fee it ourself. 
-total_amt | int64 | optional | TotalAmount is the total amount of funds required to complete a payment over this route. This value includes the cumulative fees at each hop. As a result, the HTLC extended to the first-hop in the route will need to have at least this many satoshis, otherwise the route will fail at an intermediate node due to an insufficient amount of fees. 
-hops | Hop | repeated | Hops contains details concerning the specific forwarding details at each hop. 
+total_time_lock | uint32 | optional | The cumulative (final) time lock across the entire route.  This is the CLTV value that should be extended to the first hop in the route. All other hops will decrement the time-lock as advertised, leaving enough time for all hops to wait for or present the payment preimage to complete the payment. 
+total_fees | int64 | optional | The sum of the fees paid at each hop within the final route.  In the case of a one-hop payment, this value will be zero as we don't need to pay a fee it ourself. 
+total_amt | int64 | optional | The total amount of funds required to complete a payment over this route. This value includes the cumulative fees at each hop. As a result, the HTLC extended to the first-hop in the route will need to have at least this many satoshis, otherwise the route will fail at an intermediate node due to an insufficient amount of fees. 
+hops | Hop | repeated | Contains details concerning the specific forwarding details at each hop. 
 
 
 
@@ -2287,6 +2968,30 @@ $ lncli getnetworkinfo [arguments...]
 >>> request = ln.NetworkInfoRequest()
 >>> response = stub.GetNetworkInfo(request)
 >>> response
+
+{ 
+    graph_diameter: <uint32>,
+    avg_out_degree: <double>,
+    max_out_degree: <uint32>,
+    num_nodes: <uint32>,
+    num_channels: <uint32>,
+    total_network_capacity: <int64>,
+    avg_channel_size: <double>,
+    min_channel_size: <int64>,
+    max_channel_size: <int64>,
+}
+
+```
+
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.getNetworkInfo({}, function(err, response) {
+    console.log('GetNetworkInfo: ' + response);
+  })
 
 { 
     graph_diameter: <uint32>,
@@ -2358,6 +3063,18 @@ $ lncli stop [arguments...]
 {}
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.stopDaemon({}, function(err, response) {
+    console.log('StopDaemon: ' + response);
+  })
+{}
+```
+
 ### gRPC Request: StopRequest 
 
 
@@ -2407,6 +3124,34 @@ SubscribeChannelGraph launches a streaming RPC that allows the caller to receive
 
 ```
 
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+
+> var call = lightning.subscribeChannelGraph({})
+
+> call.on('data', function(message) {
+    console.log(message);
+  });
+> call.on('end', function() {
+    // The server has finished sending
+    console.log("END");
+  });
+> call.on('status', function(status) {
+    // Process status
+    console.log("Current status: " + status);
+  });
+
+{ 
+    node_updates: <NodeUpdate>,
+    channel_updates: <ChannelEdgeUpdate>,
+    closed_chans: <ClosedChannelUpdate>,
+}
+
+```
+
 ### gRPC Request: GraphTopologySubscription 
 
 
@@ -2444,7 +3189,7 @@ alias | string | optional |
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-chan_id | uint64 | optional | ChannelID is the unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
+chan_id | uint64 | optional | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
 chan_point | ChannelPoint | optional |  
 capacity | int64 | optional |  
 routing_policy | RoutingPolicy | optional |  
@@ -2457,7 +3202,7 @@ connecting_node | string | optional |
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-chan_id | uint64 | optional | ChannelID is the unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
+chan_id | uint64 | optional | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
 capacity | int64 | optional |  
 closed_height | uint32 | optional |  
 chan_point | ChannelPoint | optional |  
@@ -2487,6 +3232,20 @@ SetAlias sets the alias for this node; e.g. "alice"
     )
 >>> response = stub.SetAlias(request)
 >>> response
+{}
+```
+
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.setAlias({ 
+    new_alias: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('SetAlias: ' + response);
+  })
 {}
 ```
 
@@ -2540,6 +3299,25 @@ $ lncli debuglevel [command options] [arguments...]
     )
 >>> response = stub.DebugLevel(request)
 >>> response
+
+{ 
+    sub_systems: <string>,
+}
+
+```
+
+```javascript
+> var grpc = require('grpc');
+> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
+ 
+> call = lightning.debugLevel({ 
+    show: <YOUR_PARAM>,
+    level_spec: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('DebugLevel: ' + response);
+  })
 
 { 
     sub_systems: <string>,
