@@ -1,5 +1,5 @@
 ---
-title: API Reference
+title: LND API Reference
 
 language_tabs:
   - shell
@@ -9,14 +9,14 @@ language_tabs:
 toc_footers:
   - <a href='http://dev.lightning.community'>Developer site</a>
   - <a href='mailto:max@lightning.engineering'>Contact Us</a>
-  - <a href='https://github.com/tripit/slate'>Documentation Powered by Slate</a>
+  - Powered by <a href='https://github.com/lord/slate'>Slate</a>
 
 includes:
 
 search: true
 ---
 
-# Introduction
+# LND API Reference
 
 Welcome to the API reference documentation for LND, the Lightning Network
 Daemon.
