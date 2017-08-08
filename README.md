@@ -2,6 +2,22 @@
 API Documentation for the Lightning Network Daemon, powered by
 [Slate](https://github.com/lord/slate)
 
+## Overview
+
+This repository contains functionality for programmatically pulling API
+information from `lncli -h` and `rpc.proto` on the lnd Github, using a Python
+script and Jinja2 template to output Slate markdown, which itself generates the
+fully rendered static site. 
+
+Pay special attention to these files:
+- `templates/index_templates.md`: The Jinja2 template fed into the Python
+  script, holding the basic format and introductory information for the site
+- `update_and_render.sh`: Update local docs to the latest version available
+- `render.py`: The Python script that uses local docs and Jinja template to
+  output Slate markdown
+- `deploy.sh`: Build static site from Slate markdown and deploy to Google Cloud
+  Platform
+
 ## Running the site locally
 
 ### Prerequisites
@@ -15,7 +31,7 @@ You're going to need:
 ### Running locally
 
 ```shell
-git clone https://github.com/MaxFangX/lightning-api
+git clone https://github.com/lightninglabs/lightning-api
 
 # Start a local server for testing purposes
 bundle install
@@ -24,7 +40,7 @@ bundle exec middleman server
 
 You can now see the docs at `http://localhost:4567`.
 
-### Regenerating documentation
+## Regenerating documentation
 
 ```shell
 # Install Jinja for python templating
@@ -62,12 +78,13 @@ python render.py
 ```
 
 Now that you're all set up, you can just run `./update_and_render.sh` to
-automatically pull the latest rpc.proto and render the local Slate docs
+automatically pull the latest rpc.proto and render the local Slate docs.
 
 ## Deployment
 
-The Lightning API is deployed with `s3_website`. Visit their [github
-repo](https://github.com/laurilehmijoki/s3_website) for more information.
+The Lightning API is deployed with Google Cloud Platform. Visit [this blog
+post](https://little418.com/2015/07/jekyll-google-cloud-storage.html) for more
+information.
 
 ### Steps
 
