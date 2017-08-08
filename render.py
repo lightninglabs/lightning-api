@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/local/bin/python2.7
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 import json
