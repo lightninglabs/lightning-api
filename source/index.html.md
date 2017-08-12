@@ -33,6 +33,10 @@ If you prefer to just read code, the original `rpc.proto` file from which
 the gRPC documentation was generated can be found in the [lnd Github
 repo](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
 
+Lastly, keep in mind that the code examples will differ slightly based on your
+operating system and specific setup. The `LND_HOMEDIR` used in the gRPC examples
+is `~/.lnd/` for Linux or `~/Library/Application Support/Lnd/tls.cert` for Mac
+
 
 
 # WalletBalance
@@ -53,7 +57,9 @@ $ lncli walletbalance [command options] [arguments...]
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.WalletBalanceRequest(
         witness_only=<YOUR_PARAM>,
@@ -69,10 +75,12 @@ $ lncli walletbalance [command options] [arguments...]
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.walletBalance({ 
     witness_only: <YOUR_PARAM>,
   }, function(err, response) {
@@ -126,7 +134,9 @@ $ lncli channelbalance [arguments...]
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ChannelBalanceRequest()
 >>> response = stub.ChannelBalance(request)
@@ -140,10 +150,12 @@ $ lncli channelbalance [arguments...]
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.channelBalance({}, function(err, response) {
     console.log('ChannelBalance: ' + response);
   })
@@ -194,7 +206,9 @@ $ lncli listchaintxns [arguments...]
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.GetTransactionsRequest()
 >>> response = stub.GetTransactions(request)
@@ -208,10 +222,12 @@ $ lncli listchaintxns [arguments...]
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.getTransactions({}, function(err, response) {
     console.log('GetTransactions: ' + response);
   })
@@ -279,7 +295,9 @@ $ lncli sendcoins [command options] addr amt
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.SendCoinsRequest(
         addr=<YOUR_PARAM>,
@@ -296,10 +314,12 @@ $ lncli sendcoins [command options] addr amt
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.sendCoins({ 
     addr: <YOUR_PARAM>,
     amount: <YOUR_PARAM>,
@@ -352,7 +372,9 @@ SubscribeTransactions creates a uni-directional stream from the server to the cl
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.GetTransactionsRequest()
 >>> for response in stub.SubscribeTransactions(request):
@@ -373,10 +395,12 @@ SubscribeTransactions creates a uni-directional stream from the server to the cl
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
-
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials);
 > var call = lightning.subscribeTransactions({})
 
 > call.on('data', function(message) {
@@ -451,7 +475,9 @@ $ lncli sendmany send-json-string
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.SendManyRequest(
         AddrToAmount=<YOUR_PARAM>,
@@ -467,10 +493,12 @@ $ lncli sendmany send-json-string
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.sendMany({ 
     AddrToAmount: <YOUR_PARAM>,
   }, function(err, response) {
@@ -537,7 +565,9 @@ $ lncli newaddress address-type
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.NewAddressRequest(
         type=<YOUR_PARAM>,
@@ -553,10 +583,12 @@ $ lncli newaddress address-type
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.newAddress({ 
     type: <YOUR_PARAM>,
   }, function(err, response) {
@@ -607,7 +639,9 @@ NewWitnessAddress creates a new witness address under control of the local walle
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.NewWitnessAddressRequest()
 >>> response = stub.NewWitnessAddress(request)
@@ -621,10 +655,12 @@ NewWitnessAddress creates a new witness address under control of the local walle
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.newWitnessAddress({}, function(err, response) {
     console.log('NewWitnessAddress: ' + response);
   })
@@ -677,7 +713,9 @@ $ lncli signmessage [command options] msg
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.SignMessageRequest(
         msg=<YOUR_PARAM>,
@@ -693,10 +731,12 @@ $ lncli signmessage [command options] msg
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.signMessage({ 
     msg: <YOUR_PARAM>,
   }, function(err, response) {
@@ -756,7 +796,9 @@ $ lncli verifymessage [command options] msg signature
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.VerifyMessageRequest(
         msg=<YOUR_PARAM>,
@@ -774,10 +816,12 @@ $ lncli verifymessage [command options] msg signature
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.verifyMessage({ 
     msg: <YOUR_PARAM>,
     signature: <YOUR_PARAM>,
@@ -837,7 +881,9 @@ $ lncli connect [command options] <pubkey>@host
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ConnectPeerRequest(
         addr=<YOUR_PARAM>,
@@ -854,10 +900,12 @@ $ lncli connect [command options] <pubkey>@host
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.connectPeer({ 
     addr: <YOUR_PARAM>,
     perm: <YOUR_PARAM>,
@@ -923,7 +971,9 @@ $ lncli disconnect [command options] <pubkey>
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.DisconnectPeerRequest(
         pub_key=<YOUR_PARAM>,
@@ -935,10 +985,12 @@ $ lncli disconnect [command options] <pubkey>
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.disconnectPeer({ 
     pub_key: <YOUR_PARAM>,
   }, function(err, response) {
@@ -986,7 +1038,9 @@ $ lncli listpeers [arguments...]
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ListPeersRequest()
 >>> response = stub.ListPeers(request)
@@ -1000,10 +1054,12 @@ $ lncli listpeers [arguments...]
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.listPeers({}, function(err, response) {
     console.log('ListPeers: ' + response);
   })
@@ -1069,7 +1125,9 @@ $ lncli getinfo [arguments...]
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.GetInfoRequest()
 >>> response = stub.GetInfo(request)
@@ -1092,10 +1150,12 @@ $ lncli getinfo [arguments...]
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.getInfo({}, function(err, response) {
     console.log('GetInfo: ' + response);
   })
@@ -1166,7 +1226,9 @@ $ lncli pendingchannels [command options] [arguments...]
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.PendingChannelRequest()
 >>> response = stub.PendingChannels(request)
@@ -1183,10 +1245,12 @@ $ lncli pendingchannels [command options] [arguments...]
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.pendingChannels({}, function(err, response) {
     console.log('PendingChannels: ' + response);
   })
@@ -1277,7 +1341,9 @@ $ lncli listchannels [command options] [arguments...]
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ListChannelsRequest()
 >>> response = stub.ListChannels(request)
@@ -1291,10 +1357,12 @@ $ lncli listchannels [command options] [arguments...]
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.listChannels({}, function(err, response) {
     console.log('ListChannels: ' + response);
   })
@@ -1363,7 +1431,9 @@ OpenChannelSync is a synchronous version of the OpenChannel RPC call. This call 
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.OpenChannelRequest(
         target_peer_id=<YOUR_PARAM>,
@@ -1385,10 +1455,12 @@ OpenChannelSync is a synchronous version of the OpenChannel RPC call. This call 
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.openChannelSync({ 
     target_peer_id: <YOUR_PARAM>,
     node_pubkey: <YOUR_PARAM>,
@@ -1460,7 +1532,9 @@ $ lncli openchannel [command options] node-key local-amt push-amt
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.OpenChannelRequest(
         target_peer_id=<YOUR_PARAM>,
@@ -1483,10 +1557,12 @@ $ lncli openchannel [command options] node-key local-amt push-amt
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
-
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials);
 > var call = lightning.openChannel({ 
     target_peer_id: <YOUR_PARAM>,
     node_pubkey: <YOUR_PARAM>,
@@ -1595,7 +1671,9 @@ $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.CloseChannelRequest(
         channel_point=<YOUR_PARAM>,
@@ -1616,10 +1694,12 @@ $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
-
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials);
 > var call = lightning.closeChannel({ 
     channel_point: <YOUR_PARAM>,
     time_limit: <YOUR_PARAM>,
@@ -1734,7 +1814,9 @@ $ lncli sendpayment [command options] (destination amount payment_hash | --pay_r
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 # Define a generator that returns an Iterable of SendRequest objects
 >>> def request_generator():
@@ -1767,10 +1849,12 @@ $ lncli sendpayment [command options] (destination amount payment_hash | --pay_r
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
-
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials);
 > var call = lightning.sendPayment({});
 
 > call.on('data', function(message) {
@@ -1850,7 +1934,9 @@ SendPaymentSync is the synchronous non-streaming version of SendPayment. This RP
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.SendRequest(
         dest=<YOUR_PARAM>,
@@ -1873,10 +1959,12 @@ SendPaymentSync is the synchronous non-streaming version of SendPayment. This RP
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.sendPaymentSync({ 
     dest: <YOUR_PARAM>,
     dest_string: <YOUR_PARAM>,
@@ -1960,7 +2048,9 @@ $ lncli addinvoice [command options] value preimage
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.Invoice(
         memo=<YOUR_PARAM>,
@@ -1985,10 +2075,12 @@ $ lncli addinvoice [command options] value preimage
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.addInvoice({ 
     memo: <YOUR_PARAM>,
     receipt: <YOUR_PARAM>,
@@ -2061,7 +2153,9 @@ $ lncli listinvoices [command options] [arguments...]
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ListInvoiceRequest(
         pending_only=<YOUR_PARAM>,
@@ -2077,10 +2171,12 @@ $ lncli listinvoices [command options] [arguments...]
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.listInvoices({ 
     pending_only: <YOUR_PARAM>,
   }, function(err, response) {
@@ -2151,7 +2247,9 @@ $ lncli lookupinvoice [command options] rhash
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.PaymentHash(
         r_hash_str=<YOUR_PARAM>,
@@ -2176,10 +2274,12 @@ $ lncli lookupinvoice [command options] rhash
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.lookupInvoice({ 
     r_hash_str: <YOUR_PARAM>,
     r_hash: <YOUR_PARAM>,
@@ -2248,7 +2348,9 @@ SubscribeInvoices returns a uni-directional stream (sever -> client) for notifyi
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.InvoiceSubscription()
 >>> for response in stub.SubscribeInvoices(request):
@@ -2271,10 +2373,12 @@ SubscribeInvoices returns a uni-directional stream (sever -> client) for notifyi
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
-
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials);
 > var call = lightning.subscribeInvoices({})
 
 > call.on('data', function(message) {
@@ -2352,7 +2456,9 @@ $ lncli decodepayreq [command options] pay_req
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.PayReqString(
         pay_req=<YOUR_PARAM>,
@@ -2370,10 +2476,12 @@ $ lncli decodepayreq [command options] pay_req
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.decodePayReq({ 
     pay_req: <YOUR_PARAM>,
   }, function(err, response) {
@@ -2431,7 +2539,9 @@ $ lncli listpayments [arguments...]
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ListPaymentsRequest()
 >>> response = stub.ListPayments(request)
@@ -2445,10 +2555,12 @@ $ lncli listpayments [arguments...]
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.listPayments({}, function(err, response) {
     console.log('ListPayments: ' + response);
   })
@@ -2507,7 +2619,9 @@ DeleteAllPayments deletes all outgoing payments from DB.
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.DeleteAllPaymentsRequest()
 >>> response = stub.DeleteAllPayments(request)
@@ -2517,10 +2631,12 @@ DeleteAllPayments deletes all outgoing payments from DB.
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.deleteAllPayments({}, function(err, response) {
     console.log('DeleteAllPayments: ' + response);
   })
@@ -2566,7 +2682,9 @@ $ lncli describegraph [command options] [arguments...]
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ChannelGraphRequest()
 >>> response = stub.DescribeGraph(request)
@@ -2581,10 +2699,12 @@ $ lncli describegraph [command options] [arguments...]
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.describeGraph({}, function(err, response) {
     console.log('DescribeGraph: ' + response);
   })
@@ -2664,7 +2784,9 @@ $ lncli getchaninfo [command options] chan_id
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ChanInfoRequest(
         chan_id=<YOUR_PARAM>,
@@ -2687,10 +2809,12 @@ $ lncli getchaninfo [command options] chan_id
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.getChanInfo({ 
     chan_id: <YOUR_PARAM>,
   }, function(err, response) {
@@ -2782,7 +2906,9 @@ $ lncli getnodeinfo [command options] [arguments...]
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.NodeInfoRequest(
         pub_key=<YOUR_PARAM>,
@@ -2800,10 +2926,12 @@ $ lncli getnodeinfo [command options] [arguments...]
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.getNodeInfo({ 
     pub_key: <YOUR_PARAM>,
   }, function(err, response) {
@@ -2875,7 +3003,9 @@ $ lncli queryroutes [command options] dest amt
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.QueryRoutesRequest(
         pub_key=<YOUR_PARAM>,
@@ -2892,10 +3022,12 @@ $ lncli queryroutes [command options] dest amt
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.queryRoutes({ 
     pub_key: <YOUR_PARAM>,
     amt: <YOUR_PARAM>,
@@ -2963,7 +3095,9 @@ $ lncli getnetworkinfo [arguments...]
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.NetworkInfoRequest()
 >>> response = stub.GetNetworkInfo(request)
@@ -2985,10 +3119,12 @@ $ lncli getnetworkinfo [arguments...]
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.getNetworkInfo({}, function(err, response) {
     console.log('GetNetworkInfo: ' + response);
   })
@@ -3055,7 +3191,9 @@ $ lncli stop [arguments...]
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.StopRequest()
 >>> response = stub.StopDaemon(request)
@@ -3065,10 +3203,12 @@ $ lncli stop [arguments...]
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.stopDaemon({}, function(err, response) {
     console.log('StopDaemon: ' + response);
   })
@@ -3109,7 +3249,9 @@ SubscribeChannelGraph launches a streaming RPC that allows the caller to receive
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.GraphTopologySubscription()
 >>> for response in stub.SubscribeChannelGraph(request):
@@ -3126,10 +3268,12 @@ SubscribeChannelGraph launches a streaming RPC that allows the caller to receive
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
-
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials);
 > var call = lightning.subscribeChannelGraph({})
 
 > call.on('data', function(message) {
@@ -3225,7 +3369,9 @@ SetAlias sets the alias for this node; e.g. "alice"
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.SetAliasRequest(
         new_alias=<YOUR_PARAM>,
@@ -3237,10 +3383,12 @@ SetAlias sets the alias for this node; e.g. "alice"
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.setAlias({ 
     new_alias: <YOUR_PARAM>,
   }, function(err, response) {
@@ -3291,7 +3439,9 @@ $ lncli debuglevel [command options] [arguments...]
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.DebugLevelRequest(
         show=<YOUR_PARAM>,
@@ -3308,10 +3458,12 @@ $ lncli debuglevel [command options] [arguments...]
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
- 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.debugLevel({ 
     show: <YOUR_PARAM>,
     level_spec: <YOUR_PARAM>,

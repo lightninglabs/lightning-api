@@ -33,6 +33,10 @@ If you prefer to just read code, the original `rpc.proto` file from which
 the gRPC documentation was generated can be found in the [lnd Github
 repo](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
 
+Lastly, keep in mind that the code examples will differ slightly based on your
+operating system and specific setup. The `LND_HOMEDIR` used in the gRPC examples
+is `~/.lnd/` for Linux or `~/Library/Application Support/Lnd/tls.cert` for Mac
+
 {% for method in methods %}
 
 # {{ method.name }}
@@ -60,7 +64,9 @@ $ {{ method.lncli_info.usage }}
 ```python
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
 >>> import grpc
->>> channel = grpc.insecure_channel('localhost:10009')
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel){% if method.streaming_request %}
 {% include 'python/streaming_request.html' %}{% else %}
 {% include 'python/simple_request.html' %}{% endif %}{% if method.streaming_response %}
@@ -71,10 +77,12 @@ $ {{ method.lncli_info.usage }}
 
 ```javascript
 > var grpc = require('grpc');
-> var lnrpcDescriptor = grpc.load('rpc.proto');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', grpc.credentials.createInsecure());
-{% if not method.streaming_request and not method.streaming_response %} 
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials);{% if not method.streaming_request and not method.streaming_response %} 
 {% include 'javascript/simple_rpc.html' %}{% elif not method.streaming_request and method.streaming_response %}
 {% include 'javascript/response_streaming.html' %}{% elif method.streaming_request and not method.streaming_response %}
 {% include 'javascript/request_streaming.html' %}{% else %}
