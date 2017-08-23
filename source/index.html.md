@@ -1677,7 +1677,6 @@ $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.CloseChannelRequest(
         channel_point=<YOUR_PARAM>,
-        time_limit=<YOUR_PARAM>,
         force=<YOUR_PARAM>,
     )
 >>> for response in stub.CloseChannel(request):
@@ -1702,7 +1701,6 @@ $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
 > var lightning = new lnrpc.Lightning('localhost:10009', credentials);
 > var call = lightning.closeChannel({ 
     channel_point: <YOUR_PARAM>,
-    time_limit: <YOUR_PARAM>,
     force: <YOUR_PARAM>,
   })
 
@@ -1733,8 +1731,7 @@ $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 channel_point | ChannelPoint | optional | The outpoint (txid:index) of the funding transaction. With this value, Bob will be able to generate a signature for Alice's version of the commitment transaction. 
-time_limit | int64 | optional | a relative deadline afterwhich the attempt should be abandoned 
-force | bool | optional | after the time limit has passed, attempt an uncooperative closure 
+force | bool | optional | If true, then the channel will be closed forcibly. This means the current commitment transaction will be signed and broadcast. 
 
 
 
@@ -1886,7 +1883,7 @@ Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 dest | bytes | optional | The identity pubkey of the payment recipient 
 dest_string | string | optional | The hex-encoded identity pubkey of the payment recipient 
-amt | int64 | optional | Number of satoshis to send 
+amt | int64 | optional | Number of satoshis to send. 
 payment_hash | bytes | optional | The hash to use within the payment's HTLC 
 payment_hash_string | string | optional | The hex-encoded hash to use within the payment's HTLC 
 payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
@@ -1992,7 +1989,7 @@ Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 dest | bytes | optional | The identity pubkey of the payment recipient 
 dest_string | string | optional | The hex-encoded identity pubkey of the payment recipient 
-amt | int64 | optional | Number of satoshis to send 
+amt | int64 | optional | Number of satoshis to send. 
 payment_hash | bytes | optional | The hash to use within the payment's HTLC 
 payment_hash_string | string | optional | The hex-encoded hash to use within the payment's HTLC 
 payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
@@ -2195,7 +2192,7 @@ $ lncli listinvoices [command options] [arguments...]
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-pending_only | bool | optional | Toggles if all invoices should be returned, or only those that are currently unsettled 
+pending_only | bool | optional | Toggles if all invoices should be returned, or only those that are currently unsettled. 
 
 
 
@@ -3496,6 +3493,183 @@ level_spec | string | optional |
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 sub_systems | string | optional |  
+
+
+
+
+
+
+# FeeReport
+
+### Simple RPC
+
+
+ FeeReport allows the caller to obtain a report detailing the current fee schedule enforced by the node globally for each channel.
+
+```shell
+
+# Returns the current fee policies of all active channels. Fee policies can be updated using the updateFees command.
+
+$ lncli feereport [arguments...]
+
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> stub = lnrpc.LightningStub(channel)
+>>> request = ln.FeeReportRequest()
+>>> response = stub.FeeReport(request)
+>>> response
+
+{ 
+    channel_fees: <ChannelFeeReport>,
+}
+
+```
+
+```javascript
+> var grpc = require('grpc');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
+> call = lightning.feeReport({}, function(err, response) {
+    console.log('FeeReport: ' + response);
+  })
+
+{ 
+    channel_fees: <ChannelFeeReport>,
+}
+
+```
+
+### gRPC Request: FeeReportRequest 
+
+
+
+This request has no parameters.
+
+
+
+
+### gRPC Response: FeeReportResponse 
+
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+channel_fees | ChannelFeeReport | repeated | An array of channel fee reports which describes the current fee schedule for each channel. 
+
+
+
+### ChannelFeeReport
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+chan_point | string | optional | The channel that this fee report belongs to. 
+base_fee_msat | int64 | optional | The base fee charged regardless of the number of milli-satoshis sent. 
+fee_per_mil | int64 | optional | The amount charged per milli-satoshis transferred expressed in millionths of a satoshi. 
+fee_rate | double | optional | The effective fee rate in milli-satoshis. Computed by dividing the fee_per_mil value by 1 million. 
+
+
+
+
+
+# UpdateFees
+
+### Simple RPC
+
+
+ UpdateFees allows the caller to update the fee schedule for all channels globally, or a particular channel.
+
+```shell
+
+# Updates the fee policy for all channels, or just a
+# particular channel identified by it's channel point. The
+# fee update will be committed, and broadcast to the rest
+# of the network within the next batch. Channel points are encoded
+# as: funding_txid:output_index
+
+$ lncli updatefees [command options] base_fee_msat fee_rate [channel_point]
+
+# --base_fee_msat value  the base fee in milli-satoshis that will be charged for each forwarded HTLC, regardless of payment size (default: 0)
+# --fee_rate value       the fee rate that will be charged proportionally based on the value of each forwarded HTLC, the lowest possible rate is 0.000001
+# --chan_point value     The channel whose fee policy should be updated, if nil the policies for all channels will be updated. Takes the form of: txid:output_index
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> stub = lnrpc.LightningStub(channel)
+>>> request = ln.FeeUpdateRequest(
+        global=<YOUR_PARAM>,
+        chan_point=<YOUR_PARAM>,
+        base_fee_msat=<YOUR_PARAM>,
+        fee_rate=<YOUR_PARAM>,
+    )
+>>> response = stub.UpdateFees(request)
+>>> response
+{}
+```
+
+```javascript
+> var grpc = require('grpc');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
+> call = lightning.updateFees({ 
+    global: <YOUR_PARAM>,
+    chan_point: <YOUR_PARAM>,
+    base_fee_msat: <YOUR_PARAM>,
+    fee_rate: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('UpdateFees: ' + response);
+  })
+{}
+```
+
+### gRPC Request: FeeUpdateRequest 
+
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+global | bool | optional | If set, then this fee update applies to all currently active channels. 
+chan_point | ChannelPoint | optional | If set, this fee update will target a specific channel. 
+base_fee_msat | int64 | optional | The base fee charged regardless of the number of milli-satoshis sent. 
+fee_rate | double | optional | The effective fee rate in milli-satoshis. The precision of this value goes up to 6 decimal places, so 1e-6. 
+
+
+
+### ChannelPoint
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+funding_txid | bytes | optional | Txid of the funding transaction 
+funding_txid_str | string | optional | Hex-encoded string representing the funding transaction 
+output_index | uint32 | optional | The index of the output of the funding transaction 
+
+
+
+### gRPC Response: FeeUpdateResponse 
+
+
+
+This response is empty.
 
 
 
