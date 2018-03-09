@@ -39,19 +39,15 @@ is `~/.lnd/` for Linux or `~/Library/Application Support/Lnd/tls.cert` for Mac
 
 
 
-# WalletBalance
+# GenSeed
 
 ### Simple RPC
 
 
- WalletBalance returns the sum of all confirmed unspent outputs under control by the wallet. This method can be modified by having the request specify only witness outputs should be factored into the final output sum.
+GenSeed is the first method that should be used to instantiate a new lnd instance. This method allows a caller to generate a new aezeed cipher seed given an optional passphrase. If provided, the passphrase will be necessary to decrypt the cipherseed to expose the internal wallet seed.  Once the cipherseed is obtained and verified by the user, the InitWallet method should be used to commit the newly generated seed, and create the wallet.
 
 ```shell
 
-
-$ lncli walletbalance [command options] [arguments...]
-
-# --witness_only  if only witness outputs should be considered when calculating the wallet's balance
 ```
 
 ```python
@@ -61,14 +57,16 @@ $ lncli walletbalance [command options] [arguments...]
 >>> creds = grpc.ssl_channel_credentials(cert)
 >>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
->>> request = ln.WalletBalanceRequest(
-        witness_only=<YOUR_PARAM>,
+>>> request = ln.GenSeedRequest(
+        aezeed_passphrase=<YOUR_PARAM>,
+        seed_entropy=<YOUR_PARAM>,
     )
->>> response = stub.WalletBalance(request)
+>>> response = stub.GenSeed(request)
 >>> response
 
 { 
-    balance: <int64>,
+    cipher_seed_mnemonic: <string>,
+    enciphered_seed: <bytes>,
 }
 
 ```
@@ -81,14 +79,236 @@ $ lncli walletbalance [command options] [arguments...]
 > var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
 > var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.walletBalance({ 
-    witness_only: <YOUR_PARAM>,
+> call = lightning.genSeed({ 
+    aezeed_passphrase: <YOUR_PARAM>,
+    seed_entropy: <YOUR_PARAM>,
   }, function(err, response) {
+    console.log('GenSeed: ' + response);
+  })
+
+{ 
+    cipher_seed_mnemonic: <string>,
+    enciphered_seed: <bytes>,
+}
+
+```
+
+### gRPC Request: GenSeedRequest 
+
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+aezeed_passphrase | bytes | optional | aezeed_passphrase is an optional user provided passphrase that will be used to encrypt the generated aezeed cipher seed. 
+seed_entropy | bytes | optional | seed_entropy is an optional 16-bytes generated via CSPRNG. If not specified, then a fresh set of randomness will be used to create the seed. 
+
+
+
+
+### gRPC Response: GenSeedResponse 
+
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+cipher_seed_mnemonic | string | repeated | cipher_seed_mnemonic is a 24-word mnemonic that encodes a prior aezeed cipher seed obtained by the user. This field is optional, as if not provided, then the daemon will generate a new cipher seed for the user. Otherwise, then the daemon will attempt to recover the wallet state linked to this cipher seed. 
+enciphered_seed | bytes | optional | enciphered_seed are the raw aezeed cipher seed bytes. This is the raw cipher text before run through our mnemonic encoding scheme. 
+
+
+
+
+
+
+# InitWallet
+
+### Simple RPC
+
+
+InitWallet is used when lnd is starting up for the first time to fully initialize the daemon and its internal wallet. At the very least a wallet password must be provided. This will be used to encrypt sensitive material on disk.  In the case of a recovery scenario, the user can also specify their aezeed mnemonic and passphrase. If set, then the daemon will use this prior state to initialize its internal wallet.  Alternatively, this can be used along with the GenSeed RPC to obtain a seed, then present it to the user. Once it has been verified by the user, the seed can be fed into this RPC in order to commit the new wallet.
+
+```shell
+
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> stub = lnrpc.LightningStub(channel)
+>>> request = ln.InitWalletRequest(
+        wallet_password=<YOUR_PARAM>,
+        cipher_seed_mnemonic=<YOUR_PARAM>,
+        aezeed_passphrase=<YOUR_PARAM>,
+    )
+>>> response = stub.InitWallet(request)
+>>> response
+{}
+```
+
+```javascript
+> var grpc = require('grpc');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
+> call = lightning.initWallet({ 
+    wallet_password: <YOUR_PARAM>,
+    cipher_seed_mnemonic: <YOUR_PARAM>,
+    aezeed_passphrase: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('InitWallet: ' + response);
+  })
+{}
+```
+
+### gRPC Request: InitWalletRequest 
+
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+wallet_password | bytes | optional | wallet_password is the passphrase that should be used to encrypt the wallet. This MUST be at least 8 chars in length. After creation, this password is required to unlock the daemon. 
+cipher_seed_mnemonic | string | repeated | cipher_seed_mnemonic is a 24-word mnemonic that encodes a prior aezeed cipher seed obtained by the user. This may have been generated by the GenSeed method, or be an existing seed. 
+aezeed_passphrase | bytes | optional | aezeed_passphrase is an optional user provided passphrase that will be used to encrypt the generated aezeed cipher seed. 
+
+
+
+
+### gRPC Response: InitWalletResponse 
+
+
+
+This response is empty.
+
+
+
+
+
+
+# UnlockWallet
+
+### Simple RPC
+
+
+ UnlockWallet is used at startup of lnd to provide a password to unlock the wallet database.
+
+```shell
+
+# The unlock command is used to decrypt lnd's wallet state in order to
+# start up. This command MUST be run after booting up lnd before it's
+# able to carry out its duties. An exception is if a user is running with
+# --noencryptwallet, then a default passphrase will be used.
+
+$ lncli unlock [arguments...]
+
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> stub = lnrpc.LightningStub(channel)
+>>> request = ln.UnlockWalletRequest(
+        wallet_password=<YOUR_PARAM>,
+    )
+>>> response = stub.UnlockWallet(request)
+>>> response
+{}
+```
+
+```javascript
+> var grpc = require('grpc');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
+> call = lightning.unlockWallet({ 
+    wallet_password: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('UnlockWallet: ' + response);
+  })
+{}
+```
+
+### gRPC Request: UnlockWalletRequest 
+
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+wallet_password | bytes | optional | wallet_password should be the current valid passphrase for the daemon. This will be required to decrypt on-disk material that the daemon requires to function properly. 
+
+
+
+
+### gRPC Response: UnlockWalletResponse 
+
+
+
+This response is empty.
+
+
+
+
+
+
+# WalletBalance
+
+### Simple RPC
+
+
+ WalletBalance returns total unspent outputs(confirmed and unconfirmed), all confirmed unspent outputs and all unconfirmed unspent outputs under control of the wallet.
+
+```shell
+
+
+$ lncli walletbalance [arguments...]
+
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> stub = lnrpc.LightningStub(channel)
+>>> request = ln.WalletBalanceRequest()
+>>> response = stub.WalletBalance(request)
+>>> response
+
+{ 
+    total_balance: <int64>,
+    confirmed_balance: <int64>,
+    unconfirmed_balance: <int64>,
+}
+
+```
+
+```javascript
+> var grpc = require('grpc');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
+> call = lightning.walletBalance({}, function(err, response) {
     console.log('WalletBalance: ' + response);
   })
 
 { 
-    balance: <int64>,
+    total_balance: <int64>,
+    confirmed_balance: <int64>,
+    unconfirmed_balance: <int64>,
 }
 
 ```
@@ -97,9 +317,7 @@ $ lncli walletbalance [command options] [arguments...]
 
 
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-witness_only | bool | optional | If only witness outputs should be considered when calculating the wallet's balance 
+This request has no parameters.
 
 
 
@@ -110,7 +328,9 @@ witness_only | bool | optional | If only witness outputs should be considered wh
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-balance | int64 | optional | The balance of the wallet 
+total_balance | int64 | optional | The balance of the wallet 
+confirmed_balance | int64 | optional | The confirmed balance of a wallet(with >= 1 confirmations) 
+unconfirmed_balance | int64 | optional | The unconfirmed balance of a wallet(with 0 confirmations) 
 
 
 
@@ -269,6 +489,7 @@ block_hash | string | optional | The hash of the block this transaction was incl
 block_height | int32 | optional | The height of the block this transaction was included in 
 time_stamp | int64 | optional | Timestamp of this transaction 
 total_fees | int64 | optional | Fees paid for this transaction 
+dest_addresses | string | repeated | Addresses that received funds for this transaction 
 
 
 
@@ -279,17 +500,21 @@ total_fees | int64 | optional | Fees paid for this transaction
 ### Simple RPC
 
 
- SendCoins executes a request to send coins to a particular address. Unlike SendMany, this RPC call only allows creating a single output at a time.
+ SendCoins executes a request to send coins to a particular address. Unlike SendMany, this RPC call only allows creating a single output at a time. If neither target_conf, or sat_per_byte are set, then the internal wallet will consult its fee model to determine a fee for the default confirmation target.
 
 ```shell
 
 # Send amt coins in satoshis to the BASE58 encoded bitcoin address addr.
+# Fees used when sending the transaction can be specified via the --conf_target, or
+# --sat_per_byte optional flags.
 # Positional arguments and flags can be used interchangeably but not at the same time!
 
 $ lncli sendcoins [command options] addr amt
 
-# --addr value  the BASE58 encoded bitcoin address to send coins to on-chain
-# --amt value   the number of bitcoin denominated in satoshis to send (default: 0)
+# --addr value          the BASE58 encoded bitcoin address to send coins to on-chain
+# --amt value           the number of bitcoin denominated in satoshis to send (default: 0)
+# --conf_target value   (optional) the number of blocks that the transaction *should* confirm in, will be used for fee estimation (default: 0)
+# --sat_per_byte value  (optional) a manual fee expressed in sat/byte that should be used when crafting the transaction (default: 0)
 ```
 
 ```python
@@ -302,6 +527,8 @@ $ lncli sendcoins [command options] addr amt
 >>> request = ln.SendCoinsRequest(
         addr=<YOUR_PARAM>,
         amount=<YOUR_PARAM>,
+        target_conf=<YOUR_PARAM>,
+        sat_per_byte=<YOUR_PARAM>,
     )
 >>> response = stub.SendCoins(request)
 >>> response
@@ -323,6 +550,8 @@ $ lncli sendcoins [command options] addr amt
 > call = lightning.sendCoins({ 
     addr: <YOUR_PARAM>,
     amount: <YOUR_PARAM>,
+    target_conf: <YOUR_PARAM>,
+    sat_per_byte: <YOUR_PARAM>,
   }, function(err, response) {
     console.log('SendCoins: ' + response);
   })
@@ -341,6 +570,8 @@ Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 addr | string | optional | The address to send coins to 
 amount | int64 | optional | The amount in satoshis to send 
+target_conf | int32 | optional | The target number of blocks that this transaction should be confirmed by. 
+sat_per_byte | int64 | optional | A manual fee rate set in sat/byte that should be used when crafting the transaction. 
 
 
 
@@ -389,6 +620,7 @@ SubscribeTransactions creates a uni-directional stream from the server to the cl
     block_height: <int32>,
     time_stamp: <int64>,
     total_fees: <int64>,
+    dest_addresses: <string>,
 }
 
 ```
@@ -423,6 +655,7 @@ SubscribeTransactions creates a uni-directional stream from the server to the cl
     block_height: <int32>,
     time_stamp: <int64>,
     total_fees: <int64>,
+    dest_addresses: <string>,
 }
 
 ```
@@ -449,6 +682,7 @@ block_hash | string | optional | The hash of the block this transaction was incl
 block_height | int32 | optional | The height of the block this transaction was included in 
 time_stamp | int64 | optional | Timestamp of this transaction 
 total_fees | int64 | optional | Fees paid for this transaction 
+dest_addresses | string | repeated | Addresses that received funds for this transaction 
 
 
 
@@ -460,16 +694,19 @@ total_fees | int64 | optional | Fees paid for this transaction
 ### Simple RPC
 
 
- SendMany handles a request for a transaction that creates multiple specified outputs in parallel.
+ SendMany handles a request for a transaction that creates multiple specified outputs in parallel. If neither target_conf, or sat_per_byte are set, then the internal wallet will consult its fee model to determine a fee for the default confirmation target.
 
 ```shell
 
-# create and broadcast a transaction paying the specified amount(s) to the passed address(es)
-# 'send-json-string' decodes addresses and the amount to send respectively in the following format.
+# Create and broadcast a transaction paying the specified amount(s) to the passed address(es).
+# The send-json-string' param decodes addresses and the amount to send
+# respectively in the following format:
 # '{"ExampleAddr": NumCoinsInSatoshis, "SecondAddr": NumCoins}'
 
-$ lncli sendmany send-json-string
+$ lncli sendmany [command options] send-json-string [--conf_target=N] [--sat_per_byte=P]
 
+# --conf_target value   (optional) the number of blocks that the transaction *should* confirm in, will be used for fee estimation (default: 0)
+# --sat_per_byte value  (optional) a manual fee expressed in sat/byte that should be used when crafting the transaction (default: 0)
 ```
 
 ```python
@@ -481,6 +718,8 @@ $ lncli sendmany send-json-string
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.SendManyRequest(
         AddrToAmount=<YOUR_PARAM>,
+        target_conf=<YOUR_PARAM>,
+        sat_per_byte=<YOUR_PARAM>,
     )
 >>> response = stub.SendMany(request)
 >>> response
@@ -501,6 +740,8 @@ $ lncli sendmany send-json-string
 > var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.sendMany({ 
     AddrToAmount: <YOUR_PARAM>,
+    target_conf: <YOUR_PARAM>,
+    sat_per_byte: <YOUR_PARAM>,
   }, function(err, response) {
     console.log('SendMany: ' + response);
   })
@@ -518,6 +759,8 @@ $ lncli sendmany send-json-string
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 AddrToAmount | AddrToAmountEntry | repeated | The map from addresses to amounts 
+target_conf | int32 | optional | The target number of blocks that this transaction should be confirmed by. 
+sat_per_byte | int64 | optional | A manual fee rate set in sat/byte that should be used when crafting the transaction. 
 
 
 
@@ -554,9 +797,8 @@ txid | string | optional | The id of the transaction
 ```shell
 
 # Generate a wallet new address. Address-types has to be one of:
-# - p2wkh:  Push to witness key hash
-# - np2wkh: Push to nested witness key hash
-# - p2pkh:  Push to public key hash
+# - p2wkh:  Pay to witness key hash
+# - np2wkh: Pay to nested witness key hash
 
 $ lncli newaddress address-type
 
@@ -702,7 +944,8 @@ address | string | optional | The newly generated wallet address
 
 ```shell
 
-# Sign msg with the resident node's private key. Returns a the signature as a zbase32 string.
+# Sign msg with the resident node's private key.
+# Returns the signature as a zbase32 string.
 # Positional arguments and flags can be used interchangeably but not at the same time!
 
 $ lncli signmessage [command options] msg
@@ -782,7 +1025,7 @@ signature | string | optional | The signature for the given message
 
 ```shell
 
-# Verify that the message was signed with a properly-formed signature.
+# Verify that the message was signed with a properly-formed signature
 # The signature must be zbase32 encoded and signed with the private key of
 # an active node in the resident node's channel database.
 # Positional arguments and flags can be used interchangeably but not at the same time!
@@ -843,7 +1086,7 @@ $ lncli verifymessage [command options] msg signature
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 msg | bytes | optional | The message over which the signature is to be verified 
-signature | string | optional | The signature to be verifed over the given message 
+signature | string | optional | The signature to be verified over the given message 
 
 
 
@@ -891,11 +1134,7 @@ $ lncli connect [command options] <pubkey>@host
     )
 >>> response = stub.ConnectPeer(request)
 >>> response
-
-{ 
-    peer_id: <int32>,
-}
-
+{}
 ```
 
 ```javascript
@@ -912,11 +1151,7 @@ $ lncli connect [command options] <pubkey>@host
   }, function(err, response) {
     console.log('ConnectPeer: ' + response);
   })
-
-{ 
-    peer_id: <int32>,
-}
-
+{}
 ```
 
 ### gRPC Request: ConnectPeerRequest 
@@ -944,9 +1179,7 @@ host | string | optional | The network location of the lightning node, e.g. `69.
 
 
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-peer_id | int32 | optional | The id of the newly connected peer 
+This response is empty.
 
 
 
@@ -1095,7 +1328,6 @@ peers | Peer | repeated | The list of currently connected peers
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 pub_key | string | optional | The identity pubkey of the peer 
-peer_id | int32 | optional | The peer's id from the local point of view 
 address | string | optional | Network address of the peer; eg `127.0.0.1:10011` 
 bytes_sent | uint64 | optional | Bytes of data transmitted to this peer 
 bytes_recv | uint64 | optional | Bytes of data transmitted from this peer 
@@ -1144,6 +1376,8 @@ $ lncli getinfo [arguments...]
     synced_to_chain: <bool>,
     testnet: <bool>,
     chains: <string>,
+    uris: <string>,
+    best_header_timestamp: <int64>,
 }
 
 ```
@@ -1171,6 +1405,8 @@ $ lncli getinfo [arguments...]
     synced_to_chain: <bool>,
     testnet: <bool>,
     chains: <string>,
+    uris: <string>,
+    best_header_timestamp: <int64>,
 }
 
 ```
@@ -1200,6 +1436,8 @@ block_hash | string | optional | The node's current view of the hash of the best
 synced_to_chain | bool | optional | Whether the wallet's view is synced to the main chain 
 testnet | bool | optional | Whether the current node is connected to testnet 
 chains | string | repeated | A list of active chains the node is connected to 
+uris | string | repeated | The URIs of the current node. 
+best_header_timestamp | int64 | optional | Timestamp of the block best known to the wallet 
 
 
 
@@ -1230,7 +1468,7 @@ $ lncli pendingchannels [command options] [arguments...]
 >>> creds = grpc.ssl_channel_credentials(cert)
 >>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
->>> request = ln.PendingChannelRequest()
+>>> request = ln.PendingChannelsRequest()
 >>> response = stub.PendingChannels(request)
 >>> response
 
@@ -1264,7 +1502,7 @@ $ lncli pendingchannels [command options] [arguments...]
 
 ```
 
-### gRPC Request: PendingChannelRequest 
+### gRPC Request: PendingChannelsRequest 
 
 
 
@@ -1273,7 +1511,7 @@ This request has no parameters.
 
 
 
-### gRPC Response: PendingChannelResponse 
+### gRPC Response: PendingChannelsResponse 
 
 
 
@@ -1293,7 +1531,6 @@ Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 channel | PendingChannel | optional | The pending channel 
 confirmation_height | uint32 | optional | The height at which this channel will be confirmed 
-blocks_till_open | uint32 | optional | The number of blocks until this channel is open 
 commit_fee | int64 | optional | The amount calculated to be paid in fees for the current set of commitment transactions. The fee amount is persisted with the channel in order to allow the fee amount to be removed and recalculated with each channel state update, including updates that happen after a system restart. 
 commit_weight | int64 | optional | The weight of the commitment transaction 
 fee_per_kw | int64 | optional | The required number of satoshis per kilo-weight that the requester will pay at all times, for both the funding transaction and commitment transaction. This value can later be updated once the channel is open. 
@@ -1317,7 +1554,9 @@ channel | PendingChannel | optional | The pending channel to be force closed
 closing_txid | string | optional | The transaction id of the closing transaction 
 limbo_balance | int64 | optional | The balance in satoshis encumbered in this pending channel 
 maturity_height | uint32 | optional | The height at which funds can be sweeped into the wallet 
-blocks_til_maturity | uint32 | optional | Remaining # of blocks until funds can be sweeped into the wallet 
+blocks_til_maturity | int32 | optional |  
+recovered_balance | int64 | optional | The total value of funds successfully recovered from this channel 
+pending_htlcs | PendingHTLC | repeated |  
 
 
 
@@ -1412,6 +1651,7 @@ total_satoshis_sent | int64 | optional | The total number of satoshis we've sent
 total_satoshis_received | int64 | optional | The total number of satoshis we've received within this channel. 
 num_updates | uint64 | optional | The total number of updates conducted within this channel. 
 pending_htlcs | HTLC | repeated | The list of active, uncleared HTLCs currently pending within the channel. 
+csv_delay | uint32 | optional | The CSV delay expressed in relative blocks. If the channel is force closed, we'll need to wait for this many blocks before we can regain our funds. 
 
 
 
@@ -1436,17 +1676,20 @@ OpenChannelSync is a synchronous version of the OpenChannel RPC call. This call 
 >>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.OpenChannelRequest(
-        target_peer_id=<YOUR_PARAM>,
         node_pubkey=<YOUR_PARAM>,
         node_pubkey_string=<YOUR_PARAM>,
         local_funding_amount=<YOUR_PARAM>,
         push_sat=<YOUR_PARAM>,
+        target_conf=<YOUR_PARAM>,
+        sat_per_byte=<YOUR_PARAM>,
+        private=<YOUR_PARAM>,
+        min_htlc_msat=<YOUR_PARAM>,
     )
 >>> response = stub.OpenChannelSync(request)
 >>> response
 
 { 
-    funding_txid: <bytes>,
+    funding_txid_bytes: <bytes>,
     funding_txid_str: <string>,
     output_index: <uint32>,
 }
@@ -1462,17 +1705,20 @@ OpenChannelSync is a synchronous version of the OpenChannel RPC call. This call 
 > var lnrpc = lnrpcDescriptor.lnrpc;
 > var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
 > call = lightning.openChannelSync({ 
-    target_peer_id: <YOUR_PARAM>,
     node_pubkey: <YOUR_PARAM>,
     node_pubkey_string: <YOUR_PARAM>,
     local_funding_amount: <YOUR_PARAM>,
     push_sat: <YOUR_PARAM>,
+    target_conf: <YOUR_PARAM>,
+    sat_per_byte: <YOUR_PARAM>,
+    private: <YOUR_PARAM>,
+    min_htlc_msat: <YOUR_PARAM>,
   }, function(err, response) {
     console.log('OpenChannelSync: ' + response);
   })
 
 { 
-    funding_txid: <bytes>,
+    funding_txid_bytes: <bytes>,
     funding_txid_str: <string>,
     output_index: <uint32>,
 }
@@ -1485,11 +1731,14 @@ OpenChannelSync is a synchronous version of the OpenChannel RPC call. This call 
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-target_peer_id | int32 | optional | The peer_id of the node to open a channel with 
 node_pubkey | bytes | optional | The pubkey of the node to open a channel with 
-node_pubkey_string | string | optional | The hex encorded pubkey of the node to open a channel with 
+node_pubkey_string | string | optional | The hex encoded pubkey of the node to open a channel with 
 local_funding_amount | int64 | optional | The number of satoshis the wallet should commit to the channel 
 push_sat | int64 | optional | The number of satoshis to push to the remote side as part of the initial commitment state 
+target_conf | int32 | optional | The target number of blocks that the closure transaction should be confirmed by. 
+sat_per_byte | int64 | optional | A manual fee rate set in sat/byte that should be used when crafting the closure transaction. 
+private | bool | optional | Whether this channel should be private, not announced to the greater network. 
+min_htlc_msat | int64 | optional | The minimum value in millisatoshi we will require for incoming HTLCs on the channel. 
 
 
 
@@ -1500,7 +1749,7 @@ push_sat | int64 | optional | The number of satoshis to push to the remote side 
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-funding_txid | bytes | optional | Txid of the funding transaction 
+funding_txid_bytes | bytes | optional | Txid of the funding transaction 
 funding_txid_str | string | optional | Hex-encoded string representing the funding transaction 
 output_index | uint32 | optional | The index of the output of the funding transaction 
 
@@ -1514,19 +1763,32 @@ output_index | uint32 | optional | The index of the output of the funding transa
 ### Response-streaming RPC
 
 
- OpenChannel attempts to open a singly funded channel specified in the request to a remote peer.
+ OpenChannel attempts to open a singly funded channel specified in the request to a remote peer. Users are able to specify a target number of blocks that the funding transaction should be confirmed in, or a manual fee rate to us for the funding transaction. If neither are specified, then a lax block confirmation target is used.
 
 ```shell
 
-# Attempt to open a new channel to an existing peer with the key node-key, optionally blocking until the channel is 'open'. The channel will be initialized with local-amt satoshis local and push-amt satoshis for the remote node. Once the channel is open, a channelPoint (txid:vout) of the funding output is returned. NOTE: peer_id and node_key are mutually exclusive, only one should be used, not both.
+# Attempt to open a new channel to an existing peer with the key node-key
+# optionally blocking until the channel is 'open'.
+# One can also connect to a node before opening a new channel to it by
+# setting its host:port via the --connect argument. For this to work,
+# the node_key must be provided, rather than the peer_id. This is optional.
+# The channel will be initialized with local-amt satoshis local and push-amt
+# satoshis for the remote node. Once the channel is open, a channelPoint (txid:vout)
+# of the funding output is returned.
+# One can manually set the fee to be used for the funding transaction via either
+# the --conf_target or --sat_per_byte arguments. This is optional.
 
 $ lncli openchannel [command options] node-key local-amt push-amt
 
-# --peer_id value    the relative id of the peer to open a channel with (default: 0)
-# --node_key value   the identity public key of the target peer serialized in compressed format
-# --local_amt value  the number of satoshis the wallet should commit to the channel (default: 0)
-# --push_amt value   the number of satoshis to push to the remote side as part of the initial commitment state (default: 0)
-# --block            block and wait until the channel is fully open
+# --node_key value       the identity public key of the target node/peer serialized in compressed format
+# --connect value        (optional) the host:port of the target node
+# --local_amt value      the number of satoshis the wallet should commit to the channel (default: 0)
+# --push_amt value       the number of satoshis to push to the remote side as part of the initial commitment state (default: 0)
+# --block                block and wait until the channel is fully open
+# --conf_target value    (optional) the number of blocks that the transaction *should* confirm in, will be used for fee estimation (default: 0)
+# --sat_per_byte value   (optional) a manual fee expressed in sat/byte that should be used when crafting the transaction (default: 0)
+# --private              make the channel private, such that it won't be announced to the greater network, and nodes other than the two channel endpoints must be explicitly told about it to be able to route through it
+# --min_htlc_msat value  (optional) the minimum value we will require for incoming HTLCs on the channel (default: 0)
 ```
 
 ```python
@@ -1537,11 +1799,14 @@ $ lncli openchannel [command options] node-key local-amt push-amt
 >>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.OpenChannelRequest(
-        target_peer_id=<YOUR_PARAM>,
         node_pubkey=<YOUR_PARAM>,
         node_pubkey_string=<YOUR_PARAM>,
         local_funding_amount=<YOUR_PARAM>,
         push_sat=<YOUR_PARAM>,
+        target_conf=<YOUR_PARAM>,
+        sat_per_byte=<YOUR_PARAM>,
+        private=<YOUR_PARAM>,
+        min_htlc_msat=<YOUR_PARAM>,
     )
 >>> for response in stub.OpenChannel(request):
     # Do something
@@ -1564,11 +1829,14 @@ $ lncli openchannel [command options] node-key local-amt push-amt
 > var lnrpc = lnrpcDescriptor.lnrpc;
 > var lightning = new lnrpc.Lightning('localhost:10009', credentials);
 > var call = lightning.openChannel({ 
-    target_peer_id: <YOUR_PARAM>,
     node_pubkey: <YOUR_PARAM>,
     node_pubkey_string: <YOUR_PARAM>,
     local_funding_amount: <YOUR_PARAM>,
     push_sat: <YOUR_PARAM>,
+    target_conf: <YOUR_PARAM>,
+    sat_per_byte: <YOUR_PARAM>,
+    private: <YOUR_PARAM>,
+    min_htlc_msat: <YOUR_PARAM>,
   })
 
 > call.on('data', function(message) {
@@ -1597,11 +1865,14 @@ $ lncli openchannel [command options] node-key local-amt push-amt
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-target_peer_id | int32 | optional | The peer_id of the node to open a channel with 
 node_pubkey | bytes | optional | The pubkey of the node to open a channel with 
-node_pubkey_string | string | optional | The hex encorded pubkey of the node to open a channel with 
+node_pubkey_string | string | optional | The hex encoded pubkey of the node to open a channel with 
 local_funding_amount | int64 | optional | The number of satoshis the wallet should commit to the channel 
 push_sat | int64 | optional | The number of satoshis to push to the remote side as part of the initial commitment state 
+target_conf | int32 | optional | The target number of blocks that the closure transaction should be confirmed by. 
+sat_per_byte | int64 | optional | A manual fee rate set in sat/byte that should be used when crafting the closure transaction. 
+private | bool | optional | Whether this channel should be private, not announced to the greater network. 
+min_htlc_msat | int64 | optional | The minimum value in millisatoshi we will require for incoming HTLCs on the channel. 
 
 
 
@@ -1653,11 +1924,20 @@ channel_point | ChannelPoint | optional |
 ### Response-streaming RPC
 
 
- CloseChannel attempts to close an active channel identified by its channel outpoint (ChannelPoint). The actions of this method can additionally be augmented to attempt a force close after a timeout period in the case of an inactive peer.
+ CloseChannel attempts to close an active channel identified by its channel outpoint (ChannelPoint). The actions of this method can additionally be augmented to attempt a force close after a timeout period in the case of an inactive peer. If a non-force close (cooperative closure) is requested, then the user can specify either a target number of blocks until the closure transaction is confirmed, or a manual fee rate. If neither are specified, then a default lax, block confirmation target is used.
 
 ```shell
 
-# Close an existing channel. The channel can be closed either cooperatively, or uncooperatively (forced).
+# Close an existing channel. The channel can be closed either cooperatively,
+# or unilaterally (--force).
+# A unilateral channel closure means that the latest commitment
+# transaction will be broadcast to the network. As a result, any settled
+# funds will be time locked for a few blocks before they can be swept int
+# lnd's wallet.
+# In the case of a cooperative closure, One can manually set the fee to
+# be used for the closing transaction via either the --conf_target or
+# --sat_per_byte arguments. This will be the starting value used during
+# fee negotiation.  This is optional.
 
 $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
 
@@ -1666,6 +1946,8 @@ $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
 # --time_limit value    a relative deadline afterwhich the attempt should be abandoned
 # --force               after the time limit has passed, attempt an uncooperative closure
 # --block               block until the channel is closed
+# --conf_target value   (optional) the number of blocks that the transaction *should* confirm in, will be used for fee estimation (default: 0)
+# --sat_per_byte value  (optional) a manual fee expressed in sat/byte that should be used when crafting the transaction (default: 0)
 ```
 
 ```python
@@ -1678,6 +1960,8 @@ $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
 >>> request = ln.CloseChannelRequest(
         channel_point=<YOUR_PARAM>,
         force=<YOUR_PARAM>,
+        target_conf=<YOUR_PARAM>,
+        sat_per_byte=<YOUR_PARAM>,
     )
 >>> for response in stub.CloseChannel(request):
     # Do something
@@ -1702,6 +1986,8 @@ $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
 > var call = lightning.closeChannel({ 
     channel_point: <YOUR_PARAM>,
     force: <YOUR_PARAM>,
+    target_conf: <YOUR_PARAM>,
+    sat_per_byte: <YOUR_PARAM>,
   })
 
 > call.on('data', function(message) {
@@ -1732,6 +2018,8 @@ Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 channel_point | ChannelPoint | optional | The outpoint (txid:index) of the funding transaction. With this value, Bob will be able to generate a signature for Alice's version of the commitment transaction. 
 force | bool | optional | If true, then the channel will be closed forcibly. This means the current commitment transaction will be signed and broadcast. 
+target_conf | int32 | optional | The target number of blocks that the closure transaction should be confirmed by. 
+sat_per_byte | int64 | optional | A manual fee rate set in sat/byte that should be used when crafting the closure transaction. 
 
 
 
@@ -1740,7 +2028,7 @@ force | bool | optional | If true, then the channel will be closed forcibly. Thi
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-funding_txid | bytes | optional | Txid of the funding transaction 
+funding_txid_bytes | bytes | optional | Txid of the funding transaction 
 funding_txid_str | string | optional | Hex-encoded string representing the funding transaction 
 output_index | uint32 | optional | The index of the output of the funding transaction 
 
@@ -1798,14 +2086,31 @@ success | bool | optional |
 
 ```shell
 
+# Send a payment over Lightning. One can either specify the full
+# parameters of the payment, or just use a payment request which encodes
+# all the payment details.
+# If payment isn't manually specified, then only a payment request needs
+# to be passed using the --pay_req argument.
+# If the payment *is* manually specified, then all four alternative
+# arguments need to be specified in order to complete the payment:
+# * --dest=N
+# * --amt=A
+# * --final_cltv_delta=T
+# * --payment_hash=H
+# The --debug_send flag is provided for usage *purely* in test
+# environments. If specified, then the payment hash isn't required, as
+# it'll use the hash of all zeroes. This mode allows one to quickly test
+# payment connectivity without having to create an invoice at the
+# destination.
 
-$ lncli sendpayment [command options] (destination amount payment_hash | --pay_req=[payment request])
+$ lncli sendpayment [command options] dest amt payment_hash final_cltv_delta | --pay_req=[payment request]
 
 # --dest value, -d value          the compressed identity pubkey of the payment recipient
 # --amt value, -a value           number of satoshis to send (default: 0)
 # --payment_hash value, -r value  the hash to use within the payment's HTLC
 # --debug_send                    use the debug rHash when sending the HTLC
-# --pay_req value                 a zbase32-check encoded payment request to fulfill
+# --pay_req value                 a zpay32 encoded payment request to fulfill
+# --final_cltv_delta value        the number of blocks the last hop has to reveal the preimage (default: 0)
 ```
 
 ```python
@@ -1828,6 +2133,7 @@ $ lncli sendpayment [command options] (destination amount payment_hash | --pay_r
                 payment_hash=<YOUR_PARAM>,
                 payment_hash_string=<YOUR_PARAM>,
                 payment_request=<YOUR_PARAM>,
+                final_cltv_delta=<YOUR_PARAM>,
             )
             yield request
             # Do things between iterations here
@@ -1865,6 +2171,7 @@ $ lncli sendpayment [command options] (destination amount payment_hash | --pay_r
     payment_hash: <YOUR_PARAM>,
     payment_hash_string: <YOUR_PARAM>,
     payment_request: <YOUR_PARAM>,
+    final_cltv_delta: <YOUR_PARAM>,
   });
 
 { 
@@ -1887,6 +2194,7 @@ amt | int64 | optional | Number of satoshis to send.
 payment_hash | bytes | optional | The hash to use within the payment's HTLC 
 payment_hash_string | string | optional | The hex-encoded hash to use within the payment's HTLC 
 payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+final_cltv_delta | int32 | optional | The CLTV delta from the current height that should be used to set the timelock for the final hop. 
 
 
 
@@ -1942,6 +2250,7 @@ SendPaymentSync is the synchronous non-streaming version of SendPayment. This RP
         payment_hash=<YOUR_PARAM>,
         payment_hash_string=<YOUR_PARAM>,
         payment_request=<YOUR_PARAM>,
+        final_cltv_delta=<YOUR_PARAM>,
     )
 >>> response = stub.SendPaymentSync(request)
 >>> response
@@ -1969,6 +2278,7 @@ SendPaymentSync is the synchronous non-streaming version of SendPayment. This RP
     payment_hash: <YOUR_PARAM>,
     payment_hash_string: <YOUR_PARAM>,
     payment_request: <YOUR_PARAM>,
+    final_cltv_delta: <YOUR_PARAM>,
   }, function(err, response) {
     console.log('SendPaymentSync: ' + response);
   })
@@ -1993,6 +2303,7 @@ amt | int64 | optional | Number of satoshis to send.
 payment_hash | bytes | optional | The hash to use within the payment's HTLC 
 payment_hash_string | string | optional | The hex-encoded hash to use within the payment's HTLC 
 payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+final_cltv_delta | int32 | optional | The CLTV delta from the current height that should be used to set the timelock for the final hop. 
 
 
 
@@ -2032,14 +2343,20 @@ hops | Hop | repeated | Contains details concerning the specific forwarding deta
 
 ```shell
 
-# Add a new invoice, expressing intent for a future payment. The value of the invoice in satoshis and a 32 byte hash preimage are neccesary for the creation
+# Add a new invoice, expressing intent for a future payment.
+# Invoices without an amount can be created by not supplying any
+# parameters or providing an amount of 0. These invoices allow the payee
+# to specify the amount of satoshis they wish to send.
 
 $ lncli addinvoice [command options] value preimage
 
-# --memo value      an optional memo to attach along with the invoice
-# --receipt value   an optional cryptographic receipt of payment
-# --preimage value  the hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage
-# --value value     the value of this invoice in satoshis (default: 0)
+# --memo value              a description of the payment to attach along with the invoice (default="")
+# --receipt value           an optional cryptographic receipt of payment
+# --preimage value          the hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage. If not set, a random preimage will be created.
+# --amt value               the amt of satoshis in this invoice (default: 0)
+# --description_hash value  SHA-256 hash of the description of the payment. Used if the purpose of payment cannot naturally fit within the memo. If provided this will be used instead of the description(memo) field in the encoded invoice.
+# --fallback_addr value     fallback on-chain address that can be used in case the lightning payment fails
+# --expiry value            the invoice's expiry time in seconds. If not specified an expiry of 3600 seconds (1 hour) is implied. (default: 0)
 ```
 
 ```python
@@ -2059,6 +2376,10 @@ $ lncli addinvoice [command options] value preimage
         creation_date=<YOUR_PARAM>,
         settle_date=<YOUR_PARAM>,
         payment_request=<YOUR_PARAM>,
+        description_hash=<YOUR_PARAM>,
+        expiry=<YOUR_PARAM>,
+        fallback_addr=<YOUR_PARAM>,
+        cltv_expiry=<YOUR_PARAM>,
     )
 >>> response = stub.AddInvoice(request)
 >>> response
@@ -2088,6 +2409,10 @@ $ lncli addinvoice [command options] value preimage
     creation_date: <YOUR_PARAM>,
     settle_date: <YOUR_PARAM>,
     payment_request: <YOUR_PARAM>,
+    description_hash: <YOUR_PARAM>,
+    expiry: <YOUR_PARAM>,
+    fallback_addr: <YOUR_PARAM>,
+    cltv_expiry: <YOUR_PARAM>,
   }, function(err, response) {
     console.log('AddInvoice: ' + response);
   })
@@ -2105,7 +2430,7 @@ $ lncli addinvoice [command options] value preimage
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-memo | string | optional | An optional memo to attach along with the invoice 
+memo | string | optional | An optional memo to attach along with the invoice. Used for record keeping purposes for the invoice's creator, and will also be set in the description field of the encoded payment request if the description_hash field is not being used. 
 receipt | bytes | optional | An optional cryptographic receipt of payment 
 r_preimage | bytes | optional | The hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage 
 r_hash | bytes | optional | The hash of the preimage 
@@ -2114,6 +2439,10 @@ settled | bool | optional | Whether this invoice has been fulfilled
 creation_date | int64 | optional | When this invoice was created 
 settle_date | int64 | optional | When this invoice was settled 
 payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+description_hash | bytes | optional | Hash (SHA-256) of a description of the payment. Used if the description of payment (memo) is too long to naturally fit within the description field of an encoded payment request. 
+expiry | int64 | optional | Payment request expiry time in seconds. Default is 3600 (1 hour). 
+fallback_addr | string | optional | Fallback on-chain address. 
+cltv_expiry | uint64 | optional | Delta to use for the time-lock of the CLTV extended to the final hop. 
 
 
 
@@ -2212,7 +2541,7 @@ invoices | Invoice | repeated |
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-memo | string | optional | An optional memo to attach along with the invoice 
+memo | string | optional | An optional memo to attach along with the invoice. Used for record keeping purposes for the invoice's creator, and will also be set in the description field of the encoded payment request if the description_hash field is not being used. 
 receipt | bytes | optional | An optional cryptographic receipt of payment 
 r_preimage | bytes | optional | The hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage 
 r_hash | bytes | optional | The hash of the preimage 
@@ -2221,6 +2550,10 @@ settled | bool | optional | Whether this invoice has been fulfilled
 creation_date | int64 | optional | When this invoice was created 
 settle_date | int64 | optional | When this invoice was settled 
 payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+description_hash | bytes | optional | Hash (SHA-256) of a description of the payment. Used if the description of payment (memo) is too long to naturally fit within the description field of an encoded payment request. 
+expiry | int64 | optional | Payment request expiry time in seconds. Default is 3600 (1 hour). 
+fallback_addr | string | optional | Fallback on-chain address. 
+cltv_expiry | uint64 | optional | Delta to use for the time-lock of the CLTV extended to the final hop. 
 
 
 
@@ -2231,7 +2564,7 @@ payment_request | string | optional | A bare-bones invoice for a payment within 
 ### Simple RPC
 
 
- LookupInvoice attemps to look up an invoice according to its payment hash. The passed payment hash *must* be exactly 32 bytes, if not, an error is returned.
+ LookupInvoice attempts to look up an invoice according to its payment hash. The passed payment hash *must* be exactly 32 bytes, if not, an error is returned.
 
 ```shell
 
@@ -2265,6 +2598,10 @@ $ lncli lookupinvoice [command options] rhash
     creation_date: <int64>,
     settle_date: <int64>,
     payment_request: <string>,
+    description_hash: <bytes>,
+    expiry: <int64>,
+    fallback_addr: <string>,
+    cltv_expiry: <uint64>,
 }
 
 ```
@@ -2294,6 +2631,10 @@ $ lncli lookupinvoice [command options] rhash
     creation_date: <int64>,
     settle_date: <int64>,
     payment_request: <string>,
+    description_hash: <bytes>,
+    expiry: <int64>,
+    fallback_addr: <string>,
+    cltv_expiry: <uint64>,
 }
 
 ```
@@ -2316,7 +2657,7 @@ r_hash | bytes | optional | The payment hash of the invoice to be looked up.
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-memo | string | optional | An optional memo to attach along with the invoice 
+memo | string | optional | An optional memo to attach along with the invoice. Used for record keeping purposes for the invoice's creator, and will also be set in the description field of the encoded payment request if the description_hash field is not being used. 
 receipt | bytes | optional | An optional cryptographic receipt of payment 
 r_preimage | bytes | optional | The hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage 
 r_hash | bytes | optional | The hash of the preimage 
@@ -2325,6 +2666,10 @@ settled | bool | optional | Whether this invoice has been fulfilled
 creation_date | int64 | optional | When this invoice was created 
 settle_date | int64 | optional | When this invoice was settled 
 payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+description_hash | bytes | optional | Hash (SHA-256) of a description of the payment. Used if the description of payment (memo) is too long to naturally fit within the description field of an encoded payment request. 
+expiry | int64 | optional | Payment request expiry time in seconds. Default is 3600 (1 hour). 
+fallback_addr | string | optional | Fallback on-chain address. 
+cltv_expiry | uint64 | optional | Delta to use for the time-lock of the CLTV extended to the final hop. 
 
 
 
@@ -2364,6 +2709,10 @@ SubscribeInvoices returns a uni-directional stream (sever -> client) for notifyi
     creation_date: <int64>,
     settle_date: <int64>,
     payment_request: <string>,
+    description_hash: <bytes>,
+    expiry: <int64>,
+    fallback_addr: <string>,
+    cltv_expiry: <uint64>,
 }
 
 ```
@@ -2400,6 +2749,10 @@ SubscribeInvoices returns a uni-directional stream (sever -> client) for notifyi
     creation_date: <int64>,
     settle_date: <int64>,
     payment_request: <string>,
+    description_hash: <bytes>,
+    expiry: <int64>,
+    fallback_addr: <string>,
+    cltv_expiry: <uint64>,
 }
 
 ```
@@ -2419,7 +2772,7 @@ This request has no parameters.
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-memo | string | optional | An optional memo to attach along with the invoice 
+memo | string | optional | An optional memo to attach along with the invoice. Used for record keeping purposes for the invoice's creator, and will also be set in the description field of the encoded payment request if the description_hash field is not being used. 
 receipt | bytes | optional | An optional cryptographic receipt of payment 
 r_preimage | bytes | optional | The hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage 
 r_hash | bytes | optional | The hash of the preimage 
@@ -2428,6 +2781,10 @@ settled | bool | optional | Whether this invoice has been fulfilled
 creation_date | int64 | optional | When this invoice was created 
 settle_date | int64 | optional | When this invoice was settled 
 payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+description_hash | bytes | optional | Hash (SHA-256) of a description of the payment. Used if the description of payment (memo) is too long to naturally fit within the description field of an encoded payment request. 
+expiry | int64 | optional | Payment request expiry time in seconds. Default is 3600 (1 hour). 
+fallback_addr | string | optional | Fallback on-chain address. 
+cltv_expiry | uint64 | optional | Delta to use for the time-lock of the CLTV extended to the final hop. 
 
 
 
@@ -2447,7 +2804,7 @@ payment_request | string | optional | A bare-bones invoice for a payment within 
 
 $ lncli decodepayreq [command options] pay_req
 
-# --pay_req value  the zpay32 encoded payment request
+# --pay_req value  the bech32 encoded payment request
 ```
 
 ```python
@@ -2467,6 +2824,12 @@ $ lncli decodepayreq [command options] pay_req
     destination: <string>,
     payment_hash: <string>,
     num_satoshis: <int64>,
+    timestamp: <int64>,
+    expiry: <int64>,
+    description: <string>,
+    description_hash: <string>,
+    fallback_addr: <string>,
+    cltv_expiry: <int64>,
 }
 
 ```
@@ -2489,6 +2852,12 @@ $ lncli decodepayreq [command options] pay_req
     destination: <string>,
     payment_hash: <string>,
     num_satoshis: <int64>,
+    timestamp: <int64>,
+    expiry: <int64>,
+    description: <string>,
+    description_hash: <string>,
+    fallback_addr: <string>,
+    cltv_expiry: <int64>,
 }
 
 ```
@@ -2513,6 +2882,12 @@ Field | Type | Label | Description
 destination | string | optional |  
 payment_hash | string | optional |  
 num_satoshis | int64 | optional |  
+timestamp | int64 | optional |  
+expiry | int64 | optional |  
+description | string | optional |  
+description_hash | string | optional |  
+fallback_addr | string | optional |  
+cltv_expiry | int64 | optional |  
 
 
 
@@ -2597,6 +2972,7 @@ value | int64 | optional | The value of the payment in satoshis
 creation_date | int64 | optional | The date of this payment 
 path | string | repeated | The path this payment took 
 fee | int64 | optional | The fee paid for this payment in satoshis 
+payment_preimage | string | optional | The payment preimage 
 
 
 
@@ -2669,7 +3045,7 @@ This response is empty.
 
 ```shell
 
-# prints a human readable version of the known channel graph from the PoV of the node
+# Prints a human readable version of the known channel graph from the PoV of the node
 
 $ lncli describegraph [command options] [arguments...]
 
@@ -2742,6 +3118,7 @@ last_update | uint32 | optional |
 pub_key | string | optional |  
 alias | string | optional |  
 addresses | NodeAddress | repeated |  
+color | string | optional |  
 
 
 ### ChannelEdge
@@ -2771,7 +3148,7 @@ node2_policy | RoutingPolicy | optional |
 
 ```shell
 
-# prints out the latest authenticated state for a particular channel
+# Prints out the latest authenticated state for a particular channel
 
 $ lncli getchaninfo [command options] chan_id
 
@@ -2893,7 +3270,7 @@ fee_rate_milli_msat | int64 | optional |
 
 ```shell
 
-# prints out the latest authenticated node state for an advertised node
+# Prints out the latest authenticated node state for an advertised node
 
 $ lncli getnodeinfo [command options] [arguments...]
 
@@ -2975,6 +3352,7 @@ last_update | uint32 | optional |
 pub_key | string | optional |  
 alias | string | optional |  
 addresses | NodeAddress | repeated |  
+color | string | optional |  
 
 
 
@@ -2985,7 +3363,7 @@ addresses | NodeAddress | repeated |
 ### Simple RPC
 
 
- QueryRoutes attempts to query the daemon's Channel Router for a possible route to a target destination capable of carrying a specific amount of satoshis. The retuned route contains the full details required to craft and send an HTLC, also including the necessary information that should be present within the Sphinx packet encapsualted within the HTLC.
+ QueryRoutes attempts to query the daemon's Channel Router for a possible route to a target destination capable of carrying a specific amount of satoshis. The retuned route contains the full details required to craft and send an HTLC, also including the necessary information that should be present within the Sphinx packet encapsulated within the HTLC.
 
 ```shell
 
@@ -2993,8 +3371,9 @@ addresses | NodeAddress | repeated |
 
 $ lncli queryroutes [command options] dest amt
 
-# --dest value  the 33-byte hex-encoded public key for the payment destination
-# --amt value   the amount to send expressed in satoshis (default: 0)
+# --dest value            the 33-byte hex-encoded public key for the payment destination
+# --amt value             the amount to send expressed in satoshis (default: 0)
+# --num_max_routes value  the max number of routes to be returned (default: 10) (default: 10)
 ```
 
 ```python
@@ -3007,6 +3386,7 @@ $ lncli queryroutes [command options] dest amt
 >>> request = ln.QueryRoutesRequest(
         pub_key=<YOUR_PARAM>,
         amt=<YOUR_PARAM>,
+        num_routes=<YOUR_PARAM>,
     )
 >>> response = stub.QueryRoutes(request)
 >>> response
@@ -3028,6 +3408,7 @@ $ lncli queryroutes [command options] dest amt
 > call = lightning.queryRoutes({ 
     pub_key: <YOUR_PARAM>,
     amt: <YOUR_PARAM>,
+    num_routes: <YOUR_PARAM>,
   }, function(err, response) {
     console.log('QueryRoutes: ' + response);
   })
@@ -3046,6 +3427,7 @@ Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 pub_key | string | optional | The 33-byte hex-encoded public key for the payment destination 
 amt | int64 | optional | The amount to send expressed in satoshis 
+num_routes | int32 | optional | The max number of routes to return. 
 
 
 
@@ -3083,7 +3465,7 @@ hops | Hop | repeated | Contains details concerning the specific forwarding deta
 
 ```shell
 
-# returns a set of statistics pertaining to the known channel graph
+# Returns a set of statistics pertaining to the known channel graph
 
 $ lncli getnetworkinfo [arguments...]
 
@@ -3179,7 +3561,8 @@ max_channel_size | int64 | optional |
 
 ```shell
 
-# Gracefully stop all daemon subsystems before stopping the daemon itself. This is equivalent to stopping it using CTRL-C.
+# Gracefully stop all daemon subsystems before stopping the daemon itself.
+# This is equivalent to stopping it using CTRL-C.
 
 $ lncli stop [arguments...]
 
@@ -3352,70 +3735,6 @@ chan_point | ChannelPoint | optional |
 
 
 
-# SetAlias
-
-### Simple RPC
-
-
-SetAlias sets the alias for this node; e.g. "alice"
-
-```shell
-
-```
-
-```python
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
->>> stub = lnrpc.LightningStub(channel)
->>> request = ln.SetAliasRequest(
-        new_alias=<YOUR_PARAM>,
-    )
->>> response = stub.SetAlias(request)
->>> response
-{}
-```
-
-```javascript
-> var grpc = require('grpc');
-> var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.setAlias({ 
-    new_alias: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('SetAlias: ' + response);
-  })
-{}
-```
-
-### gRPC Request: SetAliasRequest 
-
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-new_alias | string | optional |  
-
-
-
-
-### gRPC Response: SetAliasResponse 
-
-
-
-This response is empty.
-
-
-
-
-
-
 # DebugLevel
 
 ### Simple RPC
@@ -3425,7 +3744,9 @@ This response is empty.
 
 ```shell
 
-# Logging level for all subsystems {trace, debug, info, warn, error, critical} -- You may also specify <subsystem>=<level>,<subsystem2>=<level>,... to set the log level for individual subsystems -- Use show to list available subsystems
+# Logging level for all subsystems {trace, debug, info, warn, error, critical}
+# You may also specify <subsystem>=<level>,<subsystem2>=<level>,... to set the log level for individual subsystems
+# Use show to list available subsystems
 
 $ lncli debuglevel [command options] [arguments...]
 
@@ -3508,7 +3829,8 @@ sub_systems | string | optional |
 
 ```shell
 
-# Returns the current fee policies of all active channels. Fee policies can be updated using the updateFees command.
+# Returns the current fee policies of all active channels.
+# Fee policies can be updated using the updatechanpolicy command.
 
 $ lncli feereport [arguments...]
 
@@ -3527,6 +3849,9 @@ $ lncli feereport [arguments...]
 
 { 
     channel_fees: <ChannelFeeReport>,
+    day_fee_sum: <uint64>,
+    week_fee_sum: <uint64>,
+    month_fee_sum: <uint64>,
 }
 
 ```
@@ -3545,6 +3870,9 @@ $ lncli feereport [arguments...]
 
 { 
     channel_fees: <ChannelFeeReport>,
+    day_fee_sum: <uint64>,
+    week_fee_sum: <uint64>,
+    month_fee_sum: <uint64>,
 }
 
 ```
@@ -3565,6 +3893,9 @@ This request has no parameters.
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
 channel_fees | ChannelFeeReport | repeated | An array of channel fee reports which describes the current fee schedule for each channel. 
+day_fee_sum | uint64 | optional | The total amount of fee revenue (in satoshis) the switch has collected over the past 24 hrs. 
+week_fee_sum | uint64 | optional | The total amount of fee revenue (in satoshis) the switch has collected over the past 1 week. 
+month_fee_sum | uint64 | optional | The total amount of fee revenue (in satoshis) the switch has collected over the past 1 month. 
 
 
 
@@ -3582,26 +3913,26 @@ fee_rate | double | optional | The effective fee rate in milli-satoshis. Compute
 
 
 
-# UpdateFees
+# UpdateChannelPolicy
 
 ### Simple RPC
 
 
- UpdateFees allows the caller to update the fee schedule for all channels globally, or a particular channel.
+ UpdateChannelPolicy allows the caller to update the fee schedule and channel policies for all channels globally, or a particular channel.
 
 ```shell
 
-# Updates the fee policy for all channels, or just a
-# particular channel identified by it's channel point. The
-# fee update will be committed, and broadcast to the rest
-# of the network within the next batch. Channel points are encoded
-# as: funding_txid:output_index
+# Updates the channel policy for all channels, or just a particular channel
+# identified by its channel point. The update will be committed, and
+# broadcast to the rest of the network within the next batch.
+# Channel points are encoded as: funding_txid:output_index
 
-$ lncli updatefees [command options] base_fee_msat fee_rate [channel_point]
+$ lncli updatechanpolicy [command options] base_fee_msat fee_rate time_lock_delta [channel_point]
 
-# --base_fee_msat value  the base fee in milli-satoshis that will be charged for each forwarded HTLC, regardless of payment size (default: 0)
-# --fee_rate value       the fee rate that will be charged proportionally based on the value of each forwarded HTLC, the lowest possible rate is 0.000001
-# --chan_point value     The channel whose fee policy should be updated, if nil the policies for all channels will be updated. Takes the form of: txid:output_index
+# --base_fee_msat value    the base fee in milli-satoshis that will be charged for each forwarded HTLC, regardless of payment size (default: 0)
+# --fee_rate value         the fee rate that will be charged proportionally based on the value of each forwarded HTLC, the lowest possible rate is 0.000001
+# --time_lock_delta value  the CLTV delta that will be applied to all forwarded HTLCs (default: 0)
+# --chan_point value       The channel whose fee policy should be updated, if nil the policies for all channels will be updated. Takes the form of: txid:output_index
 ```
 
 ```python
@@ -3611,13 +3942,14 @@ $ lncli updatefees [command options] base_fee_msat fee_rate [channel_point]
 >>> creds = grpc.ssl_channel_credentials(cert)
 >>> channel = grpc.secure_channel('localhost:10009', creds)
 >>> stub = lnrpc.LightningStub(channel)
->>> request = ln.FeeUpdateRequest(
+>>> request = ln.PolicyUpdateRequest(
         global=<YOUR_PARAM>,
         chan_point=<YOUR_PARAM>,
         base_fee_msat=<YOUR_PARAM>,
         fee_rate=<YOUR_PARAM>,
+        time_lock_delta=<YOUR_PARAM>,
     )
->>> response = stub.UpdateFees(request)
+>>> response = stub.UpdateChannelPolicy(request)
 >>> response
 {}
 ```
@@ -3630,27 +3962,29 @@ $ lncli updatefees [command options] base_fee_msat fee_rate [channel_point]
 > var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
 > var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.updateFees({ 
+> call = lightning.updateChannelPolicy({ 
     global: <YOUR_PARAM>,
     chan_point: <YOUR_PARAM>,
     base_fee_msat: <YOUR_PARAM>,
     fee_rate: <YOUR_PARAM>,
+    time_lock_delta: <YOUR_PARAM>,
   }, function(err, response) {
-    console.log('UpdateFees: ' + response);
+    console.log('UpdateChannelPolicy: ' + response);
   })
 {}
 ```
 
-### gRPC Request: FeeUpdateRequest 
+### gRPC Request: PolicyUpdateRequest 
 
 
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-global | bool | optional | If set, then this fee update applies to all currently active channels. 
-chan_point | ChannelPoint | optional | If set, this fee update will target a specific channel. 
+global | bool | optional | If set, then this update applies to all currently active channels. 
+chan_point | ChannelPoint | optional | If set, this update will target a specific channel. 
 base_fee_msat | int64 | optional | The base fee charged regardless of the number of milli-satoshis sent. 
 fee_rate | double | optional | The effective fee rate in milli-satoshis. The precision of this value goes up to 6 decimal places, so 1e-6. 
+time_lock_delta | uint32 | optional | The required timelock delta for HTLCs forwarded over the channel. 
 
 
 
@@ -3659,18 +3993,134 @@ fee_rate | double | optional | The effective fee rate in milli-satoshis. The pre
 
 Field | Type | Label | Description
 ----- | ---- | ----- | ----------- 
-funding_txid | bytes | optional | Txid of the funding transaction 
+funding_txid_bytes | bytes | optional | Txid of the funding transaction 
 funding_txid_str | string | optional | Hex-encoded string representing the funding transaction 
 output_index | uint32 | optional | The index of the output of the funding transaction 
 
 
 
-### gRPC Response: FeeUpdateResponse 
+### gRPC Response: PolicyUpdateResponse 
 
 
 
 This response is empty.
 
+
+
+
+
+
+# ForwardingHistory
+
+### Simple RPC
+
+
+ ForwardingHistory allows the caller to query the htlcswitch for a record of all HTLC's forwarded within the target time range, and integer offset within that time range. If no time-range is specified, then the first chunk of the past 24 hrs of forwarding history are returned.  A list of forwarding events are returned. The size of each forwarding event is 40 bytes, and the max message size able to be returned in gRPC is 4 MiB. As a result each message can only contain 50k entries.  Each response has the index offset of the last entry. The index offset can be provided to the request to allow the caller to skip a series of records.
+
+```shell
+
+# Query the htlc switch's internal forwarding log for all completed
+# payment circuits (HTLCs) over a particular time range (--start_time and
+# --end_time). The start and end times are meant to be expressed in
+# seconds since the Unix epoch. If a start and end time aren't provided,
+# then events over the past 24 hours are queried for.
+# The max number of events returned is 50k. The default number is 100,
+# callers can use the --max_events param to modify this value.
+# Finally, callers can skip a series of events using the --index_offset
+# parameter. Each response will contain the offset index of the last
+# entry. Using this callers can manually paginate within a time slice.
+
+$ lncli fwdinghistory [command options] start_time [end_time] [index_offset] [max_events]
+
+# --start_time value    the starting time for the query, expressed in seconds since the unix epoch (default: 0)
+# --end_time value      the end time for the query, expressed in seconds since the unix epoch (default: 0)
+# --index_offset value  the number of events to skip (default: 0)
+# --max_events value    the max number of events to return (default: 0)
+```
+
+```python
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> import grpc
+>>> cert = open('LND_HOMEDIR/tls.cert').read()
+>>> creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> stub = lnrpc.LightningStub(channel)
+>>> request = ln.ForwardingHistoryRequest(
+        start_time=<YOUR_PARAM>,
+        end_time=<YOUR_PARAM>,
+        index_offset=<YOUR_PARAM>,
+        num_max_events=<YOUR_PARAM>,
+    )
+>>> response = stub.ForwardingHistory(request)
+>>> response
+
+{ 
+    forwarding_events: <ForwardingEvent>,
+    last_offset_index: <uint32>,
+}
+
+```
+
+```javascript
+> var grpc = require('grpc');
+> var fs = require('fs');
+> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
+> var credentials = grpc.credentials.createSsl(lndCert);
+> var lnrpcDescriptor = grpc.load("rpc.proto");
+> var lnrpc = lnrpcDescriptor.lnrpc;
+> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
+> call = lightning.forwardingHistory({ 
+    start_time: <YOUR_PARAM>,
+    end_time: <YOUR_PARAM>,
+    index_offset: <YOUR_PARAM>,
+    num_max_events: <YOUR_PARAM>,
+  }, function(err, response) {
+    console.log('ForwardingHistory: ' + response);
+  })
+
+{ 
+    forwarding_events: <ForwardingEvent>,
+    last_offset_index: <uint32>,
+}
+
+```
+
+### gRPC Request: ForwardingHistoryRequest 
+
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+start_time | uint64 | optional | Start time is the starting point of the forwarding history request. All records beyond this point will be included, respecting the end time, and the index offset. 
+end_time | uint64 | optional | End time is the end point of the forwarding history request. The response will carry at most 50k records between the start time and the end time. The index offset can be used to implement pagination. 
+index_offset | uint32 | optional | Index offset is the offset in the time series to start at. As each response can only contain 50k records, callers can use this to skip around within a packed time series. 
+num_max_events | uint32 | optional | The max number of events to return in the response to this query. 
+
+
+
+
+### gRPC Response: ForwardingHistoryResponse 
+
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+forwarding_events | ForwardingEvent | repeated | A list of forwarding events from the time slice of the time series specified in the request. 
+last_offset_index | uint32 | optional | The index of the last time in the set of returned forwarding events. Can be used to seek further, pagination style. 
+
+
+
+### ForwardingEvent
+
+
+Field | Type | Label | Description
+----- | ---- | ----- | ----------- 
+timestamp | uint64 | optional | Timestamp is the time (unix epoch offset) that this circuit was completed. 
+chan_id_in | uint64 | optional | The incoming channel ID that carried the HTLC that created the circuit. 
+chan_id_out | uint64 | optional | The outgoing channel ID that carried the preimage that completed the circuit. 
+amt_in | uint64 | optional | The total amount of the incoming HTLC that created half the circuit. 
+amt_out | uint64 | optional | The total amount of the outgoign HTLC that created the second half of the circuit. 
+fee | uint64 | optional | The total fee that this payment circuit carried. 
 
 
 
