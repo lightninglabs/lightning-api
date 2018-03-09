@@ -166,23 +166,23 @@ def json_proto_to_rpc_dict():
     rpc_methods = {}
 
     # There is only one service currently
-    lightning_service = file_services[0]
-    for file_method in lightning_service['service_methods']:
-        method_name = file_method['method_name']
-        method_lncli_name, method_description = \
-            parse_out_lncli(file_method['method_description'])
-        method = {
-            'name': method_name,
-            # In javascript camelCase format
-            'name_js': method_name[0].lower() + method_name[1:],
-            'lncli_name': method_lncli_name,
-            'description': method_description,
-            'request_type': file_method['method_request_type'],
-            'request_full_type': file_method['method_request_full_type'],
-            'response_type': file_method['method_response_type'],
-            'response_full_type': file_method['method_response_full_type'],
-        }
-        rpc_methods[method_name] = method
+    for service in file_services:
+        for file_method in service['service_methods']:
+            method_name = file_method['method_name']
+            method_lncli_name, method_description = \
+                parse_out_lncli(file_method['method_description'])
+            method = {
+                'name': method_name,
+                # In javascript camelCase format
+                'name_js': method_name[0].lower() + method_name[1:],
+                'lncli_name': method_lncli_name,
+                'description': method_description,
+                'request_type': file_method['method_request_type'],
+                'request_full_type': file_method['method_request_full_type'],
+                'response_type': file_method['method_response_type'],
+                'response_full_type': file_method['method_response_full_type'],
+            }
+            rpc_methods[method_name] = method
 
     # Populate methods with references to the associated request and response
     # messages
