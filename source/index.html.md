@@ -78,8 +78,8 @@ GenSeed is the first method that should be used to instantiate a new lnd instanc
 > var credentials = grpc.credentials.createSsl(lndCert);
 > var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.genSeed({ 
+> var walletUnlocker = new lnrpc.WalletUnlocker('localhost:10009', credentials); 
+> call = walletUnlocker.genSeed({ 
     aezeed_passphrase: <YOUR_PARAM>,
     seed_entropy: <YOUR_PARAM>,
   }, function(err, response) {
@@ -154,8 +154,8 @@ InitWallet is used when lnd is starting up for the first time to fully initializ
 > var credentials = grpc.credentials.createSsl(lndCert);
 > var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.initWallet({ 
+> var walletUnlocker = new lnrpc.WalletUnlocker('localhost:10009', credentials); 
+> call = walletUnlocker.initWallet({ 
     wallet_password: <YOUR_PARAM>,
     cipher_seed_mnemonic: <YOUR_PARAM>,
     aezeed_passphrase: <YOUR_PARAM>,
@@ -229,8 +229,8 @@ $ lncli unlock [arguments...]
 > var credentials = grpc.credentials.createSsl(lndCert);
 > var lnrpcDescriptor = grpc.load("rpc.proto");
 > var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.unlockWallet({ 
+> var walletUnlocker = new lnrpc.WalletUnlocker('localhost:10009', credentials); 
+> call = walletUnlocker.unlockWallet({ 
     wallet_password: <YOUR_PARAM>,
   }, function(err, response) {
     console.log('UnlockWallet: ' + response);
