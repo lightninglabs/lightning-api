@@ -1,8 +1,11 @@
-# Fetch the latest rpc.proto
-curl -o rpc.proto -s https://raw.githubusercontent.com/lightningnetwork/lnd/master/lnrpc/rpc.proto
-# cp ~/lightning/ln-lnd/src/github.com/lightningnetwork/lnd/lnrpc/rpc.proto .
+# We'll default to fetching the latest version of the RPC files. Otherwise, we'll use the commit hash provided.
+commit="master"
+[ -n "$1" ] && commit=$1
 
-# Generate the rpc.json file from rpc.proto, so that generate_slate_docs.py can parse it
+curl -o rpc.proto -s https://raw.githubusercontent.com/lightningnetwork/lnd/$commit/lnrpc/rpc.proto
+curl -o rpc.swagger.json -s https://raw.githubusercontent.com/lightningnetwork/lnd/$commit/lnrpc/rpc.swagger.json
+
+# Generate the rpc.json file from rpc.proto, so that render.py can parse it.
 protoc -I. -I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis --doc_out=json,rpc.json:. rpc.proto
 
 # Update lncli to the respective commit.
@@ -17,6 +20,5 @@ popd
 # Render the new docs.
 ./render.py
 
-# Clean up
-rm rpc.proto
-rm rpc.json
+# Clean up.
+rm rpc.proto rpc.json rpc.swagger.json
