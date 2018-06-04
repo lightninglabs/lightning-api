@@ -13,6 +13,7 @@ test/version_tmp
 tmp
 *.DS_STORE
 build/
+vendor/
 .cache
 .vagrant
 .sass-cache
@@ -27,3 +28,7 @@ doc/
 
 # Go
 src/
+
+# Python
+__pycache__/
+*.pyc

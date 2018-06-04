@@ -8,7 +8,7 @@ import re
 
 def parse_rest_ref(ref):
     """
-    Convenience method that removes the "#/definitions/" prefix from the
+    Convenience method that removes the "#/definitions/lnrpc" prefix from the
     reference name to a REST definition.
     """
 
