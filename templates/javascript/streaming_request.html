@@ -1,3 +1,0 @@
->>> request = ln.{{ method.request_type }}({% if method.request_message.fields | length == 0 %}){% else %}{% for field in method.request_message.fields %}
-        {{ field.name }}=<YOUR_PARAM>,{% endfor %}
-    ){% endif %}
