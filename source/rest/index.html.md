@@ -1,0 +1,3358 @@
+---
+title: LND REST API Reference
+
+language_tabs:
+  - shell
+  - python
+  - javascript
+
+toc_footers:
+  - <a href='http://dev.lightning.community'>Developer site</a>
+  - <a href='mailto:max@lightning.engineering'>Contact Us</a>
+  - Powered by <a href='https://github.com/lord/slate'>Slate</a>
+
+search: true
+---
+
+# LND REST API Reference
+
+Welcome to the REST API reference documentation for LND, the Lightning Network
+Daemon.
+
+This site features the API documentation for Python and JavaScript, along with
+barebones examples using `curl`, for HTTP requests. It is intended for those who
+already understand how to work with LND. If this is your first time or you need
+a refresher, you may consider perusing our LND developer site featuring a
+tutorial, resources and guides at [dev.lightning.community](https://dev.lightning.community).
+
+The examples to the right assume that the there is a local `lnd` instance
+running and listening for REST connections on port 8080. `LND_DIR` will be used
+as a placeholder to denote the base directory of the `lnd` instance. By default,
+this is `~/.lnd` on Linux and `~/Library/Application Support/Lnd` on macOS.
+
+At the time of writing this documentation, two things are needed in order to
+make an HTTP request to an `lnd` instance: a TLS/SSL connection and a macaroon
+used for RPC authentication. The examples to the right will show how these can
+be used in order to make a successful, secure, and authenticated HTTP request.
+
+The original `rpc.proto` file from which the gRPC documentation was generated
+can be found [here](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
+
+NOTE: The documentation is currently lacking how to receive streaming responses
+from streaming endpoints in JavaScript. If you would like to contribute this
+change, please take a look at [https://github.com/lightninglabs/lightning-api](https://github.com/lightninglabs/lightning-api).
+
+NOTE: The `byte` field type must be set as the base64 encoded string
+representation of a raw byte array.
+
+Alternatively, the gRPC documentation can be found [here](../).
+
+
+# /v1/balance/blockchain
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/balance/blockchain 
+{ 
+    "total_balance": <int64>, 
+    "confirmed_balance": <int64>, 
+    "unconfirmed_balance": <int64>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/balance/blockchain'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "total_balance": <int64>, 
+    "confirmed_balance": <int64>, 
+    "unconfirmed_balance": <int64>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/balance/blockchain',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "total_balance": <int64>, 
+    "confirmed_balance": <int64>, 
+    "unconfirmed_balance": <int64>, 
+}
+```
+
+### GET /v1/balance/blockchain
+WalletBalance returns total unspent outputs(confirmed and unconfirmed), all confirmed unspent outputs and all unconfirmed unspent outputs under control of the wallet.
+
+This request has no parameters.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+total_balance | int64 | / The balance of the wallet 
+confirmed_balance | int64 | / The confirmed balance of a wallet(with >= 1 confirmations) 
+unconfirmed_balance | int64 | / The unconfirmed balance of a wallet(with 0 confirmations)  
+
+
+
+# /v1/balance/channels
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/balance/channels 
+{ 
+    "balance": <int64>, 
+    "pending_open_balance": <int64>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/balance/channels'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "balance": <int64>, 
+    "pending_open_balance": <int64>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/balance/channels',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "balance": <int64>, 
+    "pending_open_balance": <int64>, 
+}
+```
+
+### GET /v1/balance/channels
+ChannelBalance returns the total funds available across all open channels in satoshis.
+
+This request has no parameters.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+balance | int64 | / Sum of channels balances denominated in satoshis 
+pending_open_balance | int64 | / Sum of channels pending balances denominated in satoshis  
+
+
+
+# /v1/changepassword
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X POST --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/changepassword  \
+    -d '{ "current_password":<byte>,"new_password":<byte>, }' 
+{ 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/changepassword'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> data = { 
+        'current_password': base64.b64encode(<byte>).decode(), 
+        'new_password': base64.b64encode(<byte>).decode(), 
+    }
+>>> r = requests.post(url, verify=cert_path, data=json.dumps(data))
+>>> print(r.json())
+{ 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var requestBody = { 
+    current_password: <byte>,
+    new_password: <byte>,
+  };
+> var options = {
+    url: 'https://localhost:8080/v1/changepassword',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    form: JSON.stringify(requestBody),
+  };
+> request.post(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+}
+```
+
+### POST /v1/changepassword
+ChangePassword changes the password of the encrypted wallet. This will automatically unlock the wallet database if successful.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+current_password | byte | body | * current_password should be the current valid passphrase used to unlock the daemon.
+new_password | byte | body | * new_password should be the new passphrase that will be needed to unlock the daemon.
+
+### Response 
+
+This response has no parameters.
+
+
+
+
+# /v1/channels
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/channels 
+{ 
+    "channels": <array Channel>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/channels'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "channels": <array Channel>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/channels',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "channels": <array Channel>, 
+}
+```
+
+### GET /v1/channels
+ListChannels returns a description of all the open channels that this node is a participant in.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+active_only | boolean | query | 
+inactive_only | boolean | query | 
+public_only | boolean | query | 
+private_only | boolean | query | 
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+channels | [array Channel](#channel) | / The list of active channels  
+
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X POST --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/channels  \
+    -d '{ "node_pubkey":<byte>,"node_pubkey_string":<string>,"local_funding_amount":<int64>,"push_sat":<int64>,"target_conf":<int32>,"sat_per_byte":<int64>,"private":<boolean>,"min_htlc_msat":<int64>,"remote_csv_delay":<int64>, }' 
+{ 
+    "funding_txid_bytes": <byte>, 
+    "funding_txid_str": <string>, 
+    "output_index": <int64>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/channels'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> data = { 
+        'node_pubkey': base64.b64encode(<byte>).decode(), 
+        'node_pubkey_string': <string>, 
+        'local_funding_amount': <int64>, 
+        'push_sat': <int64>, 
+        'target_conf': <int32>, 
+        'sat_per_byte': <int64>, 
+        'private': <boolean>, 
+        'min_htlc_msat': <int64>, 
+        'remote_csv_delay': <int64>, 
+    }
+>>> r = requests.post(url, headers=headers, verify=cert_path, data=json.dumps(data))
+>>> print(r.json())
+{ 
+    "funding_txid_bytes": <byte>, 
+    "funding_txid_str": <string>, 
+    "output_index": <int64>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var requestBody = { 
+    node_pubkey: <byte>,
+    node_pubkey_string: <string>,
+    local_funding_amount: <int64>,
+    push_sat: <int64>,
+    target_conf: <int32>,
+    sat_per_byte: <int64>,
+    private: <boolean>,
+    min_htlc_msat: <int64>,
+    remote_csv_delay: <int64>,
+  };
+> var options = {
+    url: 'https://localhost:8080/v1/channels',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+    form: JSON.stringify(requestBody),
+  };
+> request.post(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "funding_txid_bytes": <byte>, 
+    "funding_txid_str": <string>, 
+    "output_index": <int64>, 
+}
+```
+
+### POST /v1/channels
+* OpenChannelSync is a synchronous version of the OpenChannel RPC call. This call is meant to be consumed by clients to the REST proxy. As with all other sync calls, all byte slices are intended to be populated as hex encoded strings.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+node_pubkey | byte | body | / The pubkey of the node to open a channel with
+node_pubkey_string | string | body | / The hex encoded pubkey of the node to open a channel with
+local_funding_amount | int64 | body | / The number of satoshis the wallet should commit to the channel
+push_sat | int64 | body | / The number of satoshis to push to the remote side as part of the initial commitment state
+target_conf | int32 | body | / The target number of blocks that the funding transaction should be confirmed by.
+sat_per_byte | int64 | body | / A manual fee rate set in sat/byte that should be used when crafting the funding transaction.
+private | boolean | body | / Whether this channel should be private, not announced to the greater network.
+min_htlc_msat | int64 | body | / The minimum value in millisatoshi we will require for incoming HTLCs on the channel.
+remote_csv_delay | int64 | body | / The delay we require on the remote's commitment transaction. If this is not set, it will be scaled automatically with the channel size.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+funding_txid_bytes | byte | / Txid of the funding transaction 
+funding_txid_str | string | / Hex-encoded string representing the funding transaction 
+output_index | int64 | / The index of the output of the funding transaction  
+
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X DELETE --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/channels/{channel_point.funding_txid_str}/{channel_point.output_index} 
+{ 
+    "close_pending": <PendingUpdate>, 
+    "confirmation": <ConfirmationUpdate>, 
+    "chan_close": <ChannelCloseUpdate>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/channels/{channel_point.funding_txid_str}/{channel_point.output_index}'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.delete(url, headers=headers, verify=cert_path, stream=True)
+>>> for raw_response in r.iter_lines():
+>>>     json_response = json.loads(raw_response)
+>>>     print(json_response)
+{ 
+    "close_pending": <PendingUpdate>, 
+    "confirmation": <ConfirmationUpdate>, 
+    "chan_close": <ChannelCloseUpdate>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/channels/{channel_point.funding_txid_str}/{channel_point.output_index}',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.delete(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "close_pending": <PendingUpdate>, 
+    "confirmation": <ConfirmationUpdate>, 
+    "chan_close": <ChannelCloseUpdate>, 
+}
+```
+
+### DELETE /v1/channels/{channel_point.funding_txid_str}/{channel_point.output_index}
+CloseChannel attempts to close an active channel identified by its channel outpoint (ChannelPoint). The actions of this method can additionally be augmented to attempt a force close after a timeout period in the case of an inactive peer. If a non-force close (cooperative closure) is requested, then the user can specify either a target number of blocks until the closure transaction is confirmed, or a manual fee rate. If neither are specified, then a default lax, block confirmation target is used.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+channel_point.funding_txid_str | string | path | 
+channel_point.output_index | int64 | path | 
+
+### Response (streaming)
+
+Field | Type | Description
+----- | ---- | ----------- 
+close_pending | [PendingUpdate](#pendingupdate) |  
+confirmation | [ConfirmationUpdate](#confirmationupdate) |  
+chan_close | [ChannelCloseUpdate](#channelcloseupdate) |   
+
+
+
+# /v1/channels/closed
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/channels/closed 
+{ 
+    "channels": <array ChannelCloseSummary>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/channels/closed'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "channels": <array ChannelCloseSummary>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/channels/closed',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "channels": <array ChannelCloseSummary>, 
+}
+```
+
+### GET /v1/channels/closed
+ClosedChannels returns a description of all the closed channels that  this node was a participant in.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+cooperative | boolean | query | 
+local_force | boolean | query | 
+remote_force | boolean | query | 
+breach | boolean | query | 
+funding_canceled | boolean | query | 
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+channels | [array ChannelCloseSummary](#channelclosesummary) |   
+
+
+
+# /v1/channels/pending
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/channels/pending 
+{ 
+    "total_limbo_balance": <int64>, 
+    "pending_open_channels": <array PendingChannelsResponsePendingOpenChannel>, 
+    "pending_closing_channels": <array PendingChannelsResponseClosedChannel>, 
+    "pending_force_closing_channels": <array PendingChannelsResponseForceClosedChannel>, 
+    "waiting_close_channels": <array PendingChannelsResponseWaitingCloseChannel>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/channels/pending'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "total_limbo_balance": <int64>, 
+    "pending_open_channels": <array PendingChannelsResponsePendingOpenChannel>, 
+    "pending_closing_channels": <array PendingChannelsResponseClosedChannel>, 
+    "pending_force_closing_channels": <array PendingChannelsResponseForceClosedChannel>, 
+    "waiting_close_channels": <array PendingChannelsResponseWaitingCloseChannel>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/channels/pending',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "total_limbo_balance": <int64>, 
+    "pending_open_channels": <array PendingChannelsResponsePendingOpenChannel>, 
+    "pending_closing_channels": <array PendingChannelsResponseClosedChannel>, 
+    "pending_force_closing_channels": <array PendingChannelsResponseForceClosedChannel>, 
+    "waiting_close_channels": <array PendingChannelsResponseWaitingCloseChannel>, 
+}
+```
+
+### GET /v1/channels/pending
+PendingChannels returns a list of all the channels that are currently considered "pending". A channel is pending if it has finished the funding workflow and is waiting for confirmations for the funding txn, or is in the process of closure, either initiated cooperatively or non-cooperatively.
+
+This request has no parameters.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+total_limbo_balance | int64 | / The balance in satoshis encumbered in pending channels 
+pending_open_channels | [array PendingChannelsResponsePendingOpenChannel](#pendingchannelsresponsependingopenchannel) | / Channels pending opening 
+pending_closing_channels | [array PendingChannelsResponseClosedChannel](#pendingchannelsresponseclosedchannel) | / Channels pending closing 
+pending_force_closing_channels | [array PendingChannelsResponseForceClosedChannel](#pendingchannelsresponseforceclosedchannel) | / Channels pending force closing 
+waiting_close_channels | [array PendingChannelsResponseWaitingCloseChannel](#pendingchannelsresponsewaitingclosechannel) | / Channels waiting for closing tx to confirm  
+
+
+
+# /v1/channels/transactions
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X POST --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/channels/transactions  \
+    -d '{ "dest":<byte>,"dest_string":<string>,"amt":<int64>,"payment_hash":<byte>,"payment_hash_string":<string>,"payment_request":<string>,"final_cltv_delta":<int32>,"fee_limit":<FeeLimit>, }' 
+{ 
+    "payment_error": <string>, 
+    "payment_preimage": <byte>, 
+    "payment_route": <Route>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/channels/transactions'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> data = { 
+        'dest': base64.b64encode(<byte>).decode(), 
+        'dest_string': <string>, 
+        'amt': <int64>, 
+        'payment_hash': base64.b64encode(<byte>).decode(), 
+        'payment_hash_string': <string>, 
+        'payment_request': <string>, 
+        'final_cltv_delta': <int32>, 
+        'fee_limit': <FeeLimit>, 
+    }
+>>> r = requests.post(url, headers=headers, verify=cert_path, data=json.dumps(data))
+>>> print(r.json())
+{ 
+    "payment_error": <string>, 
+    "payment_preimage": <byte>, 
+    "payment_route": <Route>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var requestBody = { 
+    dest: <byte>,
+    dest_string: <string>,
+    amt: <int64>,
+    payment_hash: <byte>,
+    payment_hash_string: <string>,
+    payment_request: <string>,
+    final_cltv_delta: <int32>,
+    fee_limit: <FeeLimit>,
+  };
+> var options = {
+    url: 'https://localhost:8080/v1/channels/transactions',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+    form: JSON.stringify(requestBody),
+  };
+> request.post(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "payment_error": <string>, 
+    "payment_preimage": <byte>, 
+    "payment_route": <Route>, 
+}
+```
+
+### POST /v1/channels/transactions
+* SendPaymentSync is the synchronous non-streaming version of SendPayment. This RPC is intended to be consumed by clients of the REST proxy. Additionally, this RPC expects the destination's public key and the payment hash (if any) to be encoded as hex strings.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+dest | byte | body | / The identity pubkey of the payment recipient
+dest_string | string | body | / The hex-encoded identity pubkey of the payment recipient
+amt | int64 | body | / Number of satoshis to send.
+payment_hash | byte | body | / The hash to use within the payment's HTLC
+payment_hash_string | string | body | / The hex-encoded hash to use within the payment's HTLC
+payment_request | string | body | * A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient.
+final_cltv_delta | int32 | body | * The CLTV delta from the current height that should be used to set the timelock for the final hop.
+fee_limit | [FeeLimit](#feelimit) | body | * The maximum number of satoshis that will be paid as a fee of the payment. This value can be represented either as a percentage of the amount being sent, or as a fixed amount of the maximum fee the user is willing the pay to send the payment.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+payment_error | string |  
+payment_preimage | byte |  
+payment_route | [Route](#route) |   
+
+
+
+# /v1/channels/transactions/route
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X POST --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/channels/transactions/route  \
+    -d '{ "payment_hash":<byte>,"payment_hash_string":<string>,"routes":<array Route>, }' 
+{ 
+    "payment_error": <string>, 
+    "payment_preimage": <byte>, 
+    "payment_route": <Route>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/channels/transactions/route'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> data = { 
+        'payment_hash': base64.b64encode(<byte>).decode(), 
+        'payment_hash_string': <string>, 
+        'routes': <array Route>, 
+    }
+>>> r = requests.post(url, headers=headers, verify=cert_path, data=json.dumps(data))
+>>> print(r.json())
+{ 
+    "payment_error": <string>, 
+    "payment_preimage": <byte>, 
+    "payment_route": <Route>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var requestBody = { 
+    payment_hash: <byte>,
+    payment_hash_string: <string>,
+    routes: <array Route>,
+  };
+> var options = {
+    url: 'https://localhost:8080/v1/channels/transactions/route',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+    form: JSON.stringify(requestBody),
+  };
+> request.post(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "payment_error": <string>, 
+    "payment_preimage": <byte>, 
+    "payment_route": <Route>, 
+}
+```
+
+### POST /v1/channels/transactions/route
+* SendToRouteSync is a synchronous version of SendToRoute. It Will block until the payment either fails or succeeds.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+payment_hash | byte | body | / The payment hash to use for the HTLC.
+payment_hash_string | string | body | / An optional hex-encoded payment hash to be used for the HTLC.
+routes | [array Route](#route) | body | / The set of routes that should be used to attempt to complete the payment.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+payment_error | string |  
+payment_preimage | byte |  
+payment_route | [Route](#route) |   
+
+
+
+# /v1/chanpolicy
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X POST --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/chanpolicy  \
+    -d '{ "global":<boolean>,"chan_point":<ChannelPoint>,"base_fee_msat":<int64>,"fee_rate":<double>,"time_lock_delta":<int64>, }' 
+{ 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/chanpolicy'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> data = { 
+        'global': <boolean>, 
+        'chan_point': <ChannelPoint>, 
+        'base_fee_msat': <int64>, 
+        'fee_rate': <double>, 
+        'time_lock_delta': <int64>, 
+    }
+>>> r = requests.post(url, headers=headers, verify=cert_path, data=json.dumps(data))
+>>> print(r.json())
+{ 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var requestBody = { 
+    global: <boolean>,
+    chan_point: <ChannelPoint>,
+    base_fee_msat: <int64>,
+    fee_rate: <double>,
+    time_lock_delta: <int64>,
+  };
+> var options = {
+    url: 'https://localhost:8080/v1/chanpolicy',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+    form: JSON.stringify(requestBody),
+  };
+> request.post(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+}
+```
+
+### POST /v1/chanpolicy
+UpdateChannelPolicy allows the caller to update the fee schedule and channel policies for all channels globally, or a particular channel.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+global | boolean | body | / If set, then this update applies to all currently active channels.
+chan_point | [ChannelPoint](#channelpoint) | body | / If set, this update will target a specific channel.
+base_fee_msat | int64 | body | / The base fee charged regardless of the number of milli-satoshis sent.
+fee_rate | double | body | / The effective fee rate in milli-satoshis. The precision of this value goes up to 6 decimal places, so 1e-6.
+time_lock_delta | int64 | body | / The required timelock delta for HTLCs forwarded over the channel.
+
+### Response 
+
+This response has no parameters.
+
+
+
+
+# /v1/fees
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/fees 
+{ 
+    "channel_fees": <array ChannelFeeReport>, 
+    "day_fee_sum": <uint64>, 
+    "week_fee_sum": <uint64>, 
+    "month_fee_sum": <uint64>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/fees'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "channel_fees": <array ChannelFeeReport>, 
+    "day_fee_sum": <uint64>, 
+    "week_fee_sum": <uint64>, 
+    "month_fee_sum": <uint64>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/fees',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "channel_fees": <array ChannelFeeReport>, 
+    "day_fee_sum": <uint64>, 
+    "week_fee_sum": <uint64>, 
+    "month_fee_sum": <uint64>, 
+}
+```
+
+### GET /v1/fees
+FeeReport allows the caller to obtain a report detailing the current fee schedule enforced by the node globally for each channel.
+
+This request has no parameters.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+channel_fees | [array ChannelFeeReport](#channelfeereport) | / An array of channel fee reports which describes the current fee schedule for each channel. 
+day_fee_sum | uint64 | / The total amount of fee revenue (in satoshis) the switch has collected over the past 24 hrs. 
+week_fee_sum | uint64 | / The total amount of fee revenue (in satoshis) the switch has collected over the past 1 week. 
+month_fee_sum | uint64 | / The total amount of fee revenue (in satoshis) the switch has collected over the past 1 month.  
+
+
+
+# /v1/genseed
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/genseed 
+{ 
+    "cipher_seed_mnemonic": <array string>, 
+    "enciphered_seed": <byte>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/genseed'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> r = requests.get(url, verify=cert_path)
+>>> print(r.json())
+{ 
+    "cipher_seed_mnemonic": <array string>, 
+    "enciphered_seed": <byte>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var options = {
+    url: 'https://localhost:8080/v1/genseed',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "cipher_seed_mnemonic": <array string>, 
+    "enciphered_seed": <byte>, 
+}
+```
+
+### GET /v1/genseed
+* GenSeed is the first method that should be used to instantiate a new lnd instance. This method allows a caller to generate a new aezeed cipher seed given an optional passphrase. If provided, the passphrase will be necessary to decrypt the cipherseed to expose the internal wallet seed.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+aezeed_passphrase | string | query | * aezeed_passphrase is an optional user provided passphrase that will be used to encrypt the generated aezeed cipher seed.
+seed_entropy | string | query | * seed_entropy is an optional 16-bytes generated via CSPRNG. If not specified, then a fresh set of randomness will be used to create the seed.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+cipher_seed_mnemonic | array string | * cipher_seed_mnemonic is a 24-word mnemonic that encodes a prior aezeed cipher seed obtained by the user. This field is optional, as if not provided, then the daemon will generate a new cipher seed for the user. Otherwise, then the daemon will attempt to recover the wallet state linked to this cipher seed. 
+enciphered_seed | byte | * enciphered_seed are the raw aezeed cipher seed bytes. This is the raw cipher text before run through our mnemonic encoding scheme.  
+
+
+
+# /v1/getinfo
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/getinfo 
+{ 
+    "identity_pubkey": <string>, 
+    "alias": <string>, 
+    "num_pending_channels": <int64>, 
+    "num_active_channels": <int64>, 
+    "num_peers": <int64>, 
+    "block_height": <int64>, 
+    "block_hash": <string>, 
+    "synced_to_chain": <boolean>, 
+    "testnet": <boolean>, 
+    "chains": <array string>, 
+    "uris": <array string>, 
+    "best_header_timestamp": <int64>, 
+    "version": <string>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/getinfo'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "identity_pubkey": <string>, 
+    "alias": <string>, 
+    "num_pending_channels": <int64>, 
+    "num_active_channels": <int64>, 
+    "num_peers": <int64>, 
+    "block_height": <int64>, 
+    "block_hash": <string>, 
+    "synced_to_chain": <boolean>, 
+    "testnet": <boolean>, 
+    "chains": <array string>, 
+    "uris": <array string>, 
+    "best_header_timestamp": <int64>, 
+    "version": <string>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/getinfo',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "identity_pubkey": <string>, 
+    "alias": <string>, 
+    "num_pending_channels": <int64>, 
+    "num_active_channels": <int64>, 
+    "num_peers": <int64>, 
+    "block_height": <int64>, 
+    "block_hash": <string>, 
+    "synced_to_chain": <boolean>, 
+    "testnet": <boolean>, 
+    "chains": <array string>, 
+    "uris": <array string>, 
+    "best_header_timestamp": <int64>, 
+    "version": <string>, 
+}
+```
+
+### GET /v1/getinfo
+GetInfo returns general information concerning the lightning node including it's identity pubkey, alias, the chains it is connected to, and information concerning the number of open+pending channels.
+
+This request has no parameters.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+identity_pubkey | string | / The identity pubkey of the current node. 
+alias | string | / If applicable, the alias of the current node, e.g. "bob" 
+num_pending_channels | int64 | / Number of pending channels 
+num_active_channels | int64 | / Number of active channels 
+num_peers | int64 | / Number of peers 
+block_height | int64 | / The node's current view of the height of the best block 
+block_hash | string | / The node's current view of the hash of the best block 
+synced_to_chain | boolean | / Whether the wallet's view is synced to the main chain 
+testnet | boolean | / Whether the current node is connected to testnet 
+chains | array string | / A list of active chains the node is connected to 
+uris | array string | / The URIs of the current node. 
+best_header_timestamp | int64 | / Timestamp of the block best known to the wallet 
+version | string | / The version of the LND software that the node is running.  
+
+
+
+# /v1/graph
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/graph 
+{ 
+    "nodes": <array LightningNode>, 
+    "edges": <array ChannelEdge>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/graph'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "nodes": <array LightningNode>, 
+    "edges": <array ChannelEdge>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/graph',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "nodes": <array LightningNode>, 
+    "edges": <array ChannelEdge>, 
+}
+```
+
+### GET /v1/graph
+DescribeGraph returns a description of the latest graph state from the point of view of the node. The graph information is partitioned into two components: all the nodes/vertexes, and all the edges that connect the vertexes themselves.  As this is a directed graph, the edges also contain the node directional specific routing policy which includes: the time lock delta, fee information, etc.
+
+This request has no parameters.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+nodes | [array LightningNode](#lightningnode) | / The list of `LightningNode`s in this channel graph 
+edges | [array ChannelEdge](#channeledge) | / The list of `ChannelEdge`s in this channel graph  
+
+
+
+# /v1/graph/edge
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/graph/edge/{chan_id} 
+{ 
+    "channel_id": <uint64>, 
+    "chan_point": <string>, 
+    "last_update": <int64>, 
+    "node1_pub": <string>, 
+    "node2_pub": <string>, 
+    "capacity": <int64>, 
+    "node1_policy": <RoutingPolicy>, 
+    "node2_policy": <RoutingPolicy>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/graph/edge/{chan_id}'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "channel_id": <uint64>, 
+    "chan_point": <string>, 
+    "last_update": <int64>, 
+    "node1_pub": <string>, 
+    "node2_pub": <string>, 
+    "capacity": <int64>, 
+    "node1_policy": <RoutingPolicy>, 
+    "node2_policy": <RoutingPolicy>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/graph/edge/{chan_id}',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "channel_id": <uint64>, 
+    "chan_point": <string>, 
+    "last_update": <int64>, 
+    "node1_pub": <string>, 
+    "node2_pub": <string>, 
+    "capacity": <int64>, 
+    "node1_policy": <RoutingPolicy>, 
+    "node2_policy": <RoutingPolicy>, 
+}
+```
+
+### GET /v1/graph/edge/{chan_id}
+GetChanInfo returns the latest authenticated network announcement for the given channel identified by its channel ID: an 8-byte integer which uniquely identifies the location of transaction's funding output within the blockchain.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+chan_id | string | path | 
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+channel_id | uint64 | * The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
+chan_point | string |  
+last_update | int64 |  
+node1_pub | string |  
+node2_pub | string |  
+capacity | int64 |  
+node1_policy | [RoutingPolicy](#routingpolicy) |  
+node2_policy | [RoutingPolicy](#routingpolicy) |   
+
+
+
+# /v1/graph/info
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/graph/info 
+{ 
+    "graph_diameter": <int64>, 
+    "avg_out_degree": <double>, 
+    "max_out_degree": <int64>, 
+    "num_nodes": <int64>, 
+    "num_channels": <int64>, 
+    "total_network_capacity": <int64>, 
+    "avg_channel_size": <double>, 
+    "min_channel_size": <int64>, 
+    "max_channel_size": <int64>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/graph/info'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "graph_diameter": <int64>, 
+    "avg_out_degree": <double>, 
+    "max_out_degree": <int64>, 
+    "num_nodes": <int64>, 
+    "num_channels": <int64>, 
+    "total_network_capacity": <int64>, 
+    "avg_channel_size": <double>, 
+    "min_channel_size": <int64>, 
+    "max_channel_size": <int64>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/graph/info',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "graph_diameter": <int64>, 
+    "avg_out_degree": <double>, 
+    "max_out_degree": <int64>, 
+    "num_nodes": <int64>, 
+    "num_channels": <int64>, 
+    "total_network_capacity": <int64>, 
+    "avg_channel_size": <double>, 
+    "min_channel_size": <int64>, 
+    "max_channel_size": <int64>, 
+}
+```
+
+### GET /v1/graph/info
+GetNetworkInfo returns some basic stats about the known channel graph from the point of view of the node.
+
+This request has no parameters.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+graph_diameter | int64 |  
+avg_out_degree | double |  
+max_out_degree | int64 |  
+num_nodes | int64 |  
+num_channels | int64 |  
+total_network_capacity | int64 |  
+avg_channel_size | double |  
+min_channel_size | int64 |  
+max_channel_size | int64 |   
+
+
+
+# /v1/graph/node
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/graph/node/{pub_key} 
+{ 
+    "node": <LightningNode>, 
+    "num_channels": <int64>, 
+    "total_capacity": <int64>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/graph/node/{pub_key}'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "node": <LightningNode>, 
+    "num_channels": <int64>, 
+    "total_capacity": <int64>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/graph/node/{pub_key}',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "node": <LightningNode>, 
+    "num_channels": <int64>, 
+    "total_capacity": <int64>, 
+}
+```
+
+### GET /v1/graph/node/{pub_key}
+GetNodeInfo returns the latest advertised, aggregated, and authenticated channel information for the specified node identified by its public key.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+pub_key | string | path | 
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+node | [LightningNode](#lightningnode) | * An individual vertex/node within the channel graph. A node is connected to other nodes by one or more channel edges emanating from it. As the graph is directed, a node will also have an incoming edge attached to it for each outgoing edge. 
+num_channels | int64 |  
+total_capacity | int64 |   
+
+
+
+# /v1/graph/routes
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/graph/routes/{pub_key}/{amt} 
+{ 
+    "routes": <array Route>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/graph/routes/{pub_key}/{amt}'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "routes": <array Route>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/graph/routes/{pub_key}/{amt}',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "routes": <array Route>, 
+}
+```
+
+### GET /v1/graph/routes/{pub_key}/{amt}
+QueryRoutes attempts to query the daemon's Channel Router for a possible route to a target destination capable of carrying a specific amount of satoshis. The retuned route contains the full details required to craft and send an HTLC, also including the necessary information that should be present within the Sphinx packet encapsulated within the HTLC.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+pub_key | string | path | 
+amt | string | path | 
+num_routes | int32 | query | / The max number of routes to return.
+final_cltv_delta | int32 | query | / An optional CLTV delta from the current height that should be used for the timelock of the final hop.
+fee_limit.fixed | string | query | / The fee limit expressed as a fixed amount of satoshis.
+fee_limit.percent | string | query | / The fee limit expressed as a percentage of the payment amount.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+routes | [array Route](#route) |   
+
+
+
+# /v1/initwallet
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X POST --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/initwallet  \
+    -d '{ "wallet_password":<byte>,"cipher_seed_mnemonic":<array string>,"aezeed_passphrase":<byte>,"recovery_window":<int32>, }' 
+{ 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/initwallet'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> data = { 
+        'wallet_password': base64.b64encode(<byte>).decode(), 
+        'cipher_seed_mnemonic': <array string>, 
+        'aezeed_passphrase': base64.b64encode(<byte>).decode(), 
+        'recovery_window': <int32>, 
+    }
+>>> r = requests.post(url, verify=cert_path, data=json.dumps(data))
+>>> print(r.json())
+{ 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var requestBody = { 
+    wallet_password: <byte>,
+    cipher_seed_mnemonic: <array string>,
+    aezeed_passphrase: <byte>,
+    recovery_window: <int32>,
+  };
+> var options = {
+    url: 'https://localhost:8080/v1/initwallet',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    form: JSON.stringify(requestBody),
+  };
+> request.post(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+}
+```
+
+### POST /v1/initwallet
+*  InitWallet is used when lnd is starting up for the first time to fully initialize the daemon and its internal wallet. At the very least a wallet password must be provided. This will be used to encrypt sensitive material on disk.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+wallet_password | byte | body | * wallet_password is the passphrase that should be used to encrypt the wallet. This MUST be at least 8 chars in length. After creation, this password is required to unlock the daemon.
+cipher_seed_mnemonic | array string | body | * cipher_seed_mnemonic is a 24-word mnemonic that encodes a prior aezeed cipher seed obtained by the user. This may have been generated by the GenSeed method, or be an existing seed.
+aezeed_passphrase | byte | body | * aezeed_passphrase is an optional user provided passphrase that will be used to encrypt the generated aezeed cipher seed.
+recovery_window | int32 | body | * recovery_window is an optional argument specifying the address lookahead when restoring a wallet seed. The recovery window applies to each invdividual branch of the BIP44 derivation paths. Supplying a recovery window of zero indicates that no addresses should be recovered, such after the first initialization of the wallet.
+
+### Response 
+
+This response has no parameters.
+
+
+
+
+# /v1/invoice
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/invoice/{r_hash_str} 
+{ 
+    "memo": <string>, 
+    "receipt": <byte>, 
+    "r_preimage": <byte>, 
+    "r_hash": <byte>, 
+    "value": <int64>, 
+    "settled": <boolean>, 
+    "creation_date": <int64>, 
+    "settle_date": <int64>, 
+    "payment_request": <string>, 
+    "description_hash": <byte>, 
+    "expiry": <int64>, 
+    "fallback_addr": <string>, 
+    "cltv_expiry": <uint64>, 
+    "route_hints": <array RouteHint>, 
+    "private": <boolean>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/invoice/{r_hash_str}'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "memo": <string>, 
+    "receipt": <byte>, 
+    "r_preimage": <byte>, 
+    "r_hash": <byte>, 
+    "value": <int64>, 
+    "settled": <boolean>, 
+    "creation_date": <int64>, 
+    "settle_date": <int64>, 
+    "payment_request": <string>, 
+    "description_hash": <byte>, 
+    "expiry": <int64>, 
+    "fallback_addr": <string>, 
+    "cltv_expiry": <uint64>, 
+    "route_hints": <array RouteHint>, 
+    "private": <boolean>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/invoice/{r_hash_str}',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "memo": <string>, 
+    "receipt": <byte>, 
+    "r_preimage": <byte>, 
+    "r_hash": <byte>, 
+    "value": <int64>, 
+    "settled": <boolean>, 
+    "creation_date": <int64>, 
+    "settle_date": <int64>, 
+    "payment_request": <string>, 
+    "description_hash": <byte>, 
+    "expiry": <int64>, 
+    "fallback_addr": <string>, 
+    "cltv_expiry": <uint64>, 
+    "route_hints": <array RouteHint>, 
+    "private": <boolean>, 
+}
+```
+
+### GET /v1/invoice/{r_hash_str}
+LookupInvoice attempts to look up an invoice according to its payment hash. The passed payment hash *must* be exactly 32 bytes, if not, an error is returned.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+r_hash_str | string | path | 
+r_hash | string | query | / The payment hash of the invoice to be looked up.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+memo | string | * An optional memo to attach along with the invoice. Used for record keeping purposes for the invoice's creator, and will also be set in the description field of the encoded payment request if the description_hash field is not being used. 
+receipt | byte | / An optional cryptographic receipt of payment 
+r_preimage | byte | * The hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage 
+r_hash | byte | / The hash of the preimage 
+value | int64 | / The value of this invoice in satoshis 
+settled | boolean | / Whether this invoice has been fulfilled 
+creation_date | int64 | / When this invoice was created 
+settle_date | int64 | / When this invoice was settled 
+payment_request | string | * A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+description_hash | byte | * Hash (SHA-256) of a description of the payment. Used if the description of payment (memo) is too long to naturally fit within the description field of an encoded payment request. 
+expiry | int64 | / Payment request expiry time in seconds. Default is 3600 (1 hour). 
+fallback_addr | string | / Fallback on-chain address. 
+cltv_expiry | uint64 | / Delta to use for the time-lock of the CLTV extended to the final hop. 
+route_hints | [array RouteHint](#routehint) | * Route hints that can each be individually used to assist in reaching the invoice's destination. 
+private | boolean | / Whether this invoice should include routing hints for private channels.  
+
+
+
+# /v1/invoices
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/invoices 
+{ 
+    "invoices": <array Invoice>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/invoices'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "invoices": <array Invoice>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/invoices',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "invoices": <array Invoice>, 
+}
+```
+
+### GET /v1/invoices
+ListInvoices returns a list of all the invoices currently stored within the database. Any active debug invoices are ignored.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+pending_only | boolean | query | / Toggles if all invoices should be returned, or only those that are currently unsettled.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+invoices | [array Invoice](#invoice) |   
+
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X POST --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/invoices  \
+    -d '{ "memo":<string>,"receipt":<byte>,"r_preimage":<byte>,"r_hash":<byte>,"value":<int64>,"settled":<boolean>,"creation_date":<int64>,"settle_date":<int64>,"payment_request":<string>,"description_hash":<byte>,"expiry":<int64>,"fallback_addr":<string>,"cltv_expiry":<uint64>,"route_hints":<array RouteHint>,"private":<boolean>, }' 
+{ 
+    "r_hash": <byte>, 
+    "payment_request": <string>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/invoices'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> data = { 
+        'memo': <string>, 
+        'receipt': base64.b64encode(<byte>).decode(), 
+        'r_preimage': base64.b64encode(<byte>).decode(), 
+        'r_hash': base64.b64encode(<byte>).decode(), 
+        'value': <int64>, 
+        'settled': <boolean>, 
+        'creation_date': <int64>, 
+        'settle_date': <int64>, 
+        'payment_request': <string>, 
+        'description_hash': base64.b64encode(<byte>).decode(), 
+        'expiry': <int64>, 
+        'fallback_addr': <string>, 
+        'cltv_expiry': <uint64>, 
+        'route_hints': <array RouteHint>, 
+        'private': <boolean>, 
+    }
+>>> r = requests.post(url, headers=headers, verify=cert_path, data=json.dumps(data))
+>>> print(r.json())
+{ 
+    "r_hash": <byte>, 
+    "payment_request": <string>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var requestBody = { 
+    memo: <string>,
+    receipt: <byte>,
+    r_preimage: <byte>,
+    r_hash: <byte>,
+    value: <int64>,
+    settled: <boolean>,
+    creation_date: <int64>,
+    settle_date: <int64>,
+    payment_request: <string>,
+    description_hash: <byte>,
+    expiry: <int64>,
+    fallback_addr: <string>,
+    cltv_expiry: <uint64>,
+    route_hints: <array RouteHint>,
+    private: <boolean>,
+  };
+> var options = {
+    url: 'https://localhost:8080/v1/invoices',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+    form: JSON.stringify(requestBody),
+  };
+> request.post(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "r_hash": <byte>, 
+    "payment_request": <string>, 
+}
+```
+
+### POST /v1/invoices
+AddInvoice attempts to add a new invoice to the invoice database. Any duplicated invoices are rejected, therefore all invoices *must* have a unique payment preimage.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+memo | string | body | * An optional memo to attach along with the invoice. Used for record keeping purposes for the invoice's creator, and will also be set in the description field of the encoded payment request if the description_hash field is not being used.
+receipt | byte | body | / An optional cryptographic receipt of payment
+r_preimage | byte | body | * The hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage
+r_hash | byte | body | / The hash of the preimage
+value | int64 | body | / The value of this invoice in satoshis
+settled | boolean | body | / Whether this invoice has been fulfilled
+creation_date | int64 | body | / When this invoice was created
+settle_date | int64 | body | / When this invoice was settled
+payment_request | string | body | * A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient.
+description_hash | byte | body | * Hash (SHA-256) of a description of the payment. Used if the description of payment (memo) is too long to naturally fit within the description field of an encoded payment request.
+expiry | int64 | body | / Payment request expiry time in seconds. Default is 3600 (1 hour).
+fallback_addr | string | body | / Fallback on-chain address.
+cltv_expiry | uint64 | body | / Delta to use for the time-lock of the CLTV extended to the final hop.
+route_hints | [array RouteHint](#routehint) | body | * Route hints that can each be individually used to assist in reaching the invoice's destination.
+private | boolean | body | / Whether this invoice should include routing hints for private channels.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+r_hash | byte |  
+payment_request | string | * A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient.  
+
+
+
+# /v1/invoices/subscribe
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/invoices/subscribe 
+{ 
+    "memo": <string>, 
+    "receipt": <byte>, 
+    "r_preimage": <byte>, 
+    "r_hash": <byte>, 
+    "value": <int64>, 
+    "settled": <boolean>, 
+    "creation_date": <int64>, 
+    "settle_date": <int64>, 
+    "payment_request": <string>, 
+    "description_hash": <byte>, 
+    "expiry": <int64>, 
+    "fallback_addr": <string>, 
+    "cltv_expiry": <uint64>, 
+    "route_hints": <array RouteHint>, 
+    "private": <boolean>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/invoices/subscribe'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path, stream=True)
+>>> for raw_response in r.iter_lines():
+>>>     json_response = json.loads(raw_response)
+>>>     print(json_response)
+{ 
+    "memo": <string>, 
+    "receipt": <byte>, 
+    "r_preimage": <byte>, 
+    "r_hash": <byte>, 
+    "value": <int64>, 
+    "settled": <boolean>, 
+    "creation_date": <int64>, 
+    "settle_date": <int64>, 
+    "payment_request": <string>, 
+    "description_hash": <byte>, 
+    "expiry": <int64>, 
+    "fallback_addr": <string>, 
+    "cltv_expiry": <uint64>, 
+    "route_hints": <array RouteHint>, 
+    "private": <boolean>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/invoices/subscribe',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "memo": <string>, 
+    "receipt": <byte>, 
+    "r_preimage": <byte>, 
+    "r_hash": <byte>, 
+    "value": <int64>, 
+    "settled": <boolean>, 
+    "creation_date": <int64>, 
+    "settle_date": <int64>, 
+    "payment_request": <string>, 
+    "description_hash": <byte>, 
+    "expiry": <int64>, 
+    "fallback_addr": <string>, 
+    "cltv_expiry": <uint64>, 
+    "route_hints": <array RouteHint>, 
+    "private": <boolean>, 
+}
+```
+
+### GET /v1/invoices/subscribe
+* SubscribeInvoices returns a uni-directional stream (sever -> client) for notifying the client of newly added/settled invoices.
+
+This request has no parameters.
+
+### Response (streaming)
+
+Field | Type | Description
+----- | ---- | ----------- 
+memo | string | * An optional memo to attach along with the invoice. Used for record keeping purposes for the invoice's creator, and will also be set in the description field of the encoded payment request if the description_hash field is not being used. 
+receipt | byte | / An optional cryptographic receipt of payment 
+r_preimage | byte | * The hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage 
+r_hash | byte | / The hash of the preimage 
+value | int64 | / The value of this invoice in satoshis 
+settled | boolean | / Whether this invoice has been fulfilled 
+creation_date | int64 | / When this invoice was created 
+settle_date | int64 | / When this invoice was settled 
+payment_request | string | * A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+description_hash | byte | * Hash (SHA-256) of a description of the payment. Used if the description of payment (memo) is too long to naturally fit within the description field of an encoded payment request. 
+expiry | int64 | / Payment request expiry time in seconds. Default is 3600 (1 hour). 
+fallback_addr | string | / Fallback on-chain address. 
+cltv_expiry | uint64 | / Delta to use for the time-lock of the CLTV extended to the final hop. 
+route_hints | [array RouteHint](#routehint) | * Route hints that can each be individually used to assist in reaching the invoice's destination. 
+private | boolean | / Whether this invoice should include routing hints for private channels.  
+
+
+
+# /v1/newaddress
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/newaddress 
+{ 
+    "address": <string>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/newaddress'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "address": <string>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/newaddress',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "address": <string>, 
+}
+```
+
+### GET /v1/newaddress
+* NewWitnessAddress creates a new witness address under control of the local wallet.
+
+This request has no parameters.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+address | string | / The newly generated wallet address  
+
+
+
+# /v1/payments
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/payments 
+{ 
+    "payments": <array Payment>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/payments'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "payments": <array Payment>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/payments',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "payments": <array Payment>, 
+}
+```
+
+### GET /v1/payments
+ListPayments returns a list of all outgoing payments.
+
+This request has no parameters.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+payments | [array Payment](#payment) | / The list of payments  
+
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X DELETE --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/payments 
+{ 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/payments'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.delete(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/payments',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.delete(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+}
+```
+
+### DELETE /v1/payments
+* DeleteAllPayments deletes all outgoing payments from DB.
+
+This request has no parameters.
+
+### Response 
+
+This response has no parameters.
+
+
+
+
+# /v1/payreq
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/payreq/{pay_req} 
+{ 
+    "destination": <string>, 
+    "payment_hash": <string>, 
+    "num_satoshis": <int64>, 
+    "timestamp": <int64>, 
+    "expiry": <int64>, 
+    "description": <string>, 
+    "description_hash": <string>, 
+    "fallback_addr": <string>, 
+    "cltv_expiry": <int64>, 
+    "route_hints": <array RouteHint>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/payreq/{pay_req}'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "destination": <string>, 
+    "payment_hash": <string>, 
+    "num_satoshis": <int64>, 
+    "timestamp": <int64>, 
+    "expiry": <int64>, 
+    "description": <string>, 
+    "description_hash": <string>, 
+    "fallback_addr": <string>, 
+    "cltv_expiry": <int64>, 
+    "route_hints": <array RouteHint>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/payreq/{pay_req}',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "destination": <string>, 
+    "payment_hash": <string>, 
+    "num_satoshis": <int64>, 
+    "timestamp": <int64>, 
+    "expiry": <int64>, 
+    "description": <string>, 
+    "description_hash": <string>, 
+    "fallback_addr": <string>, 
+    "cltv_expiry": <int64>, 
+    "route_hints": <array RouteHint>, 
+}
+```
+
+### GET /v1/payreq/{pay_req}
+DecodePayReq takes an encoded payment request string and attempts to decode it, returning a full description of the conditions encoded within the payment request.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+pay_req | string | path | 
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+destination | string |  
+payment_hash | string |  
+num_satoshis | int64 |  
+timestamp | int64 |  
+expiry | int64 |  
+description | string |  
+description_hash | string |  
+fallback_addr | string |  
+cltv_expiry | int64 |  
+route_hints | [array RouteHint](#routehint) |   
+
+
+
+# /v1/peers
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/peers 
+{ 
+    "peers": <array Peer>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/peers'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "peers": <array Peer>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/peers',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "peers": <array Peer>, 
+}
+```
+
+### GET /v1/peers
+ListPeers returns a verbose listing of all currently active peers.
+
+This request has no parameters.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+peers | [array Peer](#peer) | / The list of currently connected peers  
+
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X POST --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/peers  \
+    -d '{ "addr":<LightningAddress>,"perm":<boolean>, }' 
+{ 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/peers'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> data = { 
+        'addr': <LightningAddress>, 
+        'perm': <boolean>, 
+    }
+>>> r = requests.post(url, headers=headers, verify=cert_path, data=json.dumps(data))
+>>> print(r.json())
+{ 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var requestBody = { 
+    addr: <LightningAddress>,
+    perm: <boolean>,
+  };
+> var options = {
+    url: 'https://localhost:8080/v1/peers',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+    form: JSON.stringify(requestBody),
+  };
+> request.post(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+}
+```
+
+### POST /v1/peers
+ConnectPeer attempts to establish a connection to a remote peer. This is at the networking level, and is used for communication between nodes. This is distinct from establishing a channel with a peer.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+addr | [LightningAddress](#lightningaddress) | body | / Lightning address of the peer, in the format `<pubkey>@host`
+perm | boolean | body | * If set, the daemon will attempt to persistently connect to the target peer.  Otherwise, the call will be synchronous.
+
+### Response 
+
+This response has no parameters.
+
+
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X DELETE --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/peers/{pub_key} 
+{ 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/peers/{pub_key}'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.delete(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/peers/{pub_key}',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.delete(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+}
+```
+
+### DELETE /v1/peers/{pub_key}
+DisconnectPeer attempts to disconnect one peer from another identified by a given pubKey. In the case that we currently have a pending or active channel with the target peer, then this action will be not be allowed.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+pub_key | string | path | 
+
+### Response 
+
+This response has no parameters.
+
+
+
+
+# /v1/switch
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X POST --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/switch  \
+    -d '{ "start_time":<uint64>,"end_time":<uint64>,"index_offset":<int64>,"num_max_events":<int64>, }' 
+{ 
+    "forwarding_events": <array ForwardingEvent>, 
+    "last_offset_index": <int64>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/switch'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> data = { 
+        'start_time': <uint64>, 
+        'end_time': <uint64>, 
+        'index_offset': <int64>, 
+        'num_max_events': <int64>, 
+    }
+>>> r = requests.post(url, headers=headers, verify=cert_path, data=json.dumps(data))
+>>> print(r.json())
+{ 
+    "forwarding_events": <array ForwardingEvent>, 
+    "last_offset_index": <int64>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var requestBody = { 
+    start_time: <uint64>,
+    end_time: <uint64>,
+    index_offset: <int64>,
+    num_max_events: <int64>,
+  };
+> var options = {
+    url: 'https://localhost:8080/v1/switch',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+    form: JSON.stringify(requestBody),
+  };
+> request.post(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "forwarding_events": <array ForwardingEvent>, 
+    "last_offset_index": <int64>, 
+}
+```
+
+### POST /v1/switch
+ForwardingHistory allows the caller to query the htlcswitch for a record of all HTLC's forwarded within the target time range, and integer offset within that time range. If no time-range is specified, then the first chunk of the past 24 hrs of forwarding history are returned.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+start_time | uint64 | body | / Start time is the starting point of the forwarding history request. All records beyond this point will be included, respecting the end time, and the index offset.
+end_time | uint64 | body | / End time is the end point of the forwarding history request. The response will carry at most 50k records between the start time and the end time. The index offset can be used to implement pagination.
+index_offset | int64 | body | / Index offset is the offset in the time series to start at. As each response can only contain 50k records, callers can use this to skip around within a packed time series.
+num_max_events | int64 | body | / The max number of events to return in the response to this query.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+forwarding_events | [array ForwardingEvent](#forwardingevent) | / A list of forwarding events from the time slice of the time series specified in the request. 
+last_offset_index | int64 | / The index of the last time in the set of returned forwarding events. Can be used to seek further, pagination style.  
+
+
+
+# /v1/transactions
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/transactions 
+{ 
+    "transactions": <array Transaction>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/transactions'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> r = requests.get(url, headers=headers, verify=cert_path)
+>>> print(r.json())
+{ 
+    "transactions": <array Transaction>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var options = {
+    url: 'https://localhost:8080/v1/transactions',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+  };
+> request.get(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "transactions": <array Transaction>, 
+}
+```
+
+### GET /v1/transactions
+GetTransactions returns a list describing all the known transactions relevant to the wallet.
+
+This request has no parameters.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+transactions | [array Transaction](#transaction) | / The list of transactions relevant to the wallet.  
+
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X POST --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/transactions  \
+    -d '{ "addr":<string>,"amount":<int64>,"target_conf":<int32>,"sat_per_byte":<int64>, }' 
+{ 
+    "txid": <string>, 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/transactions'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}
+>>> data = { 
+        'addr': <string>, 
+        'amount': <int64>, 
+        'target_conf': <int32>, 
+        'sat_per_byte': <int64>, 
+    }
+>>> r = requests.post(url, headers=headers, verify=cert_path, data=json.dumps(data))
+>>> print(r.json())
+{ 
+    "txid": <string>, 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');
+> var requestBody = { 
+    addr: <string>,
+    amount: <int64>,
+    target_conf: <int32>,
+    sat_per_byte: <int64>,
+  };
+> var options = {
+    url: 'https://localhost:8080/v1/transactions',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    headers: {
+      'Grpc-Metadata-macaroon': macaroon,
+    },
+    form: JSON.stringify(requestBody),
+  };
+> request.post(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+    "txid": <string>, 
+}
+```
+
+### POST /v1/transactions
+SendCoins executes a request to send coins to a particular address. Unlike SendMany, this RPC call only allows creating a single output at a time. If neither target_conf, or sat_per_byte are set, then the internal wallet will consult its fee model to determine a fee for the default confirmation target.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+addr | string | body | / The address to send coins to
+amount | int64 | body | / The amount in satoshis to send
+target_conf | int32 | body | / The target number of blocks that this transaction should be confirmed by.
+sat_per_byte | int64 | body | / A manual fee rate set in sat/byte that should be used when crafting the transaction.
+
+### Response 
+
+Field | Type | Description
+----- | ---- | ----------- 
+txid | string | / The transaction ID of the transaction  
+
+
+
+# /v1/unlockwallet
+
+
+```shell
+$ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
+$ curl -X POST --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/unlockwallet  \
+    -d '{ "wallet_password":<byte>,"recovery_window":<int32>, }' 
+{ 
+}
+```
+```python
+>>> import base64, codecs, json, requests
+>>> url = 'https://localhost:8080/v1/unlockwallet'
+>>> cert_path = 'LND_DIR/tls.cert'
+>>> data = { 
+        'wallet_password': base64.b64encode(<byte>).decode(), 
+        'recovery_window': <int32>, 
+    }
+>>> r = requests.post(url, verify=cert_path, data=json.dumps(data))
+>>> print(r.json())
+{ 
+}
+```
+```javascript
+> var fs = require('fs');
+> var request = require('request');
+> var requestBody = { 
+    wallet_password: <byte>,
+    recovery_window: <int32>,
+  };
+> var options = {
+    url: 'https://localhost:8080/v1/unlockwallet',
+    // Work-around for self-signed certificates.
+    rejectUnauthorized: false,
+    json: true, 
+    form: JSON.stringify(requestBody),
+  };
+> request.post(options, function(error, response, body) {
+    console.log(body);
+  });
+{ 
+}
+```
+
+### POST /v1/unlockwallet
+UnlockWallet is used at startup of lnd to provide a password to unlock the wallet database.
+
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+wallet_password | byte | body | * wallet_password should be the current valid passphrase for the daemon. This will be required to decrypt on-disk material that the daemon requires to function properly.
+recovery_window | int32 | body | * recovery_window is an optional argument specifying the address lookahead when restoring a wallet seed. The recovery window applies to each invdividual branch of the BIP44 derivation paths. Supplying a recovery window of zero indicates that no addresses should be recovered, such after the first initialization of the wallet.
+
+### Response 
+
+This response has no parameters.
+
+
+
+
+
+# Definitions
+
+## ChannelCloseSummaryClosureType
+
+This definition has no parameters.
+
+
+## PendingChannelsResponseClosedChannel
+
+Field | Type | Description
+----- | ---- | ----------- 
+channel | [PendingChannelsResponsePendingChannel](#pendingchannelsresponsependingchannel) | / The pending channel to be closed
+closing_txid | string | / The transaction id of the closing transaction
+
+
+## PendingChannelsResponseForceClosedChannel
+
+Field | Type | Description
+----- | ---- | ----------- 
+channel | [PendingChannelsResponsePendingChannel](#pendingchannelsresponsependingchannel) | / The pending channel to be force closed
+closing_txid | string | / The transaction id of the closing transaction
+limbo_balance | int64 | / The balance in satoshis encumbered in this pending channel
+maturity_height | int64 | / The height at which funds can be sweeped into the wallet
+blocks_til_maturity | int32 | Remaining # of blocks until the commitment output can be swept. Negative values indicate how many blocks have passed since becoming mature.
+recovered_balance | int64 | / The total value of funds successfully recovered from this channel
+pending_htlcs | [array PendingHTLC](#pendinghtlc) | 
+
+
+## PendingChannelsResponsePendingChannel
+
+Field | Type | Description
+----- | ---- | ----------- 
+remote_node_pub | string | 
+channel_point | string | 
+capacity | int64 | 
+local_balance | int64 | 
+remote_balance | int64 | 
+
+
+## PendingChannelsResponsePendingOpenChannel
+
+Field | Type | Description
+----- | ---- | ----------- 
+channel | [PendingChannelsResponsePendingChannel](#pendingchannelsresponsependingchannel) | / The pending channel
+confirmation_height | int64 | / The height at which this channel will be confirmed
+commit_fee | int64 | * The amount calculated to be paid in fees for the current set of commitment transactions. The fee amount is persisted with the channel in order to allow the fee amount to be removed and recalculated with each channel state update, including updates that happen after a system restart.
+commit_weight | int64 | / The weight of the commitment transaction
+fee_per_kw | int64 | * The required number of satoshis per kilo-weight that the requester will pay at all times, for both the funding transaction and commitment transaction. This value can later be updated once the channel is open.
+
+
+## PendingChannelsResponseWaitingCloseChannel
+
+Field | Type | Description
+----- | ---- | ----------- 
+channel | [PendingChannelsResponsePendingChannel](#pendingchannelsresponsependingchannel) | / The pending channel waiting for closing tx to confirm
+limbo_balance | int64 | / The balance in satoshis encumbered in this channel
+
+
+## AddInvoiceResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+r_hash | byte | 
+payment_request | string | * A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient.
+
+
+## ChangePasswordRequest
+
+Field | Type | Description
+----- | ---- | ----------- 
+current_password | byte | * current_password should be the current valid passphrase used to unlock the daemon.
+new_password | byte | * new_password should be the new passphrase that will be needed to unlock the daemon.
+
+
+## ChangePasswordResponse
+
+This definition has no parameters.
+
+
+## Channel
+
+Field | Type | Description
+----- | ---- | ----------- 
+active | boolean | / Whether this channel is active or not
+remote_pubkey | string | / The identity pubkey of the remote node
+channel_point | string | * The outpoint (txid:index) of the funding transaction. With this value, Bob will be able to generate a signature for Alice's version of the commitment transaction.
+chan_id | uint64 | * The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel.
+capacity | int64 | / The total amount of funds held in this channel
+local_balance | int64 | / This node's current balance in this channel
+remote_balance | int64 | / The counterparty's current balance in this channel
+commit_fee | int64 | * The amount calculated to be paid in fees for the current set of commitment transactions. The fee amount is persisted with the channel in order to allow the fee amount to be removed and recalculated with each channel state update, including updates that happen after a system restart.
+commit_weight | int64 | / The weight of the commitment transaction
+fee_per_kw | int64 | * The required number of satoshis per kilo-weight that the requester will pay at all times, for both the funding transaction and commitment transaction. This value can later be updated once the channel is open.
+unsettled_balance | int64 | / The unsettled balance in this channel
+total_satoshis_sent | int64 | * The total number of satoshis we've sent within this channel.
+total_satoshis_received | int64 | * The total number of satoshis we've received within this channel.
+num_updates | uint64 | * The total number of updates conducted within this channel.
+pending_htlcs | [array HTLC](#htlc) | * The list of active, uncleared HTLCs currently pending within the channel.
+csv_delay | int64 | * The CSV delay expressed in relative blocks. If the channel is force closed, we'll need to wait for this many blocks before we can regain our funds.
+private | boolean | / Whether this channel is advertised to the network or not
+
+
+## ChannelBalanceResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+balance | int64 | / Sum of channels balances denominated in satoshis
+pending_open_balance | int64 | / Sum of channels pending balances denominated in satoshis
+
+
+## ChannelCloseSummary
+
+Field | Type | Description
+----- | ---- | ----------- 
+channel_point | string | / The outpoint (txid:index) of the funding transaction.
+chan_id | uint64 | /  The unique channel ID for the channel.
+chain_hash | string | / The hash of the genesis block that this channel resides within.
+closing_tx_hash | string | / The txid of the transaction which ultimately closed this channel.
+remote_pubkey | string | / Public key of the remote peer that we formerly had a channel with.
+capacity | int64 | / Total capacity of the channel.
+close_height | int64 | / Height at which the funding transaction was spent.
+settled_balance | int64 | / Settled balance at the time of channel closure
+time_locked_balance | int64 | / The sum of all the time-locked outputs at the time of channel closure
+close_type | [ChannelCloseSummaryClosureType](#channelclosesummaryclosuretype) | / Details on how the channel was closed.
+
+
+## ChannelCloseUpdate
+
+Field | Type | Description
+----- | ---- | ----------- 
+closing_txid | byte | 
+success | boolean | 
+
+
+## ChannelEdge
+
+Field | Type | Description
+----- | ---- | ----------- 
+channel_id | uint64 | * The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel.
+chan_point | string | 
+last_update | int64 | 
+node1_pub | string | 
+node2_pub | string | 
+capacity | int64 | 
+node1_policy | [RoutingPolicy](#routingpolicy) | 
+node2_policy | [RoutingPolicy](#routingpolicy) | 
+
+
+## ChannelEdgeUpdate
+
+Field | Type | Description
+----- | ---- | ----------- 
+chan_id | uint64 | * The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel.
+chan_point | [ChannelPoint](#channelpoint) | 
+capacity | int64 | 
+routing_policy | [RoutingPolicy](#routingpolicy) | 
+advertising_node | string | 
+connecting_node | string | 
+
+
+## ChannelFeeReport
+
+Field | Type | Description
+----- | ---- | ----------- 
+chan_point | string | / The channel that this fee report belongs to.
+base_fee_msat | int64 | / The base fee charged regardless of the number of milli-satoshis sent.
+fee_per_mil | int64 | / The amount charged per milli-satoshis transferred expressed in millionths of a satoshi.
+fee_rate | double | / The effective fee rate in milli-satoshis. Computed by dividing the fee_per_mil value by 1 million.
+
+
+## ChannelGraph
+
+Field | Type | Description
+----- | ---- | ----------- 
+nodes | [array LightningNode](#lightningnode) | / The list of `LightningNode`s in this channel graph
+edges | [array ChannelEdge](#channeledge) | / The list of `ChannelEdge`s in this channel graph
+
+
+## ChannelOpenUpdate
+
+Field | Type | Description
+----- | ---- | ----------- 
+channel_point | [ChannelPoint](#channelpoint) | 
+
+
+## ChannelPoint
+
+Field | Type | Description
+----- | ---- | ----------- 
+funding_txid_bytes | byte | / Txid of the funding transaction
+funding_txid_str | string | / Hex-encoded string representing the funding transaction
+output_index | int64 | / The index of the output of the funding transaction
+
+
+## CloseStatusUpdate
+
+Field | Type | Description
+----- | ---- | ----------- 
+close_pending | [PendingUpdate](#pendingupdate) | 
+confirmation | [ConfirmationUpdate](#confirmationupdate) | 
+chan_close | [ChannelCloseUpdate](#channelcloseupdate) | 
+
+
+## ClosedChannelUpdate
+
+Field | Type | Description
+----- | ---- | ----------- 
+chan_id | uint64 | * The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel.
+capacity | int64 | 
+closed_height | int64 | 
+chan_point | [ChannelPoint](#channelpoint) | 
+
+
+## ClosedChannelsResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+channels | [array ChannelCloseSummary](#channelclosesummary) | 
+
+
+## ConfirmationUpdate
+
+Field | Type | Description
+----- | ---- | ----------- 
+block_sha | byte | 
+block_height | int32 | 
+num_confs_left | int64 | 
+
+
+## ConnectPeerRequest
+
+Field | Type | Description
+----- | ---- | ----------- 
+addr | [LightningAddress](#lightningaddress) | / Lightning address of the peer, in the format `<pubkey>@host`
+perm | boolean | * If set, the daemon will attempt to persistently connect to the target peer.  Otherwise, the call will be synchronous.
+
+
+## ConnectPeerResponse
+
+This definition has no parameters.
+
+
+## DebugLevelResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+sub_systems | string | 
+
+
+## DeleteAllPaymentsResponse
+
+This definition has no parameters.
+
+
+## DisconnectPeerResponse
+
+This definition has no parameters.
+
+
+## FeeLimit
+
+Field | Type | Description
+----- | ---- | ----------- 
+fixed | int64 | / The fee limit expressed as a fixed amount of satoshis.
+percent | int64 | / The fee limit expressed as a percentage of the payment amount.
+
+
+## FeeReportResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+channel_fees | [array ChannelFeeReport](#channelfeereport) | / An array of channel fee reports which describes the current fee schedule for each channel.
+day_fee_sum | uint64 | / The total amount of fee revenue (in satoshis) the switch has collected over the past 24 hrs.
+week_fee_sum | uint64 | / The total amount of fee revenue (in satoshis) the switch has collected over the past 1 week.
+month_fee_sum | uint64 | / The total amount of fee revenue (in satoshis) the switch has collected over the past 1 month.
+
+
+## ForwardingEvent
+
+Field | Type | Description
+----- | ---- | ----------- 
+timestamp | uint64 | / Timestamp is the time (unix epoch offset) that this circuit was completed.
+chan_id_in | uint64 | / The incoming channel ID that carried the HTLC that created the circuit.
+chan_id_out | uint64 | / The outgoing channel ID that carried the preimage that completed the circuit.
+amt_in | uint64 | / The total amount of the incoming HTLC that created half the circuit.
+amt_out | uint64 | / The total amount of the outgoign HTLC that created the second half of the circuit.
+fee | uint64 | / The total fee that this payment circuit carried.
+
+
+## ForwardingHistoryRequest
+
+Field | Type | Description
+----- | ---- | ----------- 
+start_time | uint64 | / Start time is the starting point of the forwarding history request. All records beyond this point will be included, respecting the end time, and the index offset.
+end_time | uint64 | / End time is the end point of the forwarding history request. The response will carry at most 50k records between the start time and the end time. The index offset can be used to implement pagination.
+index_offset | int64 | / Index offset is the offset in the time series to start at. As each response can only contain 50k records, callers can use this to skip around within a packed time series.
+num_max_events | int64 | / The max number of events to return in the response to this query.
+
+
+## ForwardingHistoryResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+forwarding_events | [array ForwardingEvent](#forwardingevent) | / A list of forwarding events from the time slice of the time series specified in the request.
+last_offset_index | int64 | / The index of the last time in the set of returned forwarding events. Can be used to seek further, pagination style.
+
+
+## GenSeedResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+cipher_seed_mnemonic | array string | * cipher_seed_mnemonic is a 24-word mnemonic that encodes a prior aezeed cipher seed obtained by the user. This field is optional, as if not provided, then the daemon will generate a new cipher seed for the user. Otherwise, then the daemon will attempt to recover the wallet state linked to this cipher seed.
+enciphered_seed | byte | * enciphered_seed are the raw aezeed cipher seed bytes. This is the raw cipher text before run through our mnemonic encoding scheme.
+
+
+## GetInfoResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+identity_pubkey | string | / The identity pubkey of the current node.
+alias | string | / If applicable, the alias of the current node, e.g. "bob"
+num_pending_channels | int64 | / Number of pending channels
+num_active_channels | int64 | / Number of active channels
+num_peers | int64 | / Number of peers
+block_height | int64 | / The node's current view of the height of the best block
+block_hash | string | / The node's current view of the hash of the best block
+synced_to_chain | boolean | / Whether the wallet's view is synced to the main chain
+testnet | boolean | / Whether the current node is connected to testnet
+chains | array string | / A list of active chains the node is connected to
+uris | array string | / The URIs of the current node.
+best_header_timestamp | int64 | / Timestamp of the block best known to the wallet
+version | string | / The version of the LND software that the node is running.
+
+
+## GraphTopologyUpdate
+
+Field | Type | Description
+----- | ---- | ----------- 
+node_updates | [array NodeUpdate](#nodeupdate) | 
+channel_updates | [array ChannelEdgeUpdate](#channeledgeupdate) | 
+closed_chans | [array ClosedChannelUpdate](#closedchannelupdate) | 
+
+
+## HTLC
+
+Field | Type | Description
+----- | ---- | ----------- 
+incoming | boolean | 
+amount | int64 | 
+hash_lock | byte | 
+expiration_height | int64 | 
+
+
+## Hop
+
+Field | Type | Description
+----- | ---- | ----------- 
+chan_id | uint64 | * The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel.
+chan_capacity | int64 | 
+amt_to_forward | int64 | 
+fee | int64 | 
+expiry | int64 | 
+amt_to_forward_msat | int64 | 
+fee_msat | int64 | 
+
+
+## HopHint
+
+Field | Type | Description
+----- | ---- | ----------- 
+node_id | string | / The public key of the node at the start of the channel.
+chan_id | uint64 | / The unique identifier of the channel.
+fee_base_msat | int64 | / The base fee of the channel denominated in millisatoshis.
+fee_proportional_millionths | int64 | * The fee rate of the channel for sending one satoshi across it denominated in millionths of a satoshi.
+cltv_expiry_delta | int64 | / The time-lock delta of the channel.
+
+
+## InitWalletRequest
+
+Field | Type | Description
+----- | ---- | ----------- 
+wallet_password | byte | * wallet_password is the passphrase that should be used to encrypt the wallet. This MUST be at least 8 chars in length. After creation, this password is required to unlock the daemon.
+cipher_seed_mnemonic | array string | * cipher_seed_mnemonic is a 24-word mnemonic that encodes a prior aezeed cipher seed obtained by the user. This may have been generated by the GenSeed method, or be an existing seed.
+aezeed_passphrase | byte | * aezeed_passphrase is an optional user provided passphrase that will be used to encrypt the generated aezeed cipher seed.
+recovery_window | int32 | * recovery_window is an optional argument specifying the address lookahead when restoring a wallet seed. The recovery window applies to each invdividual branch of the BIP44 derivation paths. Supplying a recovery window of zero indicates that no addresses should be recovered, such after the first initialization of the wallet.
+
+
+## InitWalletResponse
+
+This definition has no parameters.
+
+
+## Invoice
+
+Field | Type | Description
+----- | ---- | ----------- 
+memo | string | * An optional memo to attach along with the invoice. Used for record keeping purposes for the invoice's creator, and will also be set in the description field of the encoded payment request if the description_hash field is not being used.
+receipt | byte | / An optional cryptographic receipt of payment
+r_preimage | byte | * The hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage
+r_hash | byte | / The hash of the preimage
+value | int64 | / The value of this invoice in satoshis
+settled | boolean | / Whether this invoice has been fulfilled
+creation_date | int64 | / When this invoice was created
+settle_date | int64 | / When this invoice was settled
+payment_request | string | * A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient.
+description_hash | byte | * Hash (SHA-256) of a description of the payment. Used if the description of payment (memo) is too long to naturally fit within the description field of an encoded payment request.
+expiry | int64 | / Payment request expiry time in seconds. Default is 3600 (1 hour).
+fallback_addr | string | / Fallback on-chain address.
+cltv_expiry | uint64 | / Delta to use for the time-lock of the CLTV extended to the final hop.
+route_hints | [array RouteHint](#routehint) | * Route hints that can each be individually used to assist in reaching the invoice's destination.
+private | boolean | / Whether this invoice should include routing hints for private channels.
+
+
+## LightningAddress
+
+Field | Type | Description
+----- | ---- | ----------- 
+pubkey | string | / The identity pubkey of the Lightning node
+host | string | / The network location of the lightning node, e.g. `69.69.69.69:1337` or `localhost:10011`
+
+
+## LightningNode
+
+Field | Type | Description
+----- | ---- | ----------- 
+last_update | int64 | 
+pub_key | string | 
+alias | string | 
+addresses | [array NodeAddress](#nodeaddress) | 
+color | string | 
+
+
+## ListChannelsResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+channels | [array Channel](#channel) | / The list of active channels
+
+
+## ListInvoiceResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+invoices | [array Invoice](#invoice) | 
+
+
+## ListPaymentsResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+payments | [array Payment](#payment) | / The list of payments
+
+
+## ListPeersResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+peers | [array Peer](#peer) | / The list of currently connected peers
+
+
+## NetworkInfo
+
+Field | Type | Description
+----- | ---- | ----------- 
+graph_diameter | int64 | 
+avg_out_degree | double | 
+max_out_degree | int64 | 
+num_nodes | int64 | 
+num_channels | int64 | 
+total_network_capacity | int64 | 
+avg_channel_size | double | 
+min_channel_size | int64 | 
+max_channel_size | int64 | 
+
+
+## NewAddressResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+address | string | / The newly generated wallet address
+
+
+## NodeAddress
+
+Field | Type | Description
+----- | ---- | ----------- 
+network | string | 
+addr | string | 
+
+
+## NodeInfo
+
+Field | Type | Description
+----- | ---- | ----------- 
+node | [LightningNode](#lightningnode) | * An individual vertex/node within the channel graph. A node is connected to other nodes by one or more channel edges emanating from it. As the graph is directed, a node will also have an incoming edge attached to it for each outgoing edge.
+num_channels | int64 | 
+total_capacity | int64 | 
+
+
+## NodeUpdate
+
+Field | Type | Description
+----- | ---- | ----------- 
+addresses | array string | 
+identity_key | string | 
+global_features | byte | 
+alias | string | 
+
+
+## OpenChannelRequest
+
+Field | Type | Description
+----- | ---- | ----------- 
+node_pubkey | byte | / The pubkey of the node to open a channel with
+node_pubkey_string | string | / The hex encoded pubkey of the node to open a channel with
+local_funding_amount | int64 | / The number of satoshis the wallet should commit to the channel
+push_sat | int64 | / The number of satoshis to push to the remote side as part of the initial commitment state
+target_conf | int32 | / The target number of blocks that the funding transaction should be confirmed by.
+sat_per_byte | int64 | / A manual fee rate set in sat/byte that should be used when crafting the funding transaction.
+private | boolean | / Whether this channel should be private, not announced to the greater network.
+min_htlc_msat | int64 | / The minimum value in millisatoshi we will require for incoming HTLCs on the channel.
+remote_csv_delay | int64 | / The delay we require on the remote's commitment transaction. If this is not set, it will be scaled automatically with the channel size.
+
+
+## OpenStatusUpdate
+
+Field | Type | Description
+----- | ---- | ----------- 
+chan_pending | [PendingUpdate](#pendingupdate) | 
+confirmation | [ConfirmationUpdate](#confirmationupdate) | 
+chan_open | [ChannelOpenUpdate](#channelopenupdate) | 
+
+
+## PayReq
+
+Field | Type | Description
+----- | ---- | ----------- 
+destination | string | 
+payment_hash | string | 
+num_satoshis | int64 | 
+timestamp | int64 | 
+expiry | int64 | 
+description | string | 
+description_hash | string | 
+fallback_addr | string | 
+cltv_expiry | int64 | 
+route_hints | [array RouteHint](#routehint) | 
+
+
+## Payment
+
+Field | Type | Description
+----- | ---- | ----------- 
+payment_hash | string | / The payment hash
+value | int64 | / The value of the payment in satoshis
+creation_date | int64 | / The date of this payment
+path | array string | / The path this payment took
+fee | int64 | / The fee paid for this payment in satoshis
+payment_preimage | string | / The payment preimage
+
+
+## Peer
+
+Field | Type | Description
+----- | ---- | ----------- 
+pub_key | string | / The identity pubkey of the peer
+address | string | / Network address of the peer; eg `127.0.0.1:10011`
+bytes_sent | uint64 | / Bytes of data transmitted to this peer
+bytes_recv | uint64 | / Bytes of data transmitted from this peer
+sat_sent | int64 | / Satoshis sent to this peer
+sat_recv | int64 | / Satoshis received from this peer
+inbound | boolean | / A channel is inbound if the counterparty initiated the channel
+ping_time | int64 | / Ping time to this peer
+
+
+## PendingChannelsResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+total_limbo_balance | int64 | / The balance in satoshis encumbered in pending channels
+pending_open_channels | [array PendingChannelsResponsePendingOpenChannel](#pendingchannelsresponsependingopenchannel) | / Channels pending opening
+pending_closing_channels | [array PendingChannelsResponseClosedChannel](#pendingchannelsresponseclosedchannel) | / Channels pending closing
+pending_force_closing_channels | [array PendingChannelsResponseForceClosedChannel](#pendingchannelsresponseforceclosedchannel) | / Channels pending force closing
+waiting_close_channels | [array PendingChannelsResponseWaitingCloseChannel](#pendingchannelsresponsewaitingclosechannel) | / Channels waiting for closing tx to confirm
+
+
+## PendingHTLC
+
+Field | Type | Description
+----- | ---- | ----------- 
+incoming | boolean | / The direction within the channel that the htlc was sent
+amount | int64 | / The total value of the htlc
+outpoint | string | / The final output to be swept back to the user's wallet
+maturity_height | int64 | / The next block height at which we can spend the current stage
+blocks_til_maturity | int32 | * The number of blocks remaining until the current stage can be swept. Negative values indicate how many blocks have passed since becoming mature.
+stage | int64 | / Indicates whether the htlc is in its first or second stage of recovery
+
+
+## PendingUpdate
+
+Field | Type | Description
+----- | ---- | ----------- 
+txid | byte | 
+output_index | int64 | 
+
+
+## PolicyUpdateRequest
+
+Field | Type | Description
+----- | ---- | ----------- 
+global | boolean | / If set, then this update applies to all currently active channels.
+chan_point | [ChannelPoint](#channelpoint) | / If set, this update will target a specific channel.
+base_fee_msat | int64 | / The base fee charged regardless of the number of milli-satoshis sent.
+fee_rate | double | / The effective fee rate in milli-satoshis. The precision of this value goes up to 6 decimal places, so 1e-6.
+time_lock_delta | int64 | / The required timelock delta for HTLCs forwarded over the channel.
+
+
+## PolicyUpdateResponse
+
+This definition has no parameters.
+
+
+## QueryRoutesResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+routes | [array Route](#route) | 
+
+
+## Route
+
+Field | Type | Description
+----- | ---- | ----------- 
+total_time_lock | int64 | * The cumulative (final) time lock across the entire route.  This is the CLTV value that should be extended to the first hop in the route. All other hops will decrement the time-lock as advertised, leaving enough time for all hops to wait for or present the payment preimage to complete the payment.
+total_fees | int64 | * The sum of the fees paid at each hop within the final route.  In the case of a one-hop payment, this value will be zero as we don't need to pay a fee it ourself.
+total_amt | int64 | * The total amount of funds required to complete a payment over this route. This value includes the cumulative fees at each hop. As a result, the HTLC extended to the first-hop in the route will need to have at least this many satoshis, otherwise the route will fail at an intermediate node due to an insufficient amount of fees.
+hops | [array Hop](#hop) | * Contains details concerning the specific forwarding details at each hop.
+total_fees_msat | int64 | * The total fees in millisatoshis.
+total_amt_msat | int64 | * The total amount in millisatoshis.
+
+
+## RouteHint
+
+Field | Type | Description
+----- | ---- | ----------- 
+hop_hints | [array HopHint](#hophint) | * A list of hop hints that when chained together can assist in reaching a specific destination.
+
+
+## RoutingPolicy
+
+Field | Type | Description
+----- | ---- | ----------- 
+time_lock_delta | int64 | 
+min_htlc | int64 | 
+fee_base_msat | int64 | 
+fee_rate_milli_msat | int64 | 
+
+
+## SendCoinsRequest
+
+Field | Type | Description
+----- | ---- | ----------- 
+addr | string | / The address to send coins to
+amount | int64 | / The amount in satoshis to send
+target_conf | int32 | / The target number of blocks that this transaction should be confirmed by.
+sat_per_byte | int64 | / A manual fee rate set in sat/byte that should be used when crafting the transaction.
+
+
+## SendCoinsResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+txid | string | / The transaction ID of the transaction
+
+
+## SendManyResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+txid | string | / The id of the transaction
+
+
+## SendRequest
+
+Field | Type | Description
+----- | ---- | ----------- 
+dest | byte | / The identity pubkey of the payment recipient
+dest_string | string | / The hex-encoded identity pubkey of the payment recipient
+amt | int64 | / Number of satoshis to send.
+payment_hash | byte | / The hash to use within the payment's HTLC
+payment_hash_string | string | / The hex-encoded hash to use within the payment's HTLC
+payment_request | string | * A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient.
+final_cltv_delta | int32 | * The CLTV delta from the current height that should be used to set the timelock for the final hop.
+fee_limit | [FeeLimit](#feelimit) | * The maximum number of satoshis that will be paid as a fee of the payment. This value can be represented either as a percentage of the amount being sent, or as a fixed amount of the maximum fee the user is willing the pay to send the payment.
+
+
+## SendResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+payment_error | string | 
+payment_preimage | byte | 
+payment_route | [Route](#route) | 
+
+
+## SendToRouteRequest
+
+Field | Type | Description
+----- | ---- | ----------- 
+payment_hash | byte | / The payment hash to use for the HTLC.
+payment_hash_string | string | / An optional hex-encoded payment hash to be used for the HTLC.
+routes | [array Route](#route) | / The set of routes that should be used to attempt to complete the payment.
+
+
+## SignMessageResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+signature | string | / The signature for the given message
+
+
+## StopResponse
+
+This definition has no parameters.
+
+
+## Transaction
+
+Field | Type | Description
+----- | ---- | ----------- 
+tx_hash | string | / The transaction hash
+amount | int64 | / The transaction ammount, denominated in satoshis
+num_confirmations | int32 | / The number of confirmations
+block_hash | string | / The hash of the block this transaction was included in
+block_height | int32 | / The height of the block this transaction was included in
+time_stamp | int64 | / Timestamp of this transaction
+total_fees | int64 | / Fees paid for this transaction
+dest_addresses | array string | / Addresses that received funds for this transaction
+
+
+## TransactionDetails
+
+Field | Type | Description
+----- | ---- | ----------- 
+transactions | [array Transaction](#transaction) | / The list of transactions relevant to the wallet.
+
+
+## UnlockWalletRequest
+
+Field | Type | Description
+----- | ---- | ----------- 
+wallet_password | byte | * wallet_password should be the current valid passphrase for the daemon. This will be required to decrypt on-disk material that the daemon requires to function properly.
+recovery_window | int32 | * recovery_window is an optional argument specifying the address lookahead when restoring a wallet seed. The recovery window applies to each invdividual branch of the BIP44 derivation paths. Supplying a recovery window of zero indicates that no addresses should be recovered, such after the first initialization of the wallet.
+
+
+## UnlockWalletResponse
+
+This definition has no parameters.
+
+
+## VerifyMessageResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+valid | boolean | / Whether the signature was valid over the given message
+pubkey | string | / The pubkey recovered from the signature
+
+
+## WalletBalanceResponse
+
+Field | Type | Description
+----- | ---- | ----------- 
+total_balance | int64 | / The balance of the wallet
+confirmed_balance | int64 | / The confirmed balance of a wallet(with >= 1 confirmations)
+unconfirmed_balance | int64 | / The unconfirmed balance of a wallet(with 0 confirmations)
+

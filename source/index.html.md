@@ -1,5 +1,5 @@
 ---
-title: LND API Reference
+title: LND gRPC API Reference
 
 language_tabs:
   - shell
@@ -11,35 +11,39 @@ toc_footers:
   - <a href='mailto:max@lightning.engineering'>Contact Us</a>
   - Powered by <a href='https://github.com/lord/slate'>Slate</a>
 
-includes:
-
 search: true
 ---
 
-# LND API Reference
+# LND gRPC API Reference
 
-Welcome to the API reference documentation for LND, the Lightning Network
+Welcome to the gRPC API reference documentation for LND, the Lightning Network
 Daemon.
 
-This site features API documentation for command line arguments, gRPC in
-[Python](//dev.lightning.community/guides/python-grpc/) /
-[Javascript](//dev.lightning.community/guides/python-grpc/), and a REST proxy.
-It is intended for those who already understand how to work with LND. If this is
-your first time or you need a refresher, you may consider perusing our LND
-developer site featuring a tutorial, resources and guides at
-[dev.lightning.community](//dev.lightning.community).
+This site features the API documentation for lncli (CLI), [Python](https:///dev.lightning.community/guides/python-grpc/),
+and [JavaScript](https://dev.lightning.community/guides/javascript-grpc/) in
+order to communicate with a local `lnd` instance through gRPC. It is intended
+for those who already understand how to work with LND. If this is your first
+time or you need a refresher, you may consider perusing our LND developer site
+featuring a tutorial, resources and guides at [dev.lightning.community](https://dev.lightning.community).
 
-If you prefer to just read code, the original `rpc.proto` file from which
-the gRPC documentation was generated can be found in the [lnd Github
-repo](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
+The examples to the right assume that the there is a local `lnd` instance
+running and listening for gRPC connections on port 10009. `LND_DIR` will be used
+as a placeholder to denote the base directory of the `lnd` instance. By default,
+this is `~/.lnd` on Linux and `~/Library/Application Support/Lnd` on macOS.
 
-Lastly, keep in mind that the code examples will differ slightly based on your
-operating system and specific setup. The `LND_HOMEDIR` used in the gRPC examples
-is `~/.lnd/` for Linux or `~/Library/Application Support/Lnd/tls.cert` for Mac
+At the time of writing this documentation, two things are needed in order to
+make a gRPC request to an `lnd` instance: a TLS/SSL connection and a macaroon
+used for RPC authentication. The examples to the right will show how these can
+be used in order to make a successful, secure, and authenticated gRPC request.
 
+The original `rpc.proto` file from which the gRPC documentation was generated
+can be found [here](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
+
+Alternatively, the REST documentation can be found [here](./rest).
 
 
 # GenSeed
+
 
 ### Simple RPC
 
@@ -49,77 +53,63 @@ GenSeed is the first method that should be used to instantiate a new lnd instanc
 ```shell
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
->>> stub = lnrpc.LightningStub(channel)
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
+>>> stub = lnrpc.WalletUnlockerStub(channel)
 >>> request = ln.GenSeedRequest(
-        aezeed_passphrase=<YOUR_PARAM>,
-        seed_entropy=<YOUR_PARAM>,
+        aezeed_passphrase=<bytes>,
+        seed_entropy=<bytes>,
     )
 >>> response = stub.GenSeed(request)
->>> response
-
+>>> print(response)
 { 
-    cipher_seed_mnemonic: <string>,
-    enciphered_seed: <bytes>,
+    "cipher_seed_mnemonic": <array string>,
+    "enciphered_seed": <bytes>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.genSeed({ 
-    aezeed_passphrase: <YOUR_PARAM>,
-    seed_entropy: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('GenSeed: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var walletUnlocker = new lnrpc.WalletUnlocker('localhost:10009', sslCreds);
+> var request = { 
+    aezeed_passphrase: <bytes>, 
+    seed_entropy: <bytes>, 
+  } 
+> walletUnlocker.genSeed(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    cipher_seed_mnemonic: <string>,
-    enciphered_seed: <bytes>,
+    "cipher_seed_mnemonic": <array string>,
+    "enciphered_seed": <bytes>,
 }
-
 ```
 
 ### gRPC Request: GenSeedRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-aezeed_passphrase | bytes | optional | aezeed_passphrase is an optional user provided passphrase that will be used to encrypt the generated aezeed cipher seed. 
-seed_entropy | bytes | optional | seed_entropy is an optional 16-bytes generated via CSPRNG. If not specified, then a fresh set of randomness will be used to create the seed. 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+aezeed_passphrase | bytes | aezeed_passphrase is an optional user provided passphrase that will be used to encrypt the generated aezeed cipher seed. 
+seed_entropy | bytes | seed_entropy is an optional 16-bytes generated via CSPRNG. If not specified, then a fresh set of randomness will be used to create the seed.  
 ### gRPC Response: GenSeedResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-cipher_seed_mnemonic | string | repeated | cipher_seed_mnemonic is a 24-word mnemonic that encodes a prior aezeed cipher seed obtained by the user. This field is optional, as if not provided, then the daemon will generate a new cipher seed for the user. Otherwise, then the daemon will attempt to recover the wallet state linked to this cipher seed. 
-enciphered_seed | bytes | optional | enciphered_seed are the raw aezeed cipher seed bytes. This is the raw cipher text before run through our mnemonic encoding scheme. 
-
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+cipher_seed_mnemonic | array string | cipher_seed_mnemonic is a 24-word mnemonic that encodes a prior aezeed cipher seed obtained by the user. This field is optional, as if not provided, then the daemon will generate a new cipher seed for the user. Otherwise, then the daemon will attempt to recover the wallet state linked to this cipher seed. 
+enciphered_seed | bytes | enciphered_seed are the raw aezeed cipher seed bytes. This is the raw cipher text before run through our mnemonic encoding scheme.  
 
 # InitWallet
+
 
 ### Simple RPC
 
@@ -129,72 +119,68 @@ InitWallet is used when lnd is starting up for the first time to fully initializ
 ```shell
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
->>> stub = lnrpc.LightningStub(channel)
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
+>>> stub = lnrpc.WalletUnlockerStub(channel)
 >>> request = ln.InitWalletRequest(
-        wallet_password=<YOUR_PARAM>,
-        cipher_seed_mnemonic=<YOUR_PARAM>,
-        aezeed_passphrase=<YOUR_PARAM>,
+        wallet_password=<bytes>,
+        cipher_seed_mnemonic=<array string>,
+        aezeed_passphrase=<bytes>,
+        recovery_window=<int32>,
     )
 >>> response = stub.InitWallet(request)
->>> response
-{}
+>>> print(response)
+{ 
+}
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.initWallet({ 
-    wallet_password: <YOUR_PARAM>,
-    cipher_seed_mnemonic: <YOUR_PARAM>,
-    aezeed_passphrase: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('InitWallet: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var walletUnlocker = new lnrpc.WalletUnlocker('localhost:10009', sslCreds);
+> var request = { 
+    wallet_password: <bytes>, 
+    cipher_seed_mnemonic: <array string>, 
+    aezeed_passphrase: <bytes>, 
+    recovery_window: <int32>, 
+  } 
+> walletUnlocker.initWallet(request, function(err, response) {
+    console.log(response);
   })
-{}
+{ 
+}
 ```
 
 ### gRPC Request: InitWalletRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-wallet_password | bytes | optional | wallet_password is the passphrase that should be used to encrypt the wallet. This MUST be at least 8 chars in length. After creation, this password is required to unlock the daemon. 
-cipher_seed_mnemonic | string | repeated | cipher_seed_mnemonic is a 24-word mnemonic that encodes a prior aezeed cipher seed obtained by the user. This may have been generated by the GenSeed method, or be an existing seed. 
-aezeed_passphrase | bytes | optional | aezeed_passphrase is an optional user provided passphrase that will be used to encrypt the generated aezeed cipher seed. 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+wallet_password | bytes | wallet_password is the passphrase that should be used to encrypt the wallet. This MUST be at least 8 chars in length. After creation, this password is required to unlock the daemon. 
+cipher_seed_mnemonic | array string | cipher_seed_mnemonic is a 24-word mnemonic that encodes a prior aezeed cipher seed obtained by the user. This may have been generated by the GenSeed method, or be an existing seed. 
+aezeed_passphrase | bytes | aezeed_passphrase is an optional user provided passphrase that will be used to encrypt the generated aezeed cipher seed. 
+recovery_window | int32 | recovery_window is an optional argument specifying the address lookahead when restoring a wallet seed. The recovery window applies to each invdividual branch of the BIP44 derivation paths. Supplying a recovery window of zero indicates that no addresses should be recovered, such after the first initialization of the wallet.  
 ### gRPC Response: InitWalletResponse 
 
 
-
-This response is empty.
-
-
-
-
+This response has no parameters.
 
 
 # UnlockWallet
 
+
 ### Simple RPC
 
 
- UnlockWallet is used at startup of lnd to provide a password to unlock the wallet database.
+UnlockWallet is used at startup of lnd to provide a password to unlock the wallet database.
 
 ```shell
 
@@ -203,217 +189,279 @@ This response is empty.
 # able to carry out its duties. An exception is if a user is running with
 # --noencryptwallet, then a default passphrase will be used.
 
-$ lncli unlock [arguments...]
+$ lncli unlock [command options] [arguments...]
 
+# --recovery_window value  address lookahead to resume recovery rescan, value should be non-zero --  To recover all funds, this should be greater than the maximum number of consecutive, unused addresses ever generated by the wallet. (default: 0)
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
->>> stub = lnrpc.LightningStub(channel)
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
+>>> stub = lnrpc.WalletUnlockerStub(channel)
 >>> request = ln.UnlockWalletRequest(
-        wallet_password=<YOUR_PARAM>,
+        wallet_password=<bytes>,
+        recovery_window=<int32>,
     )
 >>> response = stub.UnlockWallet(request)
->>> response
-{}
+>>> print(response)
+{ 
+}
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.unlockWallet({ 
-    wallet_password: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('UnlockWallet: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var walletUnlocker = new lnrpc.WalletUnlocker('localhost:10009', sslCreds);
+> var request = { 
+    wallet_password: <bytes>, 
+    recovery_window: <int32>, 
+  } 
+> walletUnlocker.unlockWallet(request, function(err, response) {
+    console.log(response);
   })
-{}
+{ 
+}
 ```
 
 ### gRPC Request: UnlockWalletRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-wallet_password | bytes | optional | wallet_password should be the current valid passphrase for the daemon. This will be required to decrypt on-disk material that the daemon requires to function properly. 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+wallet_password | bytes | wallet_password should be the current valid passphrase for the daemon. This will be required to decrypt on-disk material that the daemon requires to function properly. 
+recovery_window | int32 | recovery_window is an optional argument specifying the address lookahead when restoring a wallet seed. The recovery window applies to each invdividual branch of the BIP44 derivation paths. Supplying a recovery window of zero indicates that no addresses should be recovered, such after the first initialization of the wallet.  
 ### gRPC Response: UnlockWalletResponse 
 
 
-
-This response is empty.
-
+This response has no parameters.
 
 
+# ChangePassword
 
-
-
-# WalletBalance
 
 ### Simple RPC
 
 
- WalletBalance returns total unspent outputs(confirmed and unconfirmed), all confirmed unspent outputs and all unconfirmed unspent outputs under control of the wallet.
+ChangePassword changes the password of the encrypted wallet. This will automatically unlock the wallet database if successful.
 
 ```shell
 
+# The changepassword command is used to Change lnd's encrypted wallet's
+# password. It will automatically unlock the daemon if the password change
+# is successful.
+# If one did not specify a password for their wallet (running lnd with
+# --noencryptwallet), one must restart their daemon without
+# --noencryptwallet and use this command. The "current password" field
+# should be left empty.
+
+$ lncli changepassword [arguments...]
+
+```
+```python
+>>> import codecs, grpc, os
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
+>>> stub = lnrpc.WalletUnlockerStub(channel)
+>>> request = ln.ChangePasswordRequest(
+        current_password=<bytes>,
+        new_password=<bytes>,
+    )
+>>> response = stub.ChangePassword(request)
+>>> print(response)
+{ 
+}
+```
+```javascript
+> var fs = require('fs');
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var walletUnlocker = new lnrpc.WalletUnlocker('localhost:10009', sslCreds);
+> var request = { 
+    current_password: <bytes>, 
+    new_password: <bytes>, 
+  } 
+> walletUnlocker.changePassword(request, function(err, response) {
+    console.log(response);
+  })
+{ 
+}
+```
+
+### gRPC Request: ChangePasswordRequest 
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+current_password | bytes | current_password should be the current valid passphrase used to unlock the daemon. 
+new_password | bytes | new_password should be the new passphrase that will be needed to unlock the daemon.  
+### gRPC Response: ChangePasswordResponse 
+
+
+This response has no parameters.
+
+
+# WalletBalance
+
+
+### Simple RPC
+
+
+WalletBalance returns total unspent outputs(confirmed and unconfirmed), all confirmed unspent outputs and all unconfirmed unspent outputs under control of the wallet.
+
+```shell
+
+# Compute and display the wallet's current balance.
 
 $ lncli walletbalance [arguments...]
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.WalletBalanceRequest()
->>> response = stub.WalletBalance(request)
->>> response
-
+>>> response = stub.WalletBalance(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    total_balance: <int64>,
-    confirmed_balance: <int64>,
-    unconfirmed_balance: <int64>,
+    "total_balance": <int64>,
+    "confirmed_balance": <int64>,
+    "unconfirmed_balance": <int64>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.walletBalance({}, function(err, response) {
-    console.log('WalletBalance: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = {} 
+> lightning.walletBalance(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    total_balance: <int64>,
-    confirmed_balance: <int64>,
-    unconfirmed_balance: <int64>,
+    "total_balance": <int64>,
+    "confirmed_balance": <int64>,
+    "unconfirmed_balance": <int64>,
 }
-
 ```
 
 ### gRPC Request: WalletBalanceRequest 
 
 
-
 This request has no parameters.
-
-
-
 
 ### gRPC Response: WalletBalanceResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-total_balance | int64 | optional | The balance of the wallet 
-confirmed_balance | int64 | optional | The confirmed balance of a wallet(with >= 1 confirmations) 
-unconfirmed_balance | int64 | optional | The unconfirmed balance of a wallet(with 0 confirmations) 
-
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+total_balance | int64 | The balance of the wallet 
+confirmed_balance | int64 | The confirmed balance of a wallet(with >= 1 confirmations) 
+unconfirmed_balance | int64 | The unconfirmed balance of a wallet(with 0 confirmations)  
 
 # ChannelBalance
+
 
 ### Simple RPC
 
 
- ChannelBalance returns the total funds available across all open channels in satoshis.
+ChannelBalance returns the total funds available across all open channels in satoshis.
 
 ```shell
 
+# Returns the sum of the total available channel balance across all open channels.
 
 $ lncli channelbalance [arguments...]
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ChannelBalanceRequest()
->>> response = stub.ChannelBalance(request)
->>> response
-
+>>> response = stub.ChannelBalance(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    balance: <int64>,
+    "balance": <int64>,
+    "pending_open_balance": <int64>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.channelBalance({}, function(err, response) {
-    console.log('ChannelBalance: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = {} 
+> lightning.channelBalance(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    balance: <int64>,
+    "balance": <int64>,
+    "pending_open_balance": <int64>,
 }
-
 ```
 
 ### gRPC Request: ChannelBalanceRequest 
 
 
-
 This request has no parameters.
-
-
-
 
 ### gRPC Response: ChannelBalanceResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-balance | int64 | optional | Sum of channels balances denominated in satoshis 
-
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+balance | int64 | Sum of channels balances denominated in satoshis 
+pending_open_balance | int64 | Sum of channels pending balances denominated in satoshis  
 
 # GetTransactions
+
 
 ### Simple RPC
 
 
- GetTransactions returns a list describing all the known transactions relevant to the wallet.
+GetTransactions returns a list describing all the known transactions relevant to the wallet.
 
 ```shell
 
@@ -422,85 +470,65 @@ balance | int64 | optional | Sum of channels balances denominated in satoshis
 $ lncli listchaintxns [arguments...]
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.GetTransactionsRequest()
->>> response = stub.GetTransactions(request)
->>> response
-
+>>> response = stub.GetTransactions(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    transactions: <Transaction>,
+    "transactions": <array Transaction>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.getTransactions({}, function(err, response) {
-    console.log('GetTransactions: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = {} 
+> lightning.getTransactions(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    transactions: <Transaction>,
+    "transactions": <array Transaction>,
 }
-
 ```
 
 ### gRPC Request: GetTransactionsRequest 
 
 
-
 This request has no parameters.
-
-
-
 
 ### gRPC Response: TransactionDetails 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-transactions | Transaction | repeated | The list of transactions relevant to the wallet. 
-
-
-
-### Transaction
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-tx_hash | string | optional | The transaction hash 
-amount | int64 | optional | The transaction ammount, denominated in satoshis 
-num_confirmations | int32 | optional | The number of confirmations 
-block_hash | string | optional | The hash of the block this transaction was included in 
-block_height | int32 | optional | The height of the block this transaction was included in 
-time_stamp | int64 | optional | Timestamp of this transaction 
-total_fees | int64 | optional | Fees paid for this transaction 
-dest_addresses | string | repeated | Addresses that received funds for this transaction 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+transactions | [array Transaction](#transaction) | The list of transactions relevant to the wallet.  
 
 # SendCoins
+
 
 ### Simple RPC
 
 
- SendCoins executes a request to send coins to a particular address. Unlike SendMany, this RPC call only allows creating a single output at a time. If neither target_conf, or sat_per_byte are set, then the internal wallet will consult its fee model to determine a fee for the default confirmation target.
+SendCoins executes a request to send coins to a particular address. Unlike SendMany, this RPC call only allows creating a single output at a time. If neither target_conf, or sat_per_byte are set, then the internal wallet will consult its fee model to determine a fee for the default confirmation target.
 
 ```shell
 
@@ -516,80 +544,74 @@ $ lncli sendcoins [command options] addr amt
 # --conf_target value   (optional) the number of blocks that the transaction *should* confirm in, will be used for fee estimation (default: 0)
 # --sat_per_byte value  (optional) a manual fee expressed in sat/byte that should be used when crafting the transaction (default: 0)
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.SendCoinsRequest(
-        addr=<YOUR_PARAM>,
-        amount=<YOUR_PARAM>,
-        target_conf=<YOUR_PARAM>,
-        sat_per_byte=<YOUR_PARAM>,
+        addr=<string>,
+        amount=<int64>,
+        target_conf=<int32>,
+        sat_per_byte=<int64>,
     )
->>> response = stub.SendCoins(request)
->>> response
-
+>>> response = stub.SendCoins(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    txid: <string>,
+    "txid": <string>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.sendCoins({ 
-    addr: <YOUR_PARAM>,
-    amount: <YOUR_PARAM>,
-    target_conf: <YOUR_PARAM>,
-    sat_per_byte: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('SendCoins: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    addr: <string>, 
+    amount: <int64>, 
+    target_conf: <int32>, 
+    sat_per_byte: <int64>, 
+  } 
+> lightning.sendCoins(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    txid: <string>,
+    "txid": <string>,
 }
-
 ```
 
 ### gRPC Request: SendCoinsRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-addr | string | optional | The address to send coins to 
-amount | int64 | optional | The amount in satoshis to send 
-target_conf | int32 | optional | The target number of blocks that this transaction should be confirmed by. 
-sat_per_byte | int64 | optional | A manual fee rate set in sat/byte that should be used when crafting the transaction. 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+addr | string | The address to send coins to 
+amount | int64 | The amount in satoshis to send 
+target_conf | int32 | The target number of blocks that this transaction should be confirmed by. 
+sat_per_byte | int64 | A manual fee rate set in sat/byte that should be used when crafting the transaction.  
 ### gRPC Response: SendCoinsResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-txid | string | optional | The transaction ID of the transaction 
-
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+txid | string | The transaction ID of the transaction  
 
 # SubscribeTransactions
+
 
 ### Response-streaming RPC
 
@@ -599,102 +621,94 @@ SubscribeTransactions creates a uni-directional stream from the server to the cl
 ```shell
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.GetTransactionsRequest()
->>> for response in stub.SubscribeTransactions(request):
-    # Do something
-    print response
-
+>>> for response in stub.SubscribeTransactions(request, metadata=[('macaroon', macaroon)]):
+        print(response)
 { 
-    tx_hash: <string>,
-    amount: <int64>,
-    num_confirmations: <int32>,
-    block_hash: <string>,
-    block_height: <int32>,
-    time_stamp: <int64>,
-    total_fees: <int64>,
-    dest_addresses: <string>,
+    "tx_hash": <string>,
+    "amount": <int64>,
+    "num_confirmations": <int32>,
+    "block_hash": <string>,
+    "block_height": <int32>,
+    "time_stamp": <int64>,
+    "total_fees": <int64>,
+    "dest_addresses": <array string>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials);
-> var call = lightning.subscribeTransactions({})
-
-> call.on('data', function(message) {
-    console.log(message);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
   });
-> call.on('end', function() {
-    // The server has finished sending
-    console.log("END");
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = {} 
+> var call = lightning.subscribeTransactions(request)
+> call.on('data', function(response) {
+    // A response was received from the server.
+    console.log(response);
   });
 > call.on('status', function(status) {
-    // Process status
-    console.log("Current status: " + status);
+    // The current status of the stream.
   });
-
+> call.on('end', function() {
+    // The server has closed the stream.
+  });
 { 
-    tx_hash: <string>,
-    amount: <int64>,
-    num_confirmations: <int32>,
-    block_hash: <string>,
-    block_height: <int32>,
-    time_stamp: <int64>,
-    total_fees: <int64>,
-    dest_addresses: <string>,
+    "tx_hash": <string>,
+    "amount": <int64>,
+    "num_confirmations": <int32>,
+    "block_hash": <string>,
+    "block_height": <int32>,
+    "time_stamp": <int64>,
+    "total_fees": <int64>,
+    "dest_addresses": <array string>,
 }
-
 ```
 
 ### gRPC Request: GetTransactionsRequest 
 
 
-
 This request has no parameters.
-
-
-
 
 ### gRPC Response: Transaction (Streaming)
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-tx_hash | string | optional | The transaction hash 
-amount | int64 | optional | The transaction ammount, denominated in satoshis 
-num_confirmations | int32 | optional | The number of confirmations 
-block_hash | string | optional | The hash of the block this transaction was included in 
-block_height | int32 | optional | The height of the block this transaction was included in 
-time_stamp | int64 | optional | Timestamp of this transaction 
-total_fees | int64 | optional | Fees paid for this transaction 
-dest_addresses | string | repeated | Addresses that received funds for this transaction 
-
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+tx_hash | string | The transaction hash 
+amount | int64 | The transaction ammount, denominated in satoshis 
+num_confirmations | int32 | The number of confirmations 
+block_hash | string | The hash of the block this transaction was included in 
+block_height | int32 | The height of the block this transaction was included in 
+time_stamp | int64 | Timestamp of this transaction 
+total_fees | int64 | Fees paid for this transaction 
+dest_addresses | array string | Addresses that received funds for this transaction  
 
 # SendMany
+
 
 ### Simple RPC
 
 
- SendMany handles a request for a transaction that creates multiple specified outputs in parallel. If neither target_conf, or sat_per_byte are set, then the internal wallet will consult its fee model to determine a fee for the default confirmation target.
+SendMany handles a request for a transaction that creates multiple specified outputs in parallel. If neither target_conf, or sat_per_byte are set, then the internal wallet will consult its fee model to determine a fee for the default confirmation target.
 
 ```shell
 
@@ -708,91 +722,76 @@ $ lncli sendmany [command options] send-json-string [--conf_target=N] [--sat_per
 # --conf_target value   (optional) the number of blocks that the transaction *should* confirm in, will be used for fee estimation (default: 0)
 # --sat_per_byte value  (optional) a manual fee expressed in sat/byte that should be used when crafting the transaction (default: 0)
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.SendManyRequest(
-        AddrToAmount=<YOUR_PARAM>,
-        target_conf=<YOUR_PARAM>,
-        sat_per_byte=<YOUR_PARAM>,
+        AddrToAmount=<array AddrToAmountEntry>,
+        target_conf=<int32>,
+        sat_per_byte=<int64>,
     )
->>> response = stub.SendMany(request)
->>> response
-
+>>> response = stub.SendMany(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    txid: <string>,
+    "txid": <string>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.sendMany({ 
-    AddrToAmount: <YOUR_PARAM>,
-    target_conf: <YOUR_PARAM>,
-    sat_per_byte: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('SendMany: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    AddrToAmount: <array AddrToAmountEntry>, 
+    target_conf: <int32>, 
+    sat_per_byte: <int64>, 
+  } 
+> lightning.sendMany(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    txid: <string>,
+    "txid": <string>,
 }
-
 ```
 
 ### gRPC Request: SendManyRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-AddrToAmount | AddrToAmountEntry | repeated | The map from addresses to amounts 
-target_conf | int32 | optional | The target number of blocks that this transaction should be confirmed by. 
-sat_per_byte | int64 | optional | A manual fee rate set in sat/byte that should be used when crafting the transaction. 
-
-
-
-### AddrToAmountEntry
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-key | string | optional |  
-value | int64 | optional |  
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+AddrToAmount | [array AddrToAmountEntry](#addrtoamountentry) | The map from addresses to amounts 
+target_conf | int32 | The target number of blocks that this transaction should be confirmed by. 
+sat_per_byte | int64 | A manual fee rate set in sat/byte that should be used when crafting the transaction.  
 ### gRPC Response: SendManyResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-txid | string | optional | The id of the transaction 
-
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+txid | string | The id of the transaction  
 
 # NewAddress
+
 
 ### Simple RPC
 
 
- NewAddress creates a new address under control of the local wallet.
+NewAddress creates a new address under control of the local wallet.
 
 ```shell
 
@@ -803,71 +802,65 @@ txid | string | optional | The id of the transaction
 $ lncli newaddress address-type
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.NewAddressRequest(
-        type=<YOUR_PARAM>,
+        type=<AddressType>,
     )
->>> response = stub.NewAddress(request)
->>> response
-
+>>> response = stub.NewAddress(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    address: <string>,
+    "address": <string>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.newAddress({ 
-    type: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('NewAddress: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    type: <AddressType>, 
+  } 
+> lightning.newAddress(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    address: <string>,
+    "address": <string>,
 }
-
 ```
 
 ### gRPC Request: NewAddressRequest 
 
-`AddressType` has to be one of:  - `p2wkh`: Pay to witness key hash (`WITNESS_PUBKEY_HASH` = 0) - `np2wkh`: Pay to nested witness key hash (`NESTED_PUBKEY_HASH` = 1) - `p2pkh`:  Pay to public key hash (`PUBKEY_HASH` = 2)
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-type | AddressType | optional | The address type 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+type | [AddressType](#addresstype) | The address type  
 ### gRPC Response: NewAddressResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-address | string | optional | The newly generated wallet address 
-
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+address | string | The newly generated wallet address  
 
 # NewWitnessAddress
+
 
 ### Simple RPC
 
@@ -877,70 +870,65 @@ NewWitnessAddress creates a new witness address under control of the local walle
 ```shell
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.NewWitnessAddressRequest()
->>> response = stub.NewWitnessAddress(request)
->>> response
-
+>>> response = stub.NewWitnessAddress(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    address: <string>,
+    "address": <string>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.newWitnessAddress({}, function(err, response) {
-    console.log('NewWitnessAddress: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = {} 
+> lightning.newWitnessAddress(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    address: <string>,
+    "address": <string>,
 }
-
 ```
 
 ### gRPC Request: NewWitnessAddressRequest 
 
 
-
 This request has no parameters.
-
-
-
 
 ### gRPC Response: NewAddressResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-address | string | optional | The newly generated wallet address 
-
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+address | string | The newly generated wallet address  
 
 # SignMessage
+
 
 ### Simple RPC
 
 
- SignMessage signs a message with this node's private key. The returned signature string is `zbase32` encoded and pubkey recoverable, meaning that only the message digest and signature are needed for verification.
+SignMessage signs a message with this node's private key. The returned signature string is `zbase32` encoded and pubkey recoverable, meaning that only the message digest and signature are needed for verification.
 
 ```shell
 
@@ -952,76 +940,70 @@ $ lncli signmessage [command options] msg
 
 # --msg value  the message to sign
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.SignMessageRequest(
-        msg=<YOUR_PARAM>,
+        msg=<bytes>,
     )
->>> response = stub.SignMessage(request)
->>> response
-
+>>> response = stub.SignMessage(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    signature: <string>,
+    "signature": <string>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.signMessage({ 
-    msg: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('SignMessage: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    msg: <bytes>, 
+  } 
+> lightning.signMessage(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    signature: <string>,
+    "signature": <string>,
 }
-
 ```
 
 ### gRPC Request: SignMessageRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-msg | bytes | optional | The message to be signed 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+msg | bytes | The message to be signed  
 ### gRPC Response: SignMessageResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-signature | string | optional | The signature for the given message 
-
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+signature | string | The signature for the given message  
 
 # VerifyMessage
+
 
 ### Simple RPC
 
 
- VerifyMessage verifies a signature over a msg. The signature must be zbase32 encoded and signed by an active node in the resident node's channel database. In addition to returning the validity of the signature, VerifyMessage also returns the recovered pubkey from the signature.
+VerifyMessage verifies a signature over a msg. The signature must be zbase32 encoded and signed by an active node in the resident node's channel database. In addition to returning the validity of the signature, VerifyMessage also returns the recovered pubkey from the signature.
 
 ```shell
 
@@ -1035,629 +1017,638 @@ $ lncli verifymessage [command options] msg signature
 # --msg value  the message to verify
 # --sig value  the zbase32 encoded signature of the message
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.VerifyMessageRequest(
-        msg=<YOUR_PARAM>,
-        signature=<YOUR_PARAM>,
+        msg=<bytes>,
+        signature=<string>,
     )
->>> response = stub.VerifyMessage(request)
->>> response
-
+>>> response = stub.VerifyMessage(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    valid: <bool>,
-    pubkey: <string>,
+    "valid": <bool>,
+    "pubkey": <string>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.verifyMessage({ 
-    msg: <YOUR_PARAM>,
-    signature: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('VerifyMessage: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    msg: <bytes>, 
+    signature: <string>, 
+  } 
+> lightning.verifyMessage(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    valid: <bool>,
-    pubkey: <string>,
+    "valid": <bool>,
+    "pubkey": <string>,
 }
-
 ```
 
 ### gRPC Request: VerifyMessageRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-msg | bytes | optional | The message over which the signature is to be verified 
-signature | string | optional | The signature to be verified over the given message 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+msg | bytes | The message over which the signature is to be verified 
+signature | string | The signature to be verified over the given message  
 ### gRPC Response: VerifyMessageResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-valid | bool | optional | Whether the signature was valid over the given message 
-pubkey | string | optional | The pubkey recovered from the signature 
-
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+valid | bool | Whether the signature was valid over the given message 
+pubkey | string | The pubkey recovered from the signature  
 
 # ConnectPeer
+
 
 ### Simple RPC
 
 
- ConnectPeer attempts to establish a connection to a remote peer. This is at the networking level, and is used for communication between nodes. This is distinct from establishing a channel with a peer.
+ConnectPeer attempts to establish a connection to a remote peer. This is at the networking level, and is used for communication between nodes. This is distinct from establishing a channel with a peer.
 
 ```shell
 
+# Connect to a remote lnd peer.
 
 $ lncli connect [command options] <pubkey>@host
 
 # --perm  If set, the daemon will attempt to persistently connect to the target peer.
 # If not, the call will be synchronous.
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ConnectPeerRequest(
-        addr=<YOUR_PARAM>,
-        perm=<YOUR_PARAM>,
+        addr=<LightningAddress>,
+        perm=<bool>,
     )
->>> response = stub.ConnectPeer(request)
->>> response
-{}
+>>> response = stub.ConnectPeer(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
+{ 
+}
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.connectPeer({ 
-    addr: <YOUR_PARAM>,
-    perm: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('ConnectPeer: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    addr: <LightningAddress>, 
+    perm: <bool>, 
+  } 
+> lightning.connectPeer(request, function(err, response) {
+    console.log(response);
   })
-{}
+{ 
+}
 ```
 
 ### gRPC Request: ConnectPeerRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-addr | LightningAddress | optional | Lightning address of the peer, in the format `<pubkey>@host` 
-perm | bool | optional | If set, the daemon will attempt to persistently connect to the target peer.  Otherwise, the call will be synchronous. 
-
-
-
-### LightningAddress
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-pubkey | string | optional | The identity pubkey of the Lightning node 
-host | string | optional | The network location of the lightning node, e.g. `69.69.69.69:1337` or `localhost:10011` 
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+addr | [LightningAddress](#lightningaddress) | Lightning address of the peer, in the format `<pubkey>@host` 
+perm | bool | If set, the daemon will attempt to persistently connect to the target peer.  Otherwise, the call will be synchronous.  
 ### gRPC Response: ConnectPeerResponse 
 
 
-
-This response is empty.
-
-
-
-
+This response has no parameters.
 
 
 # DisconnectPeer
 
+
 ### Simple RPC
 
 
- DisconnectPeer attempts to disconnect one peer from another identified by a given pubKey. In the case that we currently have a pending or active channel with the target peer, then this action will be not be allowed.
+DisconnectPeer attempts to disconnect one peer from another identified by a given pubKey. In the case that we currently have a pending or active channel with the target peer, then this action will be not be allowed.
 
 ```shell
 
+# Disconnect a remote lnd peer identified by public key.
 
 $ lncli disconnect [command options] <pubkey>
 
 # --node_key value  The hex-encoded compressed public key of the peer to disconnect from
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.DisconnectPeerRequest(
-        pub_key=<YOUR_PARAM>,
+        pub_key=<string>,
     )
->>> response = stub.DisconnectPeer(request)
->>> response
-{}
+>>> response = stub.DisconnectPeer(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
+{ 
+}
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.disconnectPeer({ 
-    pub_key: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('DisconnectPeer: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    pub_key: <string>, 
+  } 
+> lightning.disconnectPeer(request, function(err, response) {
+    console.log(response);
   })
-{}
+{ 
+}
 ```
 
 ### gRPC Request: DisconnectPeerRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-pub_key | string | optional | The pubkey of the node to disconnect from 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+pub_key | string | The pubkey of the node to disconnect from  
 ### gRPC Response: DisconnectPeerResponse 
 
 
-
-This response is empty.
-
-
-
-
+This response has no parameters.
 
 
 # ListPeers
 
+
 ### Simple RPC
 
 
- ListPeers returns a verbose listing of all currently active peers.
+ListPeers returns a verbose listing of all currently active peers.
 
 ```shell
 
+# List all active, currently connected peers.
 
 $ lncli listpeers [arguments...]
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ListPeersRequest()
->>> response = stub.ListPeers(request)
->>> response
-
+>>> response = stub.ListPeers(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    peers: <Peer>,
+    "peers": <array Peer>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.listPeers({}, function(err, response) {
-    console.log('ListPeers: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = {} 
+> lightning.listPeers(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    peers: <Peer>,
+    "peers": <array Peer>,
 }
-
 ```
 
 ### gRPC Request: ListPeersRequest 
 
 
-
 This request has no parameters.
-
-
-
 
 ### gRPC Response: ListPeersResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-peers | Peer | repeated | The list of currently connected peers 
-
-
-
-### Peer
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-pub_key | string | optional | The identity pubkey of the peer 
-address | string | optional | Network address of the peer; eg `127.0.0.1:10011` 
-bytes_sent | uint64 | optional | Bytes of data transmitted to this peer 
-bytes_recv | uint64 | optional | Bytes of data transmitted from this peer 
-sat_sent | int64 | optional | Satoshis sent to this peer 
-sat_recv | int64 | optional | Satoshis received from this peer 
-inbound | bool | optional | A channel is inbound if the counterparty initiated the channel 
-ping_time | int64 | optional | Ping time to this peer 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+peers | [array Peer](#peer) | The list of currently connected peers  
 
 # GetInfo
+
 
 ### Simple RPC
 
 
- GetInfo returns general information concerning the lightning node including it's identity pubkey, alias, the chains it is connected to, and information concerning the number of open+pending channels.
+GetInfo returns general information concerning the lightning node including it's identity pubkey, alias, the chains it is connected to, and information concerning the number of open+pending channels.
 
 ```shell
 
+# Returns basic information related to the active daemon.
 
 $ lncli getinfo [arguments...]
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.GetInfoRequest()
->>> response = stub.GetInfo(request)
->>> response
-
+>>> response = stub.GetInfo(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    identity_pubkey: <string>,
-    alias: <string>,
-    num_pending_channels: <uint32>,
-    num_active_channels: <uint32>,
-    num_peers: <uint32>,
-    block_height: <uint32>,
-    block_hash: <string>,
-    synced_to_chain: <bool>,
-    testnet: <bool>,
-    chains: <string>,
-    uris: <string>,
-    best_header_timestamp: <int64>,
+    "identity_pubkey": <string>,
+    "alias": <string>,
+    "num_pending_channels": <uint32>,
+    "num_active_channels": <uint32>,
+    "num_peers": <uint32>,
+    "block_height": <uint32>,
+    "block_hash": <string>,
+    "synced_to_chain": <bool>,
+    "testnet": <bool>,
+    "chains": <array string>,
+    "uris": <array string>,
+    "best_header_timestamp": <int64>,
+    "version": <string>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.getInfo({}, function(err, response) {
-    console.log('GetInfo: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = {} 
+> lightning.getInfo(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    identity_pubkey: <string>,
-    alias: <string>,
-    num_pending_channels: <uint32>,
-    num_active_channels: <uint32>,
-    num_peers: <uint32>,
-    block_height: <uint32>,
-    block_hash: <string>,
-    synced_to_chain: <bool>,
-    testnet: <bool>,
-    chains: <string>,
-    uris: <string>,
-    best_header_timestamp: <int64>,
+    "identity_pubkey": <string>,
+    "alias": <string>,
+    "num_pending_channels": <uint32>,
+    "num_active_channels": <uint32>,
+    "num_peers": <uint32>,
+    "block_height": <uint32>,
+    "block_hash": <string>,
+    "synced_to_chain": <bool>,
+    "testnet": <bool>,
+    "chains": <array string>,
+    "uris": <array string>,
+    "best_header_timestamp": <int64>,
+    "version": <string>,
 }
-
 ```
 
 ### gRPC Request: GetInfoRequest 
 
 
-
 This request has no parameters.
-
-
-
 
 ### gRPC Response: GetInfoResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-identity_pubkey | string | optional | The identity pubkey of the current node. 
-alias | string | optional | If applicable, the alias of the current node, e.g. "bob" 
-num_pending_channels | uint32 | optional | Number of pending channels 
-num_active_channels | uint32 | optional | Number of active channels 
-num_peers | uint32 | optional | Number of peers 
-block_height | uint32 | optional | The node's current view of the height of the best block 
-block_hash | string | optional | The node's current view of the hash of the best block 
-synced_to_chain | bool | optional | Whether the wallet's view is synced to the main chain 
-testnet | bool | optional | Whether the current node is connected to testnet 
-chains | string | repeated | A list of active chains the node is connected to 
-uris | string | repeated | The URIs of the current node. 
-best_header_timestamp | int64 | optional | Timestamp of the block best known to the wallet 
-
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+identity_pubkey | string | The identity pubkey of the current node. 
+alias | string | If applicable, the alias of the current node, e.g. "bob" 
+num_pending_channels | uint32 | Number of pending channels 
+num_active_channels | uint32 | Number of active channels 
+num_peers | uint32 | Number of peers 
+block_height | uint32 | The node's current view of the height of the best block 
+block_hash | string | The node's current view of the hash of the best block 
+synced_to_chain | bool | Whether the wallet's view is synced to the main chain 
+testnet | bool | Whether the current node is connected to testnet 
+chains | array string | A list of active chains the node is connected to 
+uris | array string | The URIs of the current node. 
+best_header_timestamp | int64 | Timestamp of the block best known to the wallet 
+version | string | The version of the LND software that the node is running.  
 
 # PendingChannels
+
 
 ### Simple RPC
 
 
- PendingChannels returns a list of all the channels that are currently considered "pending". A channel is pending if it has finished the funding workflow and is waiting for confirmations for the funding txn, or is in the process of closure, either initiated cooperatively or non-cooperatively.
+PendingChannels returns a list of all the channels that are currently considered "pending". A channel is pending if it has finished the funding workflow and is waiting for confirmations for the funding txn, or is in the process of closure, either initiated cooperatively or non-cooperatively.
 
 ```shell
 
+# Display information pertaining to pending channels.
 
-$ lncli pendingchannels [command options] [arguments...]
+$ lncli pendingchannels [arguments...]
 
-# --open, -o   display the status of new pending channels
-# --close, -c  display the status of channels being closed
-# --all, -a    display the status of channels in the process of being opened or closed
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.PendingChannelsRequest()
->>> response = stub.PendingChannels(request)
->>> response
-
+>>> response = stub.PendingChannels(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    total_limbo_balance: <int64>,
-    pending_open_channels: <PendingOpenChannel>,
-    pending_closing_channels: <ClosedChannel>,
-    pending_force_closing_channels: <ForceClosedChannel>,
+    "total_limbo_balance": <int64>,
+    "pending_open_channels": <array PendingOpenChannel>,
+    "pending_closing_channels": <array ClosedChannel>,
+    "pending_force_closing_channels": <array ForceClosedChannel>,
+    "waiting_close_channels": <array WaitingCloseChannel>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.pendingChannels({}, function(err, response) {
-    console.log('PendingChannels: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = {} 
+> lightning.pendingChannels(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    total_limbo_balance: <int64>,
-    pending_open_channels: <PendingOpenChannel>,
-    pending_closing_channels: <ClosedChannel>,
-    pending_force_closing_channels: <ForceClosedChannel>,
+    "total_limbo_balance": <int64>,
+    "pending_open_channels": <array PendingOpenChannel>,
+    "pending_closing_channels": <array ClosedChannel>,
+    "pending_force_closing_channels": <array ForceClosedChannel>,
+    "waiting_close_channels": <array WaitingCloseChannel>,
 }
-
 ```
 
 ### gRPC Request: PendingChannelsRequest 
 
 
-
 This request has no parameters.
-
-
-
 
 ### gRPC Response: PendingChannelsResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-total_limbo_balance | int64 | optional | The balance in satoshis encumbered in pending channels 
-pending_open_channels | PendingOpenChannel | repeated | Channels pending opening 
-pending_closing_channels | ClosedChannel | repeated | Channels pending closing 
-pending_force_closing_channels | ForceClosedChannel | repeated | Channels pending force closing 
-
-
-
-### PendingOpenChannel
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-channel | PendingChannel | optional | The pending channel 
-confirmation_height | uint32 | optional | The height at which this channel will be confirmed 
-commit_fee | int64 | optional | The amount calculated to be paid in fees for the current set of commitment transactions. The fee amount is persisted with the channel in order to allow the fee amount to be removed and recalculated with each channel state update, including updates that happen after a system restart. 
-commit_weight | int64 | optional | The weight of the commitment transaction 
-fee_per_kw | int64 | optional | The required number of satoshis per kilo-weight that the requester will pay at all times, for both the funding transaction and commitment transaction. This value can later be updated once the channel is open. 
-
-
-### ClosedChannel
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-channel | PendingChannel | optional | The pending channel to be closed 
-closing_txid | string | optional | The transaction id of the closing transaction 
-
-
-### ForceClosedChannel
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-channel | PendingChannel | optional | The pending channel to be force closed 
-closing_txid | string | optional | The transaction id of the closing transaction 
-limbo_balance | int64 | optional | The balance in satoshis encumbered in this pending channel 
-maturity_height | uint32 | optional | The height at which funds can be sweeped into the wallet 
-blocks_til_maturity | int32 | optional |  
-recovered_balance | int64 | optional | The total value of funds successfully recovered from this channel 
-pending_htlcs | PendingHTLC | repeated |  
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+total_limbo_balance | int64 | The balance in satoshis encumbered in pending channels 
+pending_open_channels | [array PendingOpenChannel](#pendingopenchannel) | Channels pending opening 
+pending_closing_channels | [array ClosedChannel](#closedchannel) | Channels pending closing 
+pending_force_closing_channels | [array ForceClosedChannel](#forceclosedchannel) | Channels pending force closing 
+waiting_close_channels | [array WaitingCloseChannel](#waitingclosechannel) | Channels waiting for closing tx to confirm  
 
 # ListChannels
+
 
 ### Simple RPC
 
 
- ListChannels returns a description of all the open channels that this node is a participant in.
+ListChannels returns a description of all the open channels that this node is a participant in.
 
 ```shell
 
+# List all open channels.
 
 $ lncli listchannels [command options] [arguments...]
 
-# --active_only, -a  only list channels which are currently active
+# --active_only    only list channels which are currently active
+# --inactive_only  only list channels which are currently inactive
+# --public_only    only list channels which are currently public
+# --private_only   only list channels which are currently private
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
->>> request = ln.ListChannelsRequest()
->>> response = stub.ListChannels(request)
->>> response
-
+>>> request = ln.ListChannelsRequest(
+        active_only=<bool>,
+        inactive_only=<bool>,
+        public_only=<bool>,
+        private_only=<bool>,
+    )
+>>> response = stub.ListChannels(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    channels: <ActiveChannel>,
+    "channels": <array Channel>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.listChannels({}, function(err, response) {
-    console.log('ListChannels: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    active_only: <bool>, 
+    inactive_only: <bool>, 
+    public_only: <bool>, 
+    private_only: <bool>, 
+  } 
+> lightning.listChannels(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    channels: <ActiveChannel>,
+    "channels": <array Channel>,
 }
-
 ```
 
 ### gRPC Request: ListChannelsRequest 
 
 
-
-This request has no parameters.
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+active_only | bool |  
+inactive_only | bool |  
+public_only | bool |  
+private_only | bool |   
 ### gRPC Response: ListChannelsResponse 
 
 
+Parameter | Type | Description
+--------- | ---- | ----------- 
+channels | [array Channel](#channel) | The list of active channels  
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-channels | ActiveChannel | repeated | The list of active channels 
-
-
-
-### ActiveChannel
+# ClosedChannels
 
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-active | bool | optional | Whether this channel is active or not 
-remote_pubkey | string | optional | The identity pubkey of the remote node 
-channel_point | string | optional | The outpoint (txid:index) of the funding transaction. With this value, Bob will be able to generate a signature for Alice's version of the commitment transaction. 
-chan_id | uint64 | optional | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
-capacity | int64 | optional | The total amount of funds held in this channel 
-local_balance | int64 | optional | This node's current balance in this channel 
-remote_balance | int64 | optional | The counterparty's current balance in this channel 
-commit_fee | int64 | optional | The amount calculated to be paid in fees for the current set of commitment transactions. The fee amount is persisted with the channel in order to allow the fee amount to be removed and recalculated with each channel state update, including updates that happen after a system restart. 
-commit_weight | int64 | optional | The weight of the commitment transaction 
-fee_per_kw | int64 | optional | The required number of satoshis per kilo-weight that the requester will pay at all times, for both the funding transaction and commitment transaction. This value can later be updated once the channel is open. 
-unsettled_balance | int64 | optional | The unsettled balance in this channel 
-total_satoshis_sent | int64 | optional | The total number of satoshis we've sent within this channel. 
-total_satoshis_received | int64 | optional | The total number of satoshis we've received within this channel. 
-num_updates | uint64 | optional | The total number of updates conducted within this channel. 
-pending_htlcs | HTLC | repeated | The list of active, uncleared HTLCs currently pending within the channel. 
-csv_delay | uint32 | optional | The CSV delay expressed in relative blocks. If the channel is force closed, we'll need to wait for this many blocks before we can regain our funds. 
+### Simple RPC
 
 
+ClosedChannels returns a description of all the closed channels that  this node was a participant in.
+
+```shell
+
+# List all closed channels.
+
+$ lncli closedchannels [command options] [arguments...]
+
+# --cooperative       list channels that were closed cooperatively
+# --local_force       list channels that were force-closed by the local node
+# --remote_force      list channels that were force-closed by the remote node
+# --breach            list channels for which the remote node attempted to broadcast a prior revoked channel state
+# --funding_canceled  list channels that were never fully opened
+```
+```python
+>>> import codecs, grpc, os
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
+>>> stub = lnrpc.LightningStub(channel)
+>>> request = ln.ClosedChannelsRequest(
+        cooperative=<bool>,
+        local_force=<bool>,
+        remote_force=<bool>,
+        breach=<bool>,
+        funding_canceled=<bool>,
+    )
+>>> response = stub.ClosedChannels(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
+{ 
+    "channels": <array ChannelCloseSummary>,
+}
+```
+```javascript
+> var fs = require('fs');
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    cooperative: <bool>, 
+    local_force: <bool>, 
+    remote_force: <bool>, 
+    breach: <bool>, 
+    funding_canceled: <bool>, 
+  } 
+> lightning.closedChannels(request, function(err, response) {
+    console.log(response);
+  })
+{ 
+    "channels": <array ChannelCloseSummary>,
+}
+```
+
+### gRPC Request: ClosedChannelsRequest 
 
 
+Parameter | Type | Description
+--------- | ---- | ----------- 
+cooperative | bool |  
+local_force | bool |  
+remote_force | bool |  
+breach | bool |  
+funding_canceled | bool |   
+### gRPC Response: ClosedChannelsResponse 
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+channels | [array ChannelCloseSummary](#channelclosesummary) |   
 
 # OpenChannelSync
+
 
 ### Simple RPC
 
@@ -1667,103 +1658,100 @@ OpenChannelSync is a synchronous version of the OpenChannel RPC call. This call 
 ```shell
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.OpenChannelRequest(
-        node_pubkey=<YOUR_PARAM>,
-        node_pubkey_string=<YOUR_PARAM>,
-        local_funding_amount=<YOUR_PARAM>,
-        push_sat=<YOUR_PARAM>,
-        target_conf=<YOUR_PARAM>,
-        sat_per_byte=<YOUR_PARAM>,
-        private=<YOUR_PARAM>,
-        min_htlc_msat=<YOUR_PARAM>,
+        node_pubkey=<bytes>,
+        node_pubkey_string=<string>,
+        local_funding_amount=<int64>,
+        push_sat=<int64>,
+        target_conf=<int32>,
+        sat_per_byte=<int64>,
+        private=<bool>,
+        min_htlc_msat=<int64>,
+        remote_csv_delay=<uint32>,
     )
->>> response = stub.OpenChannelSync(request)
->>> response
-
+>>> response = stub.OpenChannelSync(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    funding_txid_bytes: <bytes>,
-    funding_txid_str: <string>,
-    output_index: <uint32>,
+    "funding_txid_bytes": <bytes>,
+    "funding_txid_str": <string>,
+    "output_index": <uint32>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.openChannelSync({ 
-    node_pubkey: <YOUR_PARAM>,
-    node_pubkey_string: <YOUR_PARAM>,
-    local_funding_amount: <YOUR_PARAM>,
-    push_sat: <YOUR_PARAM>,
-    target_conf: <YOUR_PARAM>,
-    sat_per_byte: <YOUR_PARAM>,
-    private: <YOUR_PARAM>,
-    min_htlc_msat: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('OpenChannelSync: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    node_pubkey: <bytes>, 
+    node_pubkey_string: <string>, 
+    local_funding_amount: <int64>, 
+    push_sat: <int64>, 
+    target_conf: <int32>, 
+    sat_per_byte: <int64>, 
+    private: <bool>, 
+    min_htlc_msat: <int64>, 
+    remote_csv_delay: <uint32>, 
+  } 
+> lightning.openChannelSync(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    funding_txid_bytes: <bytes>,
-    funding_txid_str: <string>,
-    output_index: <uint32>,
+    "funding_txid_bytes": <bytes>,
+    "funding_txid_str": <string>,
+    "output_index": <uint32>,
 }
-
 ```
 
 ### gRPC Request: OpenChannelRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-node_pubkey | bytes | optional | The pubkey of the node to open a channel with 
-node_pubkey_string | string | optional | The hex encoded pubkey of the node to open a channel with 
-local_funding_amount | int64 | optional | The number of satoshis the wallet should commit to the channel 
-push_sat | int64 | optional | The number of satoshis to push to the remote side as part of the initial commitment state 
-target_conf | int32 | optional | The target number of blocks that the closure transaction should be confirmed by. 
-sat_per_byte | int64 | optional | A manual fee rate set in sat/byte that should be used when crafting the closure transaction. 
-private | bool | optional | Whether this channel should be private, not announced to the greater network. 
-min_htlc_msat | int64 | optional | The minimum value in millisatoshi we will require for incoming HTLCs on the channel. 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+node_pubkey | bytes | The pubkey of the node to open a channel with 
+node_pubkey_string | string | The hex encoded pubkey of the node to open a channel with 
+local_funding_amount | int64 | The number of satoshis the wallet should commit to the channel 
+push_sat | int64 | The number of satoshis to push to the remote side as part of the initial commitment state 
+target_conf | int32 | The target number of blocks that the funding transaction should be confirmed by. 
+sat_per_byte | int64 | A manual fee rate set in sat/byte that should be used when crafting the funding transaction. 
+private | bool | Whether this channel should be private, not announced to the greater network. 
+min_htlc_msat | int64 | The minimum value in millisatoshi we will require for incoming HTLCs on the channel. 
+remote_csv_delay | uint32 | The delay we require on the remote's commitment transaction. If this is not set, it will be scaled automatically with the channel size.  
 ### gRPC Response: ChannelPoint 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-funding_txid_bytes | bytes | optional | Txid of the funding transaction 
-funding_txid_str | string | optional | Hex-encoded string representing the funding transaction 
-output_index | uint32 | optional | The index of the output of the funding transaction 
-
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+funding_txid_bytes | bytes | Txid of the funding transaction 
+funding_txid_str | string | Hex-encoded string representing the funding transaction 
+output_index | uint32 | The index of the output of the funding transaction  
 
 # OpenChannel
+
 
 ### Response-streaming RPC
 
 
- OpenChannel attempts to open a singly funded channel specified in the request to a remote peer. Users are able to specify a target number of blocks that the funding transaction should be confirmed in, or a manual fee rate to us for the funding transaction. If neither are specified, then a lax block confirmation target is used.
+OpenChannel attempts to open a singly funded channel specified in the request to a remote peer. Users are able to specify a target number of blocks that the funding transaction should be confirmed in, or a manual fee rate to us for the funding transaction. If neither are specified, then a lax block confirmation target is used.
 
 ```shell
 
@@ -1773,158 +1761,127 @@ output_index | uint32 | optional | The index of the output of the funding transa
 # setting its host:port via the --connect argument. For this to work,
 # the node_key must be provided, rather than the peer_id. This is optional.
 # The channel will be initialized with local-amt satoshis local and push-amt
-# satoshis for the remote node. Once the channel is open, a channelPoint (txid:vout)
-# of the funding output is returned.
+# satoshis for the remote node. Note that specifying push-amt means you give that
+# amount to the remote node as part of the channel opening. Once the channel is open,
+# a channelPoint (txid:vout) of the funding output is returned.
 # One can manually set the fee to be used for the funding transaction via either
 # the --conf_target or --sat_per_byte arguments. This is optional.
 
 $ lncli openchannel [command options] node-key local-amt push-amt
 
-# --node_key value       the identity public key of the target node/peer serialized in compressed format
-# --connect value        (optional) the host:port of the target node
-# --local_amt value      the number of satoshis the wallet should commit to the channel (default: 0)
-# --push_amt value       the number of satoshis to push to the remote side as part of the initial commitment state (default: 0)
-# --block                block and wait until the channel is fully open
-# --conf_target value    (optional) the number of blocks that the transaction *should* confirm in, will be used for fee estimation (default: 0)
-# --sat_per_byte value   (optional) a manual fee expressed in sat/byte that should be used when crafting the transaction (default: 0)
-# --private              make the channel private, such that it won't be announced to the greater network, and nodes other than the two channel endpoints must be explicitly told about it to be able to route through it
-# --min_htlc_msat value  (optional) the minimum value we will require for incoming HTLCs on the channel (default: 0)
+# --node_key value          the identity public key of the target node/peer serialized in compressed format
+# --connect value           (optional) the host:port of the target node
+# --local_amt value         the number of satoshis the wallet should commit to the channel (default: 0)
+# --push_amt value          the number of satoshis to push to the remote side as part of the initial commitment state (default: 0)
+# --block                   block and wait until the channel is fully open
+# --conf_target value       (optional) the number of blocks that the transaction *should* confirm in, will be used for fee estimation (default: 0)
+# --sat_per_byte value      (optional) a manual fee expressed in sat/byte that should be used when crafting the transaction (default: 0)
+# --private                 make the channel private, such that it won't be announced to the greater network, and nodes other than the two channel endpoints must be explicitly told about it to be able to route through it
+# --min_htlc_msat value     (optional) the minimum value we will require for incoming HTLCs on the channel (default: 0)
+# --remote_csv_delay value  (optional) the number of blocks we will require our channel counterparty to wait before accessing its funds in case of unilateral close. If this is not set, we will scale the value according to the channel size (default: 0)
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.OpenChannelRequest(
-        node_pubkey=<YOUR_PARAM>,
-        node_pubkey_string=<YOUR_PARAM>,
-        local_funding_amount=<YOUR_PARAM>,
-        push_sat=<YOUR_PARAM>,
-        target_conf=<YOUR_PARAM>,
-        sat_per_byte=<YOUR_PARAM>,
-        private=<YOUR_PARAM>,
-        min_htlc_msat=<YOUR_PARAM>,
+        node_pubkey=<bytes>,
+        node_pubkey_string=<string>,
+        local_funding_amount=<int64>,
+        push_sat=<int64>,
+        target_conf=<int32>,
+        sat_per_byte=<int64>,
+        private=<bool>,
+        min_htlc_msat=<int64>,
+        remote_csv_delay=<uint32>,
     )
->>> for response in stub.OpenChannel(request):
-    # Do something
-    print response
-
+>>> for response in stub.OpenChannel(request, metadata=[('macaroon', macaroon)]):
+        print(response)
 { 
-    chan_pending: <PendingUpdate>,
-    confirmation: <ConfirmationUpdate>,
-    chan_open: <ChannelOpenUpdate>,
+    "chan_pending": <PendingUpdate>,
+    "confirmation": <ConfirmationUpdate>,
+    "chan_open": <ChannelOpenUpdate>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials);
-> var call = lightning.openChannel({ 
-    node_pubkey: <YOUR_PARAM>,
-    node_pubkey_string: <YOUR_PARAM>,
-    local_funding_amount: <YOUR_PARAM>,
-    push_sat: <YOUR_PARAM>,
-    target_conf: <YOUR_PARAM>,
-    sat_per_byte: <YOUR_PARAM>,
-    private: <YOUR_PARAM>,
-    min_htlc_msat: <YOUR_PARAM>,
-  })
-
-> call.on('data', function(message) {
-    console.log(message);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
   });
-> call.on('end', function() {
-    // The server has finished sending
-    console.log("END");
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    node_pubkey: <bytes>, 
+    node_pubkey_string: <string>, 
+    local_funding_amount: <int64>, 
+    push_sat: <int64>, 
+    target_conf: <int32>, 
+    sat_per_byte: <int64>, 
+    private: <bool>, 
+    min_htlc_msat: <int64>, 
+    remote_csv_delay: <uint32>, 
+  } 
+> var call = lightning.openChannel(request)
+> call.on('data', function(response) {
+    // A response was received from the server.
+    console.log(response);
   });
 > call.on('status', function(status) {
-    // Process status
-    console.log("Current status: " + status);
+    // The current status of the stream.
   });
-
+> call.on('end', function() {
+    // The server has closed the stream.
+  });
 { 
-    chan_pending: <PendingUpdate>,
-    confirmation: <ConfirmationUpdate>,
-    chan_open: <ChannelOpenUpdate>,
+    "chan_pending": <PendingUpdate>,
+    "confirmation": <ConfirmationUpdate>,
+    "chan_open": <ChannelOpenUpdate>,
 }
-
 ```
 
 ### gRPC Request: OpenChannelRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-node_pubkey | bytes | optional | The pubkey of the node to open a channel with 
-node_pubkey_string | string | optional | The hex encoded pubkey of the node to open a channel with 
-local_funding_amount | int64 | optional | The number of satoshis the wallet should commit to the channel 
-push_sat | int64 | optional | The number of satoshis to push to the remote side as part of the initial commitment state 
-target_conf | int32 | optional | The target number of blocks that the closure transaction should be confirmed by. 
-sat_per_byte | int64 | optional | A manual fee rate set in sat/byte that should be used when crafting the closure transaction. 
-private | bool | optional | Whether this channel should be private, not announced to the greater network. 
-min_htlc_msat | int64 | optional | The minimum value in millisatoshi we will require for incoming HTLCs on the channel. 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+node_pubkey | bytes | The pubkey of the node to open a channel with 
+node_pubkey_string | string | The hex encoded pubkey of the node to open a channel with 
+local_funding_amount | int64 | The number of satoshis the wallet should commit to the channel 
+push_sat | int64 | The number of satoshis to push to the remote side as part of the initial commitment state 
+target_conf | int32 | The target number of blocks that the funding transaction should be confirmed by. 
+sat_per_byte | int64 | A manual fee rate set in sat/byte that should be used when crafting the funding transaction. 
+private | bool | Whether this channel should be private, not announced to the greater network. 
+min_htlc_msat | int64 | The minimum value in millisatoshi we will require for incoming HTLCs on the channel. 
+remote_csv_delay | uint32 | The delay we require on the remote's commitment transaction. If this is not set, it will be scaled automatically with the channel size.  
 ### gRPC Response: OpenStatusUpdate (Streaming)
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-chan_pending | PendingUpdate | optional |  
-confirmation | ConfirmationUpdate | optional |  
-chan_open | ChannelOpenUpdate | optional |  
-
-
-
-### PendingUpdate
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-txid | bytes | optional |  
-output_index | uint32 | optional |  
-
-
-### ConfirmationUpdate
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-block_sha | bytes | optional |  
-block_height | int32 | optional |  
-num_confs_left | uint32 | optional |  
-
-
-### ChannelOpenUpdate
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-channel_point | ChannelPoint | optional |  
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+chan_pending | [PendingUpdate](#pendingupdate) |  
+confirmation | [ConfirmationUpdate](#confirmationupdate) |  
+chan_open | [ChannelOpenUpdate](#channelopenupdate) |   
 
 # CloseChannel
+
 
 ### Response-streaming RPC
 
 
- CloseChannel attempts to close an active channel identified by its channel outpoint (ChannelPoint). The actions of this method can additionally be augmented to attempt a force close after a timeout period in the case of an inactive peer. If a non-force close (cooperative closure) is requested, then the user can specify either a target number of blocks until the closure transaction is confirmed, or a manual fee rate. If neither are specified, then a default lax, block confirmation target is used.
+CloseChannel attempts to close an active channel identified by its channel outpoint (ChannelPoint). The actions of this method can additionally be augmented to attempt a force close after a timeout period in the case of an inactive peer. If a non-force close (cooperative closure) is requested, then the user can specify either a target number of blocks until the closure transaction is confirmed, or a manual fee rate. If neither are specified, then a default lax, block confirmation target is used.
 
 ```shell
 
@@ -1932,12 +1889,14 @@ channel_point | ChannelPoint | optional |
 # or unilaterally (--force).
 # A unilateral channel closure means that the latest commitment
 # transaction will be broadcast to the network. As a result, any settled
-# funds will be time locked for a few blocks before they can be swept int
-# lnd's wallet.
+# funds will be time locked for a few blocks before they can be spent.
 # In the case of a cooperative closure, One can manually set the fee to
 # be used for the closing transaction via either the --conf_target or
 # --sat_per_byte arguments. This will be the starting value used during
-# fee negotiation.  This is optional.
+# fee negotiation. This is optional.
+# To view which funding_txids/output_indexes can be used for a channel close,
+# see the channel_point values within the listchannels command output.
+# The format for a channel_point is 'funding_txid:output_index'.
 
 $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
 
@@ -1949,140 +1908,93 @@ $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
 # --conf_target value   (optional) the number of blocks that the transaction *should* confirm in, will be used for fee estimation (default: 0)
 # --sat_per_byte value  (optional) a manual fee expressed in sat/byte that should be used when crafting the transaction (default: 0)
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.CloseChannelRequest(
-        channel_point=<YOUR_PARAM>,
-        force=<YOUR_PARAM>,
-        target_conf=<YOUR_PARAM>,
-        sat_per_byte=<YOUR_PARAM>,
+        channel_point=<ChannelPoint>,
+        force=<bool>,
+        target_conf=<int32>,
+        sat_per_byte=<int64>,
     )
->>> for response in stub.CloseChannel(request):
-    # Do something
-    print response
-
+>>> for response in stub.CloseChannel(request, metadata=[('macaroon', macaroon)]):
+        print(response)
 { 
-    close_pending: <PendingUpdate>,
-    confirmation: <ConfirmationUpdate>,
-    chan_close: <ChannelCloseUpdate>,
+    "close_pending": <PendingUpdate>,
+    "confirmation": <ConfirmationUpdate>,
+    "chan_close": <ChannelCloseUpdate>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials);
-> var call = lightning.closeChannel({ 
-    channel_point: <YOUR_PARAM>,
-    force: <YOUR_PARAM>,
-    target_conf: <YOUR_PARAM>,
-    sat_per_byte: <YOUR_PARAM>,
-  })
-
-> call.on('data', function(message) {
-    console.log(message);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
   });
-> call.on('end', function() {
-    // The server has finished sending
-    console.log("END");
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    channel_point: <ChannelPoint>, 
+    force: <bool>, 
+    target_conf: <int32>, 
+    sat_per_byte: <int64>, 
+  } 
+> var call = lightning.closeChannel(request)
+> call.on('data', function(response) {
+    // A response was received from the server.
+    console.log(response);
   });
 > call.on('status', function(status) {
-    // Process status
-    console.log("Current status: " + status);
+    // The current status of the stream.
   });
-
+> call.on('end', function() {
+    // The server has closed the stream.
+  });
 { 
-    close_pending: <PendingUpdate>,
-    confirmation: <ConfirmationUpdate>,
-    chan_close: <ChannelCloseUpdate>,
+    "close_pending": <PendingUpdate>,
+    "confirmation": <ConfirmationUpdate>,
+    "chan_close": <ChannelCloseUpdate>,
 }
-
 ```
 
 ### gRPC Request: CloseChannelRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-channel_point | ChannelPoint | optional | The outpoint (txid:index) of the funding transaction. With this value, Bob will be able to generate a signature for Alice's version of the commitment transaction. 
-force | bool | optional | If true, then the channel will be closed forcibly. This means the current commitment transaction will be signed and broadcast. 
-target_conf | int32 | optional | The target number of blocks that the closure transaction should be confirmed by. 
-sat_per_byte | int64 | optional | A manual fee rate set in sat/byte that should be used when crafting the closure transaction. 
-
-
-
-### ChannelPoint
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-funding_txid_bytes | bytes | optional | Txid of the funding transaction 
-funding_txid_str | string | optional | Hex-encoded string representing the funding transaction 
-output_index | uint32 | optional | The index of the output of the funding transaction 
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+channel_point | [ChannelPoint](#channelpoint) | The outpoint (txid:index) of the funding transaction. With this value, Bob will be able to generate a signature for Alice's version of the commitment transaction. 
+force | bool | If true, then the channel will be closed forcibly. This means the current commitment transaction will be signed and broadcast. 
+target_conf | int32 | The target number of blocks that the closure transaction should be confirmed by. 
+sat_per_byte | int64 | A manual fee rate set in sat/byte that should be used when crafting the closure transaction.  
 ### gRPC Response: CloseStatusUpdate (Streaming)
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-close_pending | PendingUpdate | optional |  
-confirmation | ConfirmationUpdate | optional |  
-chan_close | ChannelCloseUpdate | optional |  
-
-
-
-### PendingUpdate
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-txid | bytes | optional |  
-output_index | uint32 | optional |  
-
-
-### ConfirmationUpdate
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-block_sha | bytes | optional |  
-block_height | int32 | optional |  
-num_confs_left | uint32 | optional |  
-
-
-### ChannelCloseUpdate
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-closing_txid | bytes | optional |  
-success | bool | optional |  
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+close_pending | [PendingUpdate](#pendingupdate) |  
+confirmation | [ConfirmationUpdate](#confirmationupdate) |  
+chan_close | [ChannelCloseUpdate](#channelcloseupdate) |   
 
 # SendPayment
+
 
 ### Bidirectional-streaming RPC
 
 
- SendPayment dispatches a bi-directional streaming RPC for sending payments through the Lightning Network. A single RPC invocation creates a persistent bi-directional stream allowing clients to rapidly send payments through the Lightning Network with a single persistent connection.
+SendPayment dispatches a bi-directional streaming RPC for sending payments through the Lightning Network. A single RPC invocation creates a persistent bi-directional stream allowing clients to rapidly send payments through the Lightning Network with a single persistent connection.
 
 ```shell
 
@@ -2107,125 +2019,117 @@ $ lncli sendpayment [command options] dest amt payment_hash final_cltv_delta | -
 
 # --dest value, -d value          the compressed identity pubkey of the payment recipient
 # --amt value, -a value           number of satoshis to send (default: 0)
+# --fee_limit value               maximum fee allowed in satoshis when sendingthe payment (default: 0)
+# --fee_limit_percent value       percentage of the payment's amount used as themaximum fee allowed when sending the payment (default: 0)
 # --payment_hash value, -r value  the hash to use within the payment's HTLC
 # --debug_send                    use the debug rHash when sending the HTLC
 # --pay_req value                 a zpay32 encoded payment request to fulfill
 # --final_cltv_delta value        the number of blocks the last hop has to reveal the preimage (default: 0)
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
-# Define a generator that returns an Iterable of SendRequest objects
+# Define a generator that returns an Iterable of SendRequest objects.
 >>> def request_generator():
-        # Initialization code here
-        print("Starting up")
+        # Initialization code here.
         while True:
-            # Params here can be set as arguments to the generator
+            # Parameters here can be set as arguments to the generator.
             request = ln.SendRequest(
-                dest=<YOUR_PARAM>,
-                dest_string=<YOUR_PARAM>,
-                amt=<YOUR_PARAM>,
-                payment_hash=<YOUR_PARAM>,
-                payment_hash_string=<YOUR_PARAM>,
-                payment_request=<YOUR_PARAM>,
-                final_cltv_delta=<YOUR_PARAM>,
+                dest=<bytes>,
+                dest_string=<string>,
+                amt=<int64>,
+                payment_hash=<bytes>,
+                payment_hash_string=<string>,
+                payment_request=<string>,
+                final_cltv_delta=<int32>,
+                fee_limit=<FeeLimit>,
             )
             yield request
-            # Do things between iterations here
+            # Do things between iterations here.
 >>> request_iterable = request_generator()
->>> for response in stub.SendPayment(request_iterable):
-    # Do something
-    print response
-
+>>> for response in stub.SendPayment(request_iterable, metadata=[('macaroon', macaroon)]):
+        print(response)
 { 
-    payment_error: <string>,
-    payment_preimage: <bytes>,
-    payment_route: <Route>,
+    "payment_error": <string>,
+    "payment_preimage": <bytes>,
+    "payment_route": <Route>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials);
-> var call = lightning.sendPayment({});
-
-> call.on('data', function(message) {
-    console.log(message);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
   });
-
-  > call.write({ 
-    dest: <YOUR_PARAM>,
-    dest_string: <YOUR_PARAM>,
-    amt: <YOUR_PARAM>,
-    payment_hash: <YOUR_PARAM>,
-    payment_hash_string: <YOUR_PARAM>,
-    payment_request: <YOUR_PARAM>,
-    final_cltv_delta: <YOUR_PARAM>,
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    dest: <bytes>, 
+    dest_string: <string>, 
+    amt: <int64>, 
+    payment_hash: <bytes>, 
+    payment_hash_string: <string>, 
+    payment_request: <string>, 
+    final_cltv_delta: <int32>, 
+    fee_limit: <FeeLimit>, 
+  } 
+> var call = lightning.sendPayment({})
+> call.on('data', function(response) {
+    // A response was received from the server.
+    console.log(response);
   });
+> call.on('status', function(status) {
+    // The current status of the stream.
+  });
+> call.on('end', function() {
+    // The server has closed the stream.
+  });
+> call.write(request)
 
 { 
-    payment_error: <string>,
-    payment_preimage: <bytes>,
-    payment_route: <Route>,
+    "payment_error": <string>,
+    "payment_preimage": <bytes>,
+    "payment_route": <Route>,
 }
-
 ```
 
 ### gRPC Request: SendRequest (Streaming)
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-dest | bytes | optional | The identity pubkey of the payment recipient 
-dest_string | string | optional | The hex-encoded identity pubkey of the payment recipient 
-amt | int64 | optional | Number of satoshis to send. 
-payment_hash | bytes | optional | The hash to use within the payment's HTLC 
-payment_hash_string | string | optional | The hex-encoded hash to use within the payment's HTLC 
-payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
-final_cltv_delta | int32 | optional | The CLTV delta from the current height that should be used to set the timelock for the final hop. 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+dest | bytes | The identity pubkey of the payment recipient 
+dest_string | string | The hex-encoded identity pubkey of the payment recipient 
+amt | int64 | Number of satoshis to send. 
+payment_hash | bytes | The hash to use within the payment's HTLC 
+payment_hash_string | string | The hex-encoded hash to use within the payment's HTLC 
+payment_request | string | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+final_cltv_delta | int32 | The CLTV delta from the current height that should be used to set the timelock for the final hop. 
+fee_limit | [FeeLimit](#feelimit) | The maximum number of satoshis that will be paid as a fee of the payment. This value can be represented either as a percentage of the amount being sent, or as a fixed amount of the maximum fee the user is willing the pay to send the payment.  
 ### gRPC Response: SendResponse (Streaming)
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-payment_error | string | optional |  
-payment_preimage | bytes | optional |  
-payment_route | Route | optional |  
-
-
-
-### Route
-A path through the channel graph which runs over one or more channels in succession. This struct carries all the information required to craft the Sphinx onion packet, and send the payment along the first hop in the path. A route is only selected as valid if all the channels have sufficient capacity to carry the initial payment amount after fees are accounted for.
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-total_time_lock | uint32 | optional | The cumulative (final) time lock across the entire route.  This is the CLTV value that should be extended to the first hop in the route. All other hops will decrement the time-lock as advertised, leaving enough time for all hops to wait for or present the payment preimage to complete the payment. 
-total_fees | int64 | optional | The sum of the fees paid at each hop within the final route.  In the case of a one-hop payment, this value will be zero as we don't need to pay a fee it ourself. 
-total_amt | int64 | optional | The total amount of funds required to complete a payment over this route. This value includes the cumulative fees at each hop. As a result, the HTLC extended to the first-hop in the route will need to have at least this many satoshis, otherwise the route will fail at an intermediate node due to an insufficient amount of fees. 
-hops | Hop | repeated | Contains details concerning the specific forwarding details at each hop. 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+payment_error | string |  
+payment_preimage | bytes |  
+payment_route | [Route](#route) |   
 
 # SendPaymentSync
+
 
 ### Simple RPC
 
@@ -2235,111 +2139,297 @@ SendPaymentSync is the synchronous non-streaming version of SendPayment. This RP
 ```shell
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.SendRequest(
-        dest=<YOUR_PARAM>,
-        dest_string=<YOUR_PARAM>,
-        amt=<YOUR_PARAM>,
-        payment_hash=<YOUR_PARAM>,
-        payment_hash_string=<YOUR_PARAM>,
-        payment_request=<YOUR_PARAM>,
-        final_cltv_delta=<YOUR_PARAM>,
+        dest=<bytes>,
+        dest_string=<string>,
+        amt=<int64>,
+        payment_hash=<bytes>,
+        payment_hash_string=<string>,
+        payment_request=<string>,
+        final_cltv_delta=<int32>,
+        fee_limit=<FeeLimit>,
     )
->>> response = stub.SendPaymentSync(request)
->>> response
-
+>>> response = stub.SendPaymentSync(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    payment_error: <string>,
-    payment_preimage: <bytes>,
-    payment_route: <Route>,
+    "payment_error": <string>,
+    "payment_preimage": <bytes>,
+    "payment_route": <Route>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.sendPaymentSync({ 
-    dest: <YOUR_PARAM>,
-    dest_string: <YOUR_PARAM>,
-    amt: <YOUR_PARAM>,
-    payment_hash: <YOUR_PARAM>,
-    payment_hash_string: <YOUR_PARAM>,
-    payment_request: <YOUR_PARAM>,
-    final_cltv_delta: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('SendPaymentSync: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    dest: <bytes>, 
+    dest_string: <string>, 
+    amt: <int64>, 
+    payment_hash: <bytes>, 
+    payment_hash_string: <string>, 
+    payment_request: <string>, 
+    final_cltv_delta: <int32>, 
+    fee_limit: <FeeLimit>, 
+  } 
+> lightning.sendPaymentSync(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    payment_error: <string>,
-    payment_preimage: <bytes>,
-    payment_route: <Route>,
+    "payment_error": <string>,
+    "payment_preimage": <bytes>,
+    "payment_route": <Route>,
 }
-
 ```
 
 ### gRPC Request: SendRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-dest | bytes | optional | The identity pubkey of the payment recipient 
-dest_string | string | optional | The hex-encoded identity pubkey of the payment recipient 
-amt | int64 | optional | Number of satoshis to send. 
-payment_hash | bytes | optional | The hash to use within the payment's HTLC 
-payment_hash_string | string | optional | The hex-encoded hash to use within the payment's HTLC 
-payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
-final_cltv_delta | int32 | optional | The CLTV delta from the current height that should be used to set the timelock for the final hop. 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+dest | bytes | The identity pubkey of the payment recipient 
+dest_string | string | The hex-encoded identity pubkey of the payment recipient 
+amt | int64 | Number of satoshis to send. 
+payment_hash | bytes | The hash to use within the payment's HTLC 
+payment_hash_string | string | The hex-encoded hash to use within the payment's HTLC 
+payment_request | string | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+final_cltv_delta | int32 | The CLTV delta from the current height that should be used to set the timelock for the final hop. 
+fee_limit | [FeeLimit](#feelimit) | The maximum number of satoshis that will be paid as a fee of the payment. This value can be represented either as a percentage of the amount being sent, or as a fixed amount of the maximum fee the user is willing the pay to send the payment.  
 ### gRPC Response: SendResponse 
 
 
+Parameter | Type | Description
+--------- | ---- | ----------- 
+payment_error | string |  
+payment_preimage | bytes |  
+payment_route | [Route](#route) |   
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-payment_error | string | optional |  
-payment_preimage | bytes | optional |  
-payment_route | Route | optional |  
-
-
-
-### Route
-A path through the channel graph which runs over one or more channels in succession. This struct carries all the information required to craft the Sphinx onion packet, and send the payment along the first hop in the path. A route is only selected as valid if all the channels have sufficient capacity to carry the initial payment amount after fees are accounted for.
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-total_time_lock | uint32 | optional | The cumulative (final) time lock across the entire route.  This is the CLTV value that should be extended to the first hop in the route. All other hops will decrement the time-lock as advertised, leaving enough time for all hops to wait for or present the payment preimage to complete the payment. 
-total_fees | int64 | optional | The sum of the fees paid at each hop within the final route.  In the case of a one-hop payment, this value will be zero as we don't need to pay a fee it ourself. 
-total_amt | int64 | optional | The total amount of funds required to complete a payment over this route. This value includes the cumulative fees at each hop. As a result, the HTLC extended to the first-hop in the route will need to have at least this many satoshis, otherwise the route will fail at an intermediate node due to an insufficient amount of fees. 
-hops | Hop | repeated | Contains details concerning the specific forwarding details at each hop. 
+# SendToRoute
 
 
+### Bidirectional-streaming RPC
 
 
+SendToRoute is a bi-directional streaming RPC for sending payment through the Lightning Network. This method differs from SendPayment in that it allows users to specify a full route manually. This can be used for things like rebalancing, and atomic swaps.
 
-# AddInvoice
+```shell
+
+# Send a payment over Lightning using a specific route. One must specify
+# a list of routes to attempt and the payment hash. This command can even
+# be chained with the response to queryroutes. This command can be used
+# to implement channel rebalancing by crafting a self-route, or even
+# atomic swaps using a self-route that crosses multiple chains.
+# There are three ways to specify routes:
+# * using the --routes parameter to manually specify a JSON encoded
+# set of routes in the format of the return value of queryroutes:
+# (lncli sendtoroute --payment_hash=<pay_hash> --routes=<route>)
+# * passing the routes as a positional argument:
+# (lncli sendtoroute --payment_hash=pay_hash <route>)
+# * or reading in the routes from stdin, which can allow chaining the
+# response from queryroutes, or even read in a file with a set of
+# pre-computed routes:
+# (lncli queryroutes --args.. | lncli sendtoroute --payment_hash= -
+# notice the '-' at the end, which signals that lncli should read
+# the route in from stdin
+
+$ lncli sendtoroute [command options] [arguments...]
+
+# --payment_hash value, --pay_hash value  the hash to use within the payment's HTLC
+# --routes value, -r value                a json array string in the format of the response of queryroutes that denotes which routes to use
+```
+```python
+>>> import codecs, grpc, os
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
+>>> stub = lnrpc.LightningStub(channel)
+# Define a generator that returns an Iterable of SendToRouteRequest objects.
+>>> def request_generator():
+        # Initialization code here.
+        while True:
+            # Parameters here can be set as arguments to the generator.
+            request = ln.SendToRouteRequest(
+                payment_hash=<bytes>,
+                payment_hash_string=<string>,
+                routes=<array Route>,
+            )
+            yield request
+            # Do things between iterations here.
+>>> request_iterable = request_generator()
+>>> for response in stub.SendToRoute(request_iterable, metadata=[('macaroon', macaroon)]):
+        print(response)
+{ 
+    "payment_error": <string>,
+    "payment_preimage": <bytes>,
+    "payment_route": <Route>,
+}
+```
+```javascript
+> var fs = require('fs');
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    payment_hash: <bytes>, 
+    payment_hash_string: <string>, 
+    routes: <array Route>, 
+  } 
+> var call = lightning.sendToRoute({})
+> call.on('data', function(response) {
+    // A response was received from the server.
+    console.log(response);
+  });
+> call.on('status', function(status) {
+    // The current status of the stream.
+  });
+> call.on('end', function() {
+    // The server has closed the stream.
+  });
+> call.write(request)
+
+{ 
+    "payment_error": <string>,
+    "payment_preimage": <bytes>,
+    "payment_route": <Route>,
+}
+```
+
+### gRPC Request: SendToRouteRequest (Streaming)
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+payment_hash | bytes | The payment hash to use for the HTLC. 
+payment_hash_string | string | An optional hex-encoded payment hash to be used for the HTLC. 
+routes | [array Route](#route) | The set of routes that should be used to attempt to complete the payment.  
+### gRPC Response: SendResponse (Streaming)
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+payment_error | string |  
+payment_preimage | bytes |  
+payment_route | [Route](#route) |   
+
+# SendToRouteSync
+
 
 ### Simple RPC
 
 
- AddInvoice attempts to add a new invoice to the invoice database. Any duplicated invoices are rejected, therefore all invoices *must* have a unique payment preimage.
+SendToRouteSync is a synchronous version of SendToRoute. It Will block until the payment either fails or succeeds.
+
+```shell
+
+```
+```python
+>>> import codecs, grpc, os
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
+>>> stub = lnrpc.LightningStub(channel)
+>>> request = ln.SendToRouteRequest(
+        payment_hash=<bytes>,
+        payment_hash_string=<string>,
+        routes=<array Route>,
+    )
+>>> response = stub.SendToRouteSync(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
+{ 
+    "payment_error": <string>,
+    "payment_preimage": <bytes>,
+    "payment_route": <Route>,
+}
+```
+```javascript
+> var fs = require('fs');
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    payment_hash: <bytes>, 
+    payment_hash_string: <string>, 
+    routes: <array Route>, 
+  } 
+> lightning.sendToRouteSync(request, function(err, response) {
+    console.log(response);
+  })
+{ 
+    "payment_error": <string>,
+    "payment_preimage": <bytes>,
+    "payment_route": <Route>,
+}
+```
+
+### gRPC Request: SendToRouteRequest 
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+payment_hash | bytes | The payment hash to use for the HTLC. 
+payment_hash_string | string | An optional hex-encoded payment hash to be used for the HTLC. 
+routes | [array Route](#route) | The set of routes that should be used to attempt to complete the payment.  
+### gRPC Response: SendResponse 
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+payment_error | string |  
+payment_preimage | bytes |  
+payment_route | [Route](#route) |   
+
+# AddInvoice
+
+
+### Simple RPC
+
+
+AddInvoice attempts to add a new invoice to the invoice database. Any duplicated invoices are rejected, therefore all invoices *must* have a unique payment preimage.
 
 ```shell
 
@@ -2357,326 +2447,303 @@ $ lncli addinvoice [command options] value preimage
 # --description_hash value  SHA-256 hash of the description of the payment. Used if the purpose of payment cannot naturally fit within the memo. If provided this will be used instead of the description(memo) field in the encoded invoice.
 # --fallback_addr value     fallback on-chain address that can be used in case the lightning payment fails
 # --expiry value            the invoice's expiry time in seconds. If not specified an expiry of 3600 seconds (1 hour) is implied. (default: 0)
+# --private                 encode routing hints in the invoice with private channels in order to assist the payer in reaching you
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.Invoice(
-        memo=<YOUR_PARAM>,
-        receipt=<YOUR_PARAM>,
-        r_preimage=<YOUR_PARAM>,
-        r_hash=<YOUR_PARAM>,
-        value=<YOUR_PARAM>,
-        settled=<YOUR_PARAM>,
-        creation_date=<YOUR_PARAM>,
-        settle_date=<YOUR_PARAM>,
-        payment_request=<YOUR_PARAM>,
-        description_hash=<YOUR_PARAM>,
-        expiry=<YOUR_PARAM>,
-        fallback_addr=<YOUR_PARAM>,
-        cltv_expiry=<YOUR_PARAM>,
+        memo=<string>,
+        receipt=<bytes>,
+        r_preimage=<bytes>,
+        r_hash=<bytes>,
+        value=<int64>,
+        settled=<bool>,
+        creation_date=<int64>,
+        settle_date=<int64>,
+        payment_request=<string>,
+        description_hash=<bytes>,
+        expiry=<int64>,
+        fallback_addr=<string>,
+        cltv_expiry=<uint64>,
+        route_hints=<array RouteHint>,
+        private=<bool>,
     )
->>> response = stub.AddInvoice(request)
->>> response
-
+>>> response = stub.AddInvoice(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    r_hash: <bytes>,
-    payment_request: <string>,
+    "r_hash": <bytes>,
+    "payment_request": <string>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.addInvoice({ 
-    memo: <YOUR_PARAM>,
-    receipt: <YOUR_PARAM>,
-    r_preimage: <YOUR_PARAM>,
-    r_hash: <YOUR_PARAM>,
-    value: <YOUR_PARAM>,
-    settled: <YOUR_PARAM>,
-    creation_date: <YOUR_PARAM>,
-    settle_date: <YOUR_PARAM>,
-    payment_request: <YOUR_PARAM>,
-    description_hash: <YOUR_PARAM>,
-    expiry: <YOUR_PARAM>,
-    fallback_addr: <YOUR_PARAM>,
-    cltv_expiry: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('AddInvoice: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    memo: <string>, 
+    receipt: <bytes>, 
+    r_preimage: <bytes>, 
+    r_hash: <bytes>, 
+    value: <int64>, 
+    settled: <bool>, 
+    creation_date: <int64>, 
+    settle_date: <int64>, 
+    payment_request: <string>, 
+    description_hash: <bytes>, 
+    expiry: <int64>, 
+    fallback_addr: <string>, 
+    cltv_expiry: <uint64>, 
+    route_hints: <array RouteHint>, 
+    private: <bool>, 
+  } 
+> lightning.addInvoice(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    r_hash: <bytes>,
-    payment_request: <string>,
+    "r_hash": <bytes>,
+    "payment_request": <string>,
 }
-
 ```
 
 ### gRPC Request: Invoice 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-memo | string | optional | An optional memo to attach along with the invoice. Used for record keeping purposes for the invoice's creator, and will also be set in the description field of the encoded payment request if the description_hash field is not being used. 
-receipt | bytes | optional | An optional cryptographic receipt of payment 
-r_preimage | bytes | optional | The hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage 
-r_hash | bytes | optional | The hash of the preimage 
-value | int64 | optional | The value of this invoice in satoshis 
-settled | bool | optional | Whether this invoice has been fulfilled 
-creation_date | int64 | optional | When this invoice was created 
-settle_date | int64 | optional | When this invoice was settled 
-payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
-description_hash | bytes | optional | Hash (SHA-256) of a description of the payment. Used if the description of payment (memo) is too long to naturally fit within the description field of an encoded payment request. 
-expiry | int64 | optional | Payment request expiry time in seconds. Default is 3600 (1 hour). 
-fallback_addr | string | optional | Fallback on-chain address. 
-cltv_expiry | uint64 | optional | Delta to use for the time-lock of the CLTV extended to the final hop. 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+memo | string | An optional memo to attach along with the invoice. Used for record keeping purposes for the invoice's creator, and will also be set in the description field of the encoded payment request if the description_hash field is not being used. 
+receipt | bytes | An optional cryptographic receipt of payment 
+r_preimage | bytes | The hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage 
+r_hash | bytes | The hash of the preimage 
+value | int64 | The value of this invoice in satoshis 
+settled | bool | Whether this invoice has been fulfilled 
+creation_date | int64 | When this invoice was created 
+settle_date | int64 | When this invoice was settled 
+payment_request | string | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+description_hash | bytes | Hash (SHA-256) of a description of the payment. Used if the description of payment (memo) is too long to naturally fit within the description field of an encoded payment request. 
+expiry | int64 | Payment request expiry time in seconds. Default is 3600 (1 hour). 
+fallback_addr | string | Fallback on-chain address. 
+cltv_expiry | uint64 | Delta to use for the time-lock of the CLTV extended to the final hop. 
+route_hints | [array RouteHint](#routehint) | Route hints that can each be individually used to assist in reaching the invoice's destination. 
+private | bool | Whether this invoice should include routing hints for private channels.  
 ### gRPC Response: AddInvoiceResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-r_hash | bytes | optional |  
-payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
-
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+r_hash | bytes |  
+payment_request | string | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient.  
 
 # ListInvoices
+
 
 ### Simple RPC
 
 
- ListInvoices returns a list of all the invoices currently stored within the database. Any active debug invoices are ignored.
+ListInvoices returns a list of all the invoices currently stored within the database. Any active debug invoices are ignored.
 
 ```shell
 
+# List all invoices currently stored.
 
 $ lncli listinvoices [command options] [arguments...]
 
 # --pending_only  toggles if all invoices should be returned, or only those that are currently unsettled
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ListInvoiceRequest(
-        pending_only=<YOUR_PARAM>,
+        pending_only=<bool>,
     )
->>> response = stub.ListInvoices(request)
->>> response
-
+>>> response = stub.ListInvoices(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    invoices: <Invoice>,
+    "invoices": <array Invoice>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.listInvoices({ 
-    pending_only: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('ListInvoices: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    pending_only: <bool>, 
+  } 
+> lightning.listInvoices(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    invoices: <Invoice>,
+    "invoices": <array Invoice>,
 }
-
 ```
 
 ### gRPC Request: ListInvoiceRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-pending_only | bool | optional | Toggles if all invoices should be returned, or only those that are currently unsettled. 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+pending_only | bool | Toggles if all invoices should be returned, or only those that are currently unsettled.  
 ### gRPC Response: ListInvoiceResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-invoices | Invoice | repeated |  
-
-
-
-### Invoice
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-memo | string | optional | An optional memo to attach along with the invoice. Used for record keeping purposes for the invoice's creator, and will also be set in the description field of the encoded payment request if the description_hash field is not being used. 
-receipt | bytes | optional | An optional cryptographic receipt of payment 
-r_preimage | bytes | optional | The hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage 
-r_hash | bytes | optional | The hash of the preimage 
-value | int64 | optional | The value of this invoice in satoshis 
-settled | bool | optional | Whether this invoice has been fulfilled 
-creation_date | int64 | optional | When this invoice was created 
-settle_date | int64 | optional | When this invoice was settled 
-payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
-description_hash | bytes | optional | Hash (SHA-256) of a description of the payment. Used if the description of payment (memo) is too long to naturally fit within the description field of an encoded payment request. 
-expiry | int64 | optional | Payment request expiry time in seconds. Default is 3600 (1 hour). 
-fallback_addr | string | optional | Fallback on-chain address. 
-cltv_expiry | uint64 | optional | Delta to use for the time-lock of the CLTV extended to the final hop. 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+invoices | [array Invoice](#invoice) |   
 
 # LookupInvoice
+
 
 ### Simple RPC
 
 
- LookupInvoice attempts to look up an invoice according to its payment hash. The passed payment hash *must* be exactly 32 bytes, if not, an error is returned.
+LookupInvoice attempts to look up an invoice according to its payment hash. The passed payment hash *must* be exactly 32 bytes, if not, an error is returned.
 
 ```shell
 
+# Lookup an existing invoice by its payment hash.
 
 $ lncli lookupinvoice [command options] rhash
 
 # --rhash value  the 32 byte payment hash of the invoice to query for, the hash should be a hex-encoded string
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.PaymentHash(
-        r_hash_str=<YOUR_PARAM>,
-        r_hash=<YOUR_PARAM>,
+        r_hash_str=<string>,
+        r_hash=<bytes>,
     )
->>> response = stub.LookupInvoice(request)
->>> response
-
+>>> response = stub.LookupInvoice(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    memo: <string>,
-    receipt: <bytes>,
-    r_preimage: <bytes>,
-    r_hash: <bytes>,
-    value: <int64>,
-    settled: <bool>,
-    creation_date: <int64>,
-    settle_date: <int64>,
-    payment_request: <string>,
-    description_hash: <bytes>,
-    expiry: <int64>,
-    fallback_addr: <string>,
-    cltv_expiry: <uint64>,
+    "memo": <string>,
+    "receipt": <bytes>,
+    "r_preimage": <bytes>,
+    "r_hash": <bytes>,
+    "value": <int64>,
+    "settled": <bool>,
+    "creation_date": <int64>,
+    "settle_date": <int64>,
+    "payment_request": <string>,
+    "description_hash": <bytes>,
+    "expiry": <int64>,
+    "fallback_addr": <string>,
+    "cltv_expiry": <uint64>,
+    "route_hints": <array RouteHint>,
+    "private": <bool>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.lookupInvoice({ 
-    r_hash_str: <YOUR_PARAM>,
-    r_hash: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('LookupInvoice: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    r_hash_str: <string>, 
+    r_hash: <bytes>, 
+  } 
+> lightning.lookupInvoice(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    memo: <string>,
-    receipt: <bytes>,
-    r_preimage: <bytes>,
-    r_hash: <bytes>,
-    value: <int64>,
-    settled: <bool>,
-    creation_date: <int64>,
-    settle_date: <int64>,
-    payment_request: <string>,
-    description_hash: <bytes>,
-    expiry: <int64>,
-    fallback_addr: <string>,
-    cltv_expiry: <uint64>,
+    "memo": <string>,
+    "receipt": <bytes>,
+    "r_preimage": <bytes>,
+    "r_hash": <bytes>,
+    "value": <int64>,
+    "settled": <bool>,
+    "creation_date": <int64>,
+    "settle_date": <int64>,
+    "payment_request": <string>,
+    "description_hash": <bytes>,
+    "expiry": <int64>,
+    "fallback_addr": <string>,
+    "cltv_expiry": <uint64>,
+    "route_hints": <array RouteHint>,
+    "private": <bool>,
 }
-
 ```
 
 ### gRPC Request: PaymentHash 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-r_hash_str | string | optional | The hex-encoded payment hash of the invoice to be looked up. The passed payment hash must be exactly 32 bytes, otherwise an error is returned. 
-r_hash | bytes | optional | The payment hash of the invoice to be looked up. 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+r_hash_str | string | The hex-encoded payment hash of the invoice to be looked up. The passed payment hash must be exactly 32 bytes, otherwise an error is returned. 
+r_hash | bytes | The payment hash of the invoice to be looked up.  
 ### gRPC Response: Invoice 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-memo | string | optional | An optional memo to attach along with the invoice. Used for record keeping purposes for the invoice's creator, and will also be set in the description field of the encoded payment request if the description_hash field is not being used. 
-receipt | bytes | optional | An optional cryptographic receipt of payment 
-r_preimage | bytes | optional | The hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage 
-r_hash | bytes | optional | The hash of the preimage 
-value | int64 | optional | The value of this invoice in satoshis 
-settled | bool | optional | Whether this invoice has been fulfilled 
-creation_date | int64 | optional | When this invoice was created 
-settle_date | int64 | optional | When this invoice was settled 
-payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
-description_hash | bytes | optional | Hash (SHA-256) of a description of the payment. Used if the description of payment (memo) is too long to naturally fit within the description field of an encoded payment request. 
-expiry | int64 | optional | Payment request expiry time in seconds. Default is 3600 (1 hour). 
-fallback_addr | string | optional | Fallback on-chain address. 
-cltv_expiry | uint64 | optional | Delta to use for the time-lock of the CLTV extended to the final hop. 
-
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+memo | string | An optional memo to attach along with the invoice. Used for record keeping purposes for the invoice's creator, and will also be set in the description field of the encoded payment request if the description_hash field is not being used. 
+receipt | bytes | An optional cryptographic receipt of payment 
+r_preimage | bytes | The hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage 
+r_hash | bytes | The hash of the preimage 
+value | int64 | The value of this invoice in satoshis 
+settled | bool | Whether this invoice has been fulfilled 
+creation_date | int64 | When this invoice was created 
+settle_date | int64 | When this invoice was settled 
+payment_request | string | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+description_hash | bytes | Hash (SHA-256) of a description of the payment. Used if the description of payment (memo) is too long to naturally fit within the description field of an encoded payment request. 
+expiry | int64 | Payment request expiry time in seconds. Default is 3600 (1 hour). 
+fallback_addr | string | Fallback on-chain address. 
+cltv_expiry | uint64 | Delta to use for the time-lock of the CLTV extended to the final hop. 
+route_hints | [array RouteHint](#routehint) | Route hints that can each be individually used to assist in reaching the invoice's destination. 
+private | bool | Whether this invoice should include routing hints for private channels.  
 
 # SubscribeInvoices
+
 
 ### Response-streaming RPC
 
@@ -2686,117 +2753,115 @@ SubscribeInvoices returns a uni-directional stream (sever -> client) for notifyi
 ```shell
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.InvoiceSubscription()
->>> for response in stub.SubscribeInvoices(request):
-    # Do something
-    print response
-
+>>> for response in stub.SubscribeInvoices(request, metadata=[('macaroon', macaroon)]):
+        print(response)
 { 
-    memo: <string>,
-    receipt: <bytes>,
-    r_preimage: <bytes>,
-    r_hash: <bytes>,
-    value: <int64>,
-    settled: <bool>,
-    creation_date: <int64>,
-    settle_date: <int64>,
-    payment_request: <string>,
-    description_hash: <bytes>,
-    expiry: <int64>,
-    fallback_addr: <string>,
-    cltv_expiry: <uint64>,
+    "memo": <string>,
+    "receipt": <bytes>,
+    "r_preimage": <bytes>,
+    "r_hash": <bytes>,
+    "value": <int64>,
+    "settled": <bool>,
+    "creation_date": <int64>,
+    "settle_date": <int64>,
+    "payment_request": <string>,
+    "description_hash": <bytes>,
+    "expiry": <int64>,
+    "fallback_addr": <string>,
+    "cltv_expiry": <uint64>,
+    "route_hints": <array RouteHint>,
+    "private": <bool>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials);
-> var call = lightning.subscribeInvoices({})
-
-> call.on('data', function(message) {
-    console.log(message);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
   });
-> call.on('end', function() {
-    // The server has finished sending
-    console.log("END");
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = {} 
+> var call = lightning.subscribeInvoices(request)
+> call.on('data', function(response) {
+    // A response was received from the server.
+    console.log(response);
   });
 > call.on('status', function(status) {
-    // Process status
-    console.log("Current status: " + status);
+    // The current status of the stream.
   });
-
+> call.on('end', function() {
+    // The server has closed the stream.
+  });
 { 
-    memo: <string>,
-    receipt: <bytes>,
-    r_preimage: <bytes>,
-    r_hash: <bytes>,
-    value: <int64>,
-    settled: <bool>,
-    creation_date: <int64>,
-    settle_date: <int64>,
-    payment_request: <string>,
-    description_hash: <bytes>,
-    expiry: <int64>,
-    fallback_addr: <string>,
-    cltv_expiry: <uint64>,
+    "memo": <string>,
+    "receipt": <bytes>,
+    "r_preimage": <bytes>,
+    "r_hash": <bytes>,
+    "value": <int64>,
+    "settled": <bool>,
+    "creation_date": <int64>,
+    "settle_date": <int64>,
+    "payment_request": <string>,
+    "description_hash": <bytes>,
+    "expiry": <int64>,
+    "fallback_addr": <string>,
+    "cltv_expiry": <uint64>,
+    "route_hints": <array RouteHint>,
+    "private": <bool>,
 }
-
 ```
 
 ### gRPC Request: InvoiceSubscription 
 
 
-
 This request has no parameters.
-
-
-
 
 ### gRPC Response: Invoice (Streaming)
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-memo | string | optional | An optional memo to attach along with the invoice. Used for record keeping purposes for the invoice's creator, and will also be set in the description field of the encoded payment request if the description_hash field is not being used. 
-receipt | bytes | optional | An optional cryptographic receipt of payment 
-r_preimage | bytes | optional | The hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage 
-r_hash | bytes | optional | The hash of the preimage 
-value | int64 | optional | The value of this invoice in satoshis 
-settled | bool | optional | Whether this invoice has been fulfilled 
-creation_date | int64 | optional | When this invoice was created 
-settle_date | int64 | optional | When this invoice was settled 
-payment_request | string | optional | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
-description_hash | bytes | optional | Hash (SHA-256) of a description of the payment. Used if the description of payment (memo) is too long to naturally fit within the description field of an encoded payment request. 
-expiry | int64 | optional | Payment request expiry time in seconds. Default is 3600 (1 hour). 
-fallback_addr | string | optional | Fallback on-chain address. 
-cltv_expiry | uint64 | optional | Delta to use for the time-lock of the CLTV extended to the final hop. 
-
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+memo | string | An optional memo to attach along with the invoice. Used for record keeping purposes for the invoice's creator, and will also be set in the description field of the encoded payment request if the description_hash field is not being used. 
+receipt | bytes | An optional cryptographic receipt of payment 
+r_preimage | bytes | The hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage 
+r_hash | bytes | The hash of the preimage 
+value | int64 | The value of this invoice in satoshis 
+settled | bool | Whether this invoice has been fulfilled 
+creation_date | int64 | When this invoice was created 
+settle_date | int64 | When this invoice was settled 
+payment_request | string | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+description_hash | bytes | Hash (SHA-256) of a description of the payment. Used if the description of payment (memo) is too long to naturally fit within the description field of an encoded payment request. 
+expiry | int64 | Payment request expiry time in seconds. Default is 3600 (1 hour). 
+fallback_addr | string | Fallback on-chain address. 
+cltv_expiry | uint64 | Delta to use for the time-lock of the CLTV extended to the final hop. 
+route_hints | [array RouteHint](#routehint) | Route hints that can each be individually used to assist in reaching the invoice's destination. 
+private | bool | Whether this invoice should include routing hints for private channels.  
 
 # DecodePayReq
+
 
 ### Simple RPC
 
 
- DecodePayReq takes an encoded payment request string and attempts to decode it, returning a full description of the conditions encoded within the payment request.
+DecodePayReq takes an encoded payment request string and attempts to decode it, returning a full description of the conditions encoded within the payment request.
 
 ```shell
 
@@ -2806,179 +2871,159 @@ $ lncli decodepayreq [command options] pay_req
 
 # --pay_req value  the bech32 encoded payment request
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.PayReqString(
-        pay_req=<YOUR_PARAM>,
+        pay_req=<string>,
     )
->>> response = stub.DecodePayReq(request)
->>> response
-
+>>> response = stub.DecodePayReq(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    destination: <string>,
-    payment_hash: <string>,
-    num_satoshis: <int64>,
-    timestamp: <int64>,
-    expiry: <int64>,
-    description: <string>,
-    description_hash: <string>,
-    fallback_addr: <string>,
-    cltv_expiry: <int64>,
+    "destination": <string>,
+    "payment_hash": <string>,
+    "num_satoshis": <int64>,
+    "timestamp": <int64>,
+    "expiry": <int64>,
+    "description": <string>,
+    "description_hash": <string>,
+    "fallback_addr": <string>,
+    "cltv_expiry": <int64>,
+    "route_hints": <array RouteHint>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.decodePayReq({ 
-    pay_req: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('DecodePayReq: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    pay_req: <string>, 
+  } 
+> lightning.decodePayReq(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    destination: <string>,
-    payment_hash: <string>,
-    num_satoshis: <int64>,
-    timestamp: <int64>,
-    expiry: <int64>,
-    description: <string>,
-    description_hash: <string>,
-    fallback_addr: <string>,
-    cltv_expiry: <int64>,
+    "destination": <string>,
+    "payment_hash": <string>,
+    "num_satoshis": <int64>,
+    "timestamp": <int64>,
+    "expiry": <int64>,
+    "description": <string>,
+    "description_hash": <string>,
+    "fallback_addr": <string>,
+    "cltv_expiry": <int64>,
+    "route_hints": <array RouteHint>,
 }
-
 ```
 
 ### gRPC Request: PayReqString 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-pay_req | string | optional | The payment request string to be decoded 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+pay_req | string | The payment request string to be decoded  
 ### gRPC Response: PayReq 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-destination | string | optional |  
-payment_hash | string | optional |  
-num_satoshis | int64 | optional |  
-timestamp | int64 | optional |  
-expiry | int64 | optional |  
-description | string | optional |  
-description_hash | string | optional |  
-fallback_addr | string | optional |  
-cltv_expiry | int64 | optional |  
-
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+destination | string |  
+payment_hash | string |  
+num_satoshis | int64 |  
+timestamp | int64 |  
+expiry | int64 |  
+description | string |  
+description_hash | string |  
+fallback_addr | string |  
+cltv_expiry | int64 |  
+route_hints | [array RouteHint](#routehint) |   
 
 # ListPayments
+
 
 ### Simple RPC
 
 
- ListPayments returns a list of all outgoing payments.
+ListPayments returns a list of all outgoing payments.
 
 ```shell
 
+# List all outgoing payments.
 
 $ lncli listpayments [arguments...]
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ListPaymentsRequest()
->>> response = stub.ListPayments(request)
->>> response
-
+>>> response = stub.ListPayments(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    payments: <Payment>,
+    "payments": <array Payment>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.listPayments({}, function(err, response) {
-    console.log('ListPayments: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = {} 
+> lightning.listPayments(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    payments: <Payment>,
+    "payments": <array Payment>,
 }
-
 ```
 
 ### gRPC Request: ListPaymentsRequest 
 
 
-
 This request has no parameters.
-
-
-
 
 ### gRPC Response: ListPaymentsResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-payments | Payment | repeated | The list of payments 
-
-
-
-### Payment
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-payment_hash | string | optional | The payment hash 
-value | int64 | optional | The value of the payment in satoshis 
-creation_date | int64 | optional | The date of this payment 
-path | string | repeated | The path this payment took 
-fee | int64 | optional | The fee paid for this payment in satoshis 
-payment_preimage | string | optional | The payment preimage 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+payments | [array Payment](#payment) | The list of payments  
 
 # DeleteAllPayments
+
 
 ### Simple RPC
 
@@ -2988,60 +3033,62 @@ DeleteAllPayments deletes all outgoing payments from DB.
 ```shell
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.DeleteAllPaymentsRequest()
->>> response = stub.DeleteAllPayments(request)
->>> response
-{}
+>>> response = stub.DeleteAllPayments(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
+{ 
+}
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.deleteAllPayments({}, function(err, response) {
-    console.log('DeleteAllPayments: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = {} 
+> lightning.deleteAllPayments(request, function(err, response) {
+    console.log(response);
   })
-{}
+{ 
+}
 ```
 
 ### gRPC Request: DeleteAllPaymentsRequest 
 
 
-
 This request has no parameters.
-
-
-
 
 ### gRPC Response: DeleteAllPaymentsResponse 
 
 
-
-This response is empty.
-
-
-
-
+This response has no parameters.
 
 
 # DescribeGraph
 
+
 ### Simple RPC
 
 
- DescribeGraph returns a description of the latest graph state from the point of view of the node. The graph information is partitioned into two components: all the nodes/vertexes, and all the edges that connect the vertexes themselves.  As this is a directed graph, the edges also contain the node directional specific routing policy which includes: the time lock delta, fee information, etc.
+DescribeGraph returns a description of the latest graph state from the point of view of the node. The graph information is partitioned into two components: all the nodes/vertexes, and all the edges that connect the vertexes themselves.  As this is a directed graph, the edges also contain the node directional specific routing policy which includes: the time lock delta, fee information, etc.
 
 ```shell
 
@@ -3051,100 +3098,68 @@ $ lncli describegraph [command options] [arguments...]
 
 # --render  If set, then an image of graph will be generated and displayed. The generated image is stored within the current directory with a file name of 'graph.svg'
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ChannelGraphRequest()
->>> response = stub.DescribeGraph(request)
->>> response
-
+>>> response = stub.DescribeGraph(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    nodes: <LightningNode>,
-    edges: <ChannelEdge>,
+    "nodes": <array LightningNode>,
+    "edges": <array ChannelEdge>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.describeGraph({}, function(err, response) {
-    console.log('DescribeGraph: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = {} 
+> lightning.describeGraph(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    nodes: <LightningNode>,
-    edges: <ChannelEdge>,
+    "nodes": <array LightningNode>,
+    "edges": <array ChannelEdge>,
 }
-
 ```
 
 ### gRPC Request: ChannelGraphRequest 
 
 
-
 This request has no parameters.
-
-
-
 
 ### gRPC Response: ChannelGraph 
 
-Returns a new instance of the directed channel graph.
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-nodes | LightningNode | repeated | The list of `LightningNode`s in this channel graph 
-edges | ChannelEdge | repeated | The list of `ChannelEdge`s in this channel graph 
-
-
-
-### LightningNode
-An individual vertex/node within the channel graph. A node is connected to other nodes by one or more channel edges emanating from it. As the graph is directed, a node will also have an incoming edge attached to it for each outgoing edge.
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-last_update | uint32 | optional |  
-pub_key | string | optional |  
-alias | string | optional |  
-addresses | NodeAddress | repeated |  
-color | string | optional |  
-
-
-### ChannelEdge
-A fully authenticated channel along with all its unique attributes. Once an authenticated channel announcement has been processed on the network, then a instance of ChannelEdgeInfo encapsulating the channels attributes is stored. The other portions relevant to routing policy of a channel are stored within a ChannelEdgePolicy for each direction of the channel.
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-channel_id | uint64 | optional | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
-chan_point | string | optional |  
-last_update | uint32 | optional |  
-node1_pub | string | optional |  
-node2_pub | string | optional |  
-capacity | int64 | optional |  
-node1_policy | RoutingPolicy | optional |  
-node2_policy | RoutingPolicy | optional |  
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+nodes | [array LightningNode](#lightningnode) | The list of `LightningNode`s in this channel graph 
+edges | [array ChannelEdge](#channeledge) | The list of `ChannelEdge`s in this channel graph  
 
 # GetChanInfo
+
 
 ### Simple RPC
 
 
- GetChanInfo returns the latest authenticated network announcement for the given channel identified by its channel ID: an 8-byte integer which uniquely identifies the location of transaction's funding output within the blockchain.
+GetChanInfo returns the latest authenticated network announcement for the given channel identified by its channel ID: an 8-byte integer which uniquely identifies the location of transaction's funding output within the blockchain.
 
 ```shell
 
@@ -3154,119 +3169,91 @@ $ lncli getchaninfo [command options] chan_id
 
 # --chan_id value  the 8-byte compact channel ID to query for (default: 0)
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ChanInfoRequest(
-        chan_id=<YOUR_PARAM>,
+        chan_id=<uint64>,
     )
->>> response = stub.GetChanInfo(request)
->>> response
-
+>>> response = stub.GetChanInfo(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    channel_id: <uint64>,
-    chan_point: <string>,
-    last_update: <uint32>,
-    node1_pub: <string>,
-    node2_pub: <string>,
-    capacity: <int64>,
-    node1_policy: <RoutingPolicy>,
-    node2_policy: <RoutingPolicy>,
+    "channel_id": <uint64>,
+    "chan_point": <string>,
+    "last_update": <uint32>,
+    "node1_pub": <string>,
+    "node2_pub": <string>,
+    "capacity": <int64>,
+    "node1_policy": <RoutingPolicy>,
+    "node2_policy": <RoutingPolicy>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.getChanInfo({ 
-    chan_id: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('GetChanInfo: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    chan_id: <uint64>, 
+  } 
+> lightning.getChanInfo(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    channel_id: <uint64>,
-    chan_point: <string>,
-    last_update: <uint32>,
-    node1_pub: <string>,
-    node2_pub: <string>,
-    capacity: <int64>,
-    node1_policy: <RoutingPolicy>,
-    node2_policy: <RoutingPolicy>,
+    "channel_id": <uint64>,
+    "chan_point": <string>,
+    "last_update": <uint32>,
+    "node1_pub": <string>,
+    "node2_pub": <string>,
+    "capacity": <int64>,
+    "node1_policy": <RoutingPolicy>,
+    "node2_policy": <RoutingPolicy>,
 }
-
 ```
 
 ### gRPC Request: ChanInfoRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-chan_id | uint64 | optional | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+chan_id | uint64 | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel.  
 ### gRPC Response: ChannelEdge 
 
-A fully authenticated channel along with all its unique attributes. Once an authenticated channel announcement has been processed on the network, then a instance of ChannelEdgeInfo encapsulating the channels attributes is stored. The other portions relevant to routing policy of a channel are stored within a ChannelEdgePolicy for each direction of the channel.
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-channel_id | uint64 | optional | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
-chan_point | string | optional |  
-last_update | uint32 | optional |  
-node1_pub | string | optional |  
-node2_pub | string | optional |  
-capacity | int64 | optional |  
-node1_policy | RoutingPolicy | optional |  
-node2_policy | RoutingPolicy | optional |  
-
-
-
-### RoutingPolicy
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-time_lock_delta | uint32 | optional |  
-min_htlc | int64 | optional |  
-fee_base_msat | int64 | optional |  
-fee_rate_milli_msat | int64 | optional |  
-
-
-### RoutingPolicy
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-time_lock_delta | uint32 | optional |  
-min_htlc | int64 | optional |  
-fee_base_msat | int64 | optional |  
-fee_rate_milli_msat | int64 | optional |  
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+channel_id | uint64 | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
+chan_point | string |  
+last_update | uint32 |  
+node1_pub | string |  
+node2_pub | string |  
+capacity | int64 |  
+node1_policy | [RoutingPolicy](#routingpolicy) |  
+node2_policy | [RoutingPolicy](#routingpolicy) |   
 
 # GetNodeInfo
+
 
 ### Simple RPC
 
 
- GetNodeInfo returns the latest advertised, aggregated, and authenticated channel information for the specified node identified by its public key.
+GetNodeInfo returns the latest advertised, aggregated, and authenticated channel information for the specified node identified by its public key.
 
 ```shell
 
@@ -3276,94 +3263,76 @@ $ lncli getnodeinfo [command options] [arguments...]
 
 # --pub_key value  the 33-byte hex-encoded compressed public of the target node
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.NodeInfoRequest(
-        pub_key=<YOUR_PARAM>,
+        pub_key=<string>,
     )
->>> response = stub.GetNodeInfo(request)
->>> response
-
+>>> response = stub.GetNodeInfo(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    node: <LightningNode>,
-    num_channels: <uint32>,
-    total_capacity: <int64>,
+    "node": <LightningNode>,
+    "num_channels": <uint32>,
+    "total_capacity": <int64>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.getNodeInfo({ 
-    pub_key: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('GetNodeInfo: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    pub_key: <string>, 
+  } 
+> lightning.getNodeInfo(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    node: <LightningNode>,
-    num_channels: <uint32>,
-    total_capacity: <int64>,
+    "node": <LightningNode>,
+    "num_channels": <uint32>,
+    "total_capacity": <int64>,
 }
-
 ```
 
 ### gRPC Request: NodeInfoRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-pub_key | string | optional | The 33-byte hex-encoded compressed public of the target node 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+pub_key | string | The 33-byte hex-encoded compressed public of the target node  
 ### gRPC Response: NodeInfo 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-node | LightningNode | optional | An individual vertex/node within the channel graph. A node is connected to other nodes by one or more channel edges emanating from it. As the graph is directed, a node will also have an incoming edge attached to it for each outgoing edge. 
-num_channels | uint32 | optional |  
-total_capacity | int64 | optional |  
-
-
-
-### LightningNode
-An individual vertex/node within the channel graph. A node is connected to other nodes by one or more channel edges emanating from it. As the graph is directed, a node will also have an incoming edge attached to it for each outgoing edge.
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-last_update | uint32 | optional |  
-pub_key | string | optional |  
-alias | string | optional |  
-addresses | NodeAddress | repeated |  
-color | string | optional |  
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+node | [LightningNode](#lightningnode) | An individual vertex/node within the channel graph. A node is connected to other nodes by one or more channel edges emanating from it. As the graph is directed, a node will also have an incoming edge attached to it for each outgoing edge. 
+num_channels | uint32 |  
+total_capacity | int64 |   
 
 # QueryRoutes
+
 
 ### Simple RPC
 
 
- QueryRoutes attempts to query the daemon's Channel Router for a possible route to a target destination capable of carrying a specific amount of satoshis. The retuned route contains the full details required to craft and send an HTLC, also including the necessary information that should be present within the Sphinx packet encapsulated within the HTLC.
+QueryRoutes attempts to query the daemon's Channel Router for a possible route to a target destination capable of carrying a specific amount of satoshis. The retuned route contains the full details required to craft and send an HTLC, also including the necessary information that should be present within the Sphinx packet encapsulated within the HTLC.
 
 ```shell
 
@@ -3371,97 +3340,89 @@ color | string | optional |
 
 $ lncli queryroutes [command options] dest amt
 
-# --dest value            the 33-byte hex-encoded public key for the payment destination
-# --amt value             the amount to send expressed in satoshis (default: 0)
-# --num_max_routes value  the max number of routes to be returned (default: 10) (default: 10)
+# --dest value               the 33-byte hex-encoded public key for the payment destination
+# --amt value                the amount to send expressed in satoshis (default: 0)
+# --fee_limit value          maximum fee allowed in satoshis when sendingthe payment (default: 0)
+# --fee_limit_percent value  percentage of the payment's amount used as themaximum fee allowed when sending the payment (default: 0)
+# --num_max_routes value     the max number of routes to be returned (default: 10) (default: 10)
+# --final_cltv_delta value   (optional) number of blocks the last hop has to reveal the preimage (default: 0)
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.QueryRoutesRequest(
-        pub_key=<YOUR_PARAM>,
-        amt=<YOUR_PARAM>,
-        num_routes=<YOUR_PARAM>,
+        pub_key=<string>,
+        amt=<int64>,
+        num_routes=<int32>,
+        final_cltv_delta=<int32>,
+        fee_limit=<FeeLimit>,
     )
->>> response = stub.QueryRoutes(request)
->>> response
-
+>>> response = stub.QueryRoutes(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    routes: <Route>,
+    "routes": <array Route>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.queryRoutes({ 
-    pub_key: <YOUR_PARAM>,
-    amt: <YOUR_PARAM>,
-    num_routes: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('QueryRoutes: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    pub_key: <string>, 
+    amt: <int64>, 
+    num_routes: <int32>, 
+    final_cltv_delta: <int32>, 
+    fee_limit: <FeeLimit>, 
+  } 
+> lightning.queryRoutes(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    routes: <Route>,
+    "routes": <array Route>,
 }
-
 ```
 
 ### gRPC Request: QueryRoutesRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-pub_key | string | optional | The 33-byte hex-encoded public key for the payment destination 
-amt | int64 | optional | The amount to send expressed in satoshis 
-num_routes | int32 | optional | The max number of routes to return. 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+pub_key | string | The 33-byte hex-encoded public key for the payment destination 
+amt | int64 | The amount to send expressed in satoshis 
+num_routes | int32 | The max number of routes to return. 
+final_cltv_delta | int32 | An optional CLTV delta from the current height that should be used for the timelock of the final hop 
+fee_limit | [FeeLimit](#feelimit) | The maximum number of satoshis that will be paid as a fee of the payment. This value can be represented either as a percentage of the amount being sent, or as a fixed amount of the maximum fee the user is willing the pay to send the payment.  
 ### gRPC Response: QueryRoutesResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-routes | Route | repeated |  
-
-
-
-### Route
-A path through the channel graph which runs over one or more channels in succession. This struct carries all the information required to craft the Sphinx onion packet, and send the payment along the first hop in the path. A route is only selected as valid if all the channels have sufficient capacity to carry the initial payment amount after fees are accounted for.
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-total_time_lock | uint32 | optional | The cumulative (final) time lock across the entire route.  This is the CLTV value that should be extended to the first hop in the route. All other hops will decrement the time-lock as advertised, leaving enough time for all hops to wait for or present the payment preimage to complete the payment. 
-total_fees | int64 | optional | The sum of the fees paid at each hop within the final route.  In the case of a one-hop payment, this value will be zero as we don't need to pay a fee it ourself. 
-total_amt | int64 | optional | The total amount of funds required to complete a payment over this route. This value includes the cumulative fees at each hop. As a result, the HTLC extended to the first-hop in the route will need to have at least this many satoshis, otherwise the route will fail at an intermediate node due to an insufficient amount of fees. 
-hops | Hop | repeated | Contains details concerning the specific forwarding details at each hop. 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+routes | [array Route](#route) |   
 
 # GetNetworkInfo
+
 
 ### Simple RPC
 
 
- GetNetworkInfo returns some basic stats about the known channel graph from the point of view of the node.
+GetNetworkInfo returns some basic stats about the known channel graph from the point of view of the node.
 
 ```shell
 
@@ -3470,94 +3431,89 @@ hops | Hop | repeated | Contains details concerning the specific forwarding deta
 $ lncli getnetworkinfo [arguments...]
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.NetworkInfoRequest()
->>> response = stub.GetNetworkInfo(request)
->>> response
-
+>>> response = stub.GetNetworkInfo(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    graph_diameter: <uint32>,
-    avg_out_degree: <double>,
-    max_out_degree: <uint32>,
-    num_nodes: <uint32>,
-    num_channels: <uint32>,
-    total_network_capacity: <int64>,
-    avg_channel_size: <double>,
-    min_channel_size: <int64>,
-    max_channel_size: <int64>,
+    "graph_diameter": <uint32>,
+    "avg_out_degree": <double>,
+    "max_out_degree": <uint32>,
+    "num_nodes": <uint32>,
+    "num_channels": <uint32>,
+    "total_network_capacity": <int64>,
+    "avg_channel_size": <double>,
+    "min_channel_size": <int64>,
+    "max_channel_size": <int64>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.getNetworkInfo({}, function(err, response) {
-    console.log('GetNetworkInfo: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = {} 
+> lightning.getNetworkInfo(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    graph_diameter: <uint32>,
-    avg_out_degree: <double>,
-    max_out_degree: <uint32>,
-    num_nodes: <uint32>,
-    num_channels: <uint32>,
-    total_network_capacity: <int64>,
-    avg_channel_size: <double>,
-    min_channel_size: <int64>,
-    max_channel_size: <int64>,
+    "graph_diameter": <uint32>,
+    "avg_out_degree": <double>,
+    "max_out_degree": <uint32>,
+    "num_nodes": <uint32>,
+    "num_channels": <uint32>,
+    "total_network_capacity": <int64>,
+    "avg_channel_size": <double>,
+    "min_channel_size": <int64>,
+    "max_channel_size": <int64>,
 }
-
 ```
 
 ### gRPC Request: NetworkInfoRequest 
 
 
-
 This request has no parameters.
-
-
-
 
 ### gRPC Response: NetworkInfo 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-graph_diameter | uint32 | optional |  
-avg_out_degree | double | optional |  
-max_out_degree | uint32 | optional |  
-num_nodes | uint32 | optional |  
-num_channels | uint32 | optional |  
-total_network_capacity | int64 | optional |  
-avg_channel_size | double | optional |  
-min_channel_size | int64 | optional |  
-max_channel_size | int64 | optional |  
-
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+graph_diameter | uint32 |  
+avg_out_degree | double |  
+max_out_degree | uint32 |  
+num_nodes | uint32 |  
+num_channels | uint32 |  
+total_network_capacity | int64 |  
+avg_channel_size | double |  
+min_channel_size | int64 |  
+max_channel_size | int64 |   
 
 # StopDaemon
+
 
 ### Simple RPC
 
 
- StopDaemon will send a shutdown request to the interrupt handler, triggering a graceful shutdown of the daemon.
+StopDaemon will send a shutdown request to the interrupt handler, triggering a graceful shutdown of the daemon.
 
 ```shell
 
@@ -3567,55 +3523,57 @@ max_channel_size | int64 | optional |
 $ lncli stop [arguments...]
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.StopRequest()
->>> response = stub.StopDaemon(request)
->>> response
-{}
+>>> response = stub.StopDaemon(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
+{ 
+}
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.stopDaemon({}, function(err, response) {
-    console.log('StopDaemon: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = {} 
+> lightning.stopDaemon(request, function(err, response) {
+    console.log(response);
   })
-{}
+{ 
+}
 ```
 
 ### gRPC Request: StopRequest 
 
 
-
 This request has no parameters.
-
-
-
 
 ### gRPC Response: StopResponse 
 
 
-
-This response is empty.
-
-
-
-
+This response has no parameters.
 
 
 # SubscribeChannelGraph
+
 
 ### Response-streaming RPC
 
@@ -3625,126 +3583,83 @@ SubscribeChannelGraph launches a streaming RPC that allows the caller to receive
 ```shell
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.GraphTopologySubscription()
->>> for response in stub.SubscribeChannelGraph(request):
-    # Do something
-    print response
-
+>>> for response in stub.SubscribeChannelGraph(request, metadata=[('macaroon', macaroon)]):
+        print(response)
 { 
-    node_updates: <NodeUpdate>,
-    channel_updates: <ChannelEdgeUpdate>,
-    closed_chans: <ClosedChannelUpdate>,
+    "node_updates": <array NodeUpdate>,
+    "channel_updates": <array ChannelEdgeUpdate>,
+    "closed_chans": <array ClosedChannelUpdate>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials);
-> var call = lightning.subscribeChannelGraph({})
-
-> call.on('data', function(message) {
-    console.log(message);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
   });
-> call.on('end', function() {
-    // The server has finished sending
-    console.log("END");
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = {} 
+> var call = lightning.subscribeChannelGraph(request)
+> call.on('data', function(response) {
+    // A response was received from the server.
+    console.log(response);
   });
 > call.on('status', function(status) {
-    // Process status
-    console.log("Current status: " + status);
+    // The current status of the stream.
   });
-
+> call.on('end', function() {
+    // The server has closed the stream.
+  });
 { 
-    node_updates: <NodeUpdate>,
-    channel_updates: <ChannelEdgeUpdate>,
-    closed_chans: <ClosedChannelUpdate>,
+    "node_updates": <array NodeUpdate>,
+    "channel_updates": <array ChannelEdgeUpdate>,
+    "closed_chans": <array ClosedChannelUpdate>,
 }
-
 ```
 
 ### gRPC Request: GraphTopologySubscription 
 
 
-
 This request has no parameters.
-
-
-
 
 ### gRPC Response: GraphTopologyUpdate (Streaming)
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-node_updates | NodeUpdate | repeated |  
-channel_updates | ChannelEdgeUpdate | repeated |  
-closed_chans | ClosedChannelUpdate | repeated |  
-
-
-
-### NodeUpdate
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-addresses | string | repeated |  
-identity_key | string | optional |  
-global_features | bytes | optional |  
-alias | string | optional |  
-
-
-### ChannelEdgeUpdate
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-chan_id | uint64 | optional | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
-chan_point | ChannelPoint | optional |  
-capacity | int64 | optional |  
-routing_policy | RoutingPolicy | optional |  
-advertising_node | string | optional |  
-connecting_node | string | optional |  
-
-
-### ClosedChannelUpdate
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-chan_id | uint64 | optional | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
-capacity | int64 | optional |  
-closed_height | uint32 | optional |  
-chan_point | ChannelPoint | optional |  
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+node_updates | [array NodeUpdate](#nodeupdate) |  
+channel_updates | [array ChannelEdgeUpdate](#channeledgeupdate) |  
+closed_chans | [array ClosedChannelUpdate](#closedchannelupdate) |   
 
 # DebugLevel
+
 
 ### Simple RPC
 
 
- DebugLevel allows a caller to programmatically set the logging verbosity of lnd. The logging can be targeted according to a coarse daemon-wide logging level, or in a granular fashion to specify the logging for a target sub-system.
+DebugLevel allows a caller to programmatically set the logging verbosity of lnd. The logging can be targeted according to a coarse daemon-wide logging level, or in a granular fashion to specify the logging for a target sub-system.
 
 ```shell
 
-# Logging level for all subsystems {trace, debug, info, warn, error, critical}
+# Logging level for all subsystems {trace, debug, info, warn, error, critical, off}
 # You may also specify <subsystem>=<level>,<subsystem2>=<level>,... to set the log level for individual subsystems
 # Use show to list available subsystems
 
@@ -3753,79 +3668,73 @@ $ lncli debuglevel [command options] [arguments...]
 # --show         if true, then the list of available sub-systems will be printed out
 # --level value  the level specification to target either a coarse logging level, or granular set of specific sub-systems with logging levels for each
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.DebugLevelRequest(
-        show=<YOUR_PARAM>,
-        level_spec=<YOUR_PARAM>,
+        show=<bool>,
+        level_spec=<string>,
     )
->>> response = stub.DebugLevel(request)
->>> response
-
+>>> response = stub.DebugLevel(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    sub_systems: <string>,
+    "sub_systems": <string>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.debugLevel({ 
-    show: <YOUR_PARAM>,
-    level_spec: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('DebugLevel: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    show: <bool>, 
+    level_spec: <string>, 
+  } 
+> lightning.debugLevel(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    sub_systems: <string>,
+    "sub_systems": <string>,
 }
-
 ```
 
 ### gRPC Request: DebugLevelRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-show | bool | optional |  
-level_spec | string | optional |  
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+show | bool |  
+level_spec | string |   
 ### gRPC Response: DebugLevelResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-sub_systems | string | optional |  
-
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+sub_systems | string |   
 
 # FeeReport
+
 
 ### Simple RPC
 
 
- FeeReport allows the caller to obtain a report detailing the current fee schedule enforced by the node globally for each channel.
+FeeReport allows the caller to obtain a report detailing the current fee schedule enforced by the node globally for each channel.
 
 ```shell
 
@@ -3835,90 +3744,74 @@ sub_systems | string | optional |
 $ lncli feereport [arguments...]
 
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.FeeReportRequest()
->>> response = stub.FeeReport(request)
->>> response
-
+>>> response = stub.FeeReport(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    channel_fees: <ChannelFeeReport>,
-    day_fee_sum: <uint64>,
-    week_fee_sum: <uint64>,
-    month_fee_sum: <uint64>,
+    "channel_fees": <array ChannelFeeReport>,
+    "day_fee_sum": <uint64>,
+    "week_fee_sum": <uint64>,
+    "month_fee_sum": <uint64>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.feeReport({}, function(err, response) {
-    console.log('FeeReport: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = {} 
+> lightning.feeReport(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    channel_fees: <ChannelFeeReport>,
-    day_fee_sum: <uint64>,
-    week_fee_sum: <uint64>,
-    month_fee_sum: <uint64>,
+    "channel_fees": <array ChannelFeeReport>,
+    "day_fee_sum": <uint64>,
+    "week_fee_sum": <uint64>,
+    "month_fee_sum": <uint64>,
 }
-
 ```
 
 ### gRPC Request: FeeReportRequest 
 
 
-
 This request has no parameters.
-
-
-
 
 ### gRPC Response: FeeReportResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-channel_fees | ChannelFeeReport | repeated | An array of channel fee reports which describes the current fee schedule for each channel. 
-day_fee_sum | uint64 | optional | The total amount of fee revenue (in satoshis) the switch has collected over the past 24 hrs. 
-week_fee_sum | uint64 | optional | The total amount of fee revenue (in satoshis) the switch has collected over the past 1 week. 
-month_fee_sum | uint64 | optional | The total amount of fee revenue (in satoshis) the switch has collected over the past 1 month. 
-
-
-
-### ChannelFeeReport
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-chan_point | string | optional | The channel that this fee report belongs to. 
-base_fee_msat | int64 | optional | The base fee charged regardless of the number of milli-satoshis sent. 
-fee_per_mil | int64 | optional | The amount charged per milli-satoshis transferred expressed in millionths of a satoshi. 
-fee_rate | double | optional | The effective fee rate in milli-satoshis. Computed by dividing the fee_per_mil value by 1 million. 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+channel_fees | [array ChannelFeeReport](#channelfeereport) | An array of channel fee reports which describes the current fee schedule for each channel. 
+day_fee_sum | uint64 | The total amount of fee revenue (in satoshis) the switch has collected over the past 24 hrs. 
+week_fee_sum | uint64 | The total amount of fee revenue (in satoshis) the switch has collected over the past 1 week. 
+month_fee_sum | uint64 | The total amount of fee revenue (in satoshis) the switch has collected over the past 1 month.  
 
 # UpdateChannelPolicy
+
 
 ### Simple RPC
 
 
- UpdateChannelPolicy allows the caller to update the fee schedule and channel policies for all channels globally, or a particular channel.
+UpdateChannelPolicy allows the caller to update the fee schedule and channel policies for all channels globally, or a particular channel.
 
 ```shell
 
@@ -3934,92 +3827,83 @@ $ lncli updatechanpolicy [command options] base_fee_msat fee_rate time_lock_delt
 # --time_lock_delta value  the CLTV delta that will be applied to all forwarded HTLCs (default: 0)
 # --chan_point value       The channel whose fee policy should be updated, if nil the policies for all channels will be updated. Takes the form of: txid:output_index
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.PolicyUpdateRequest(
-        global=<YOUR_PARAM>,
-        chan_point=<YOUR_PARAM>,
-        base_fee_msat=<YOUR_PARAM>,
-        fee_rate=<YOUR_PARAM>,
-        time_lock_delta=<YOUR_PARAM>,
+        global=<bool>,
+        chan_point=<ChannelPoint>,
+        base_fee_msat=<int64>,
+        fee_rate=<double>,
+        time_lock_delta=<uint32>,
     )
->>> response = stub.UpdateChannelPolicy(request)
->>> response
-{}
+>>> response = stub.UpdateChannelPolicy(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
+{ 
+}
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.updateChannelPolicy({ 
-    global: <YOUR_PARAM>,
-    chan_point: <YOUR_PARAM>,
-    base_fee_msat: <YOUR_PARAM>,
-    fee_rate: <YOUR_PARAM>,
-    time_lock_delta: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('UpdateChannelPolicy: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    global: <bool>, 
+    chan_point: <ChannelPoint>, 
+    base_fee_msat: <int64>, 
+    fee_rate: <double>, 
+    time_lock_delta: <uint32>, 
+  } 
+> lightning.updateChannelPolicy(request, function(err, response) {
+    console.log(response);
   })
-{}
+{ 
+}
 ```
 
 ### gRPC Request: PolicyUpdateRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-global | bool | optional | If set, then this update applies to all currently active channels. 
-chan_point | ChannelPoint | optional | If set, this update will target a specific channel. 
-base_fee_msat | int64 | optional | The base fee charged regardless of the number of milli-satoshis sent. 
-fee_rate | double | optional | The effective fee rate in milli-satoshis. The precision of this value goes up to 6 decimal places, so 1e-6. 
-time_lock_delta | uint32 | optional | The required timelock delta for HTLCs forwarded over the channel. 
-
-
-
-### ChannelPoint
-
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-funding_txid_bytes | bytes | optional | Txid of the funding transaction 
-funding_txid_str | string | optional | Hex-encoded string representing the funding transaction 
-output_index | uint32 | optional | The index of the output of the funding transaction 
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+global | bool | If set, then this update applies to all currently active channels. 
+chan_point | [ChannelPoint](#channelpoint) | If set, this update will target a specific channel. 
+base_fee_msat | int64 | The base fee charged regardless of the number of milli-satoshis sent. 
+fee_rate | double | The effective fee rate in milli-satoshis. The precision of this value goes up to 6 decimal places, so 1e-6. 
+time_lock_delta | uint32 | The required timelock delta for HTLCs forwarded over the channel.  
 ### gRPC Response: PolicyUpdateResponse 
 
 
-
-This response is empty.
-
-
-
-
+This response has no parameters.
 
 
 # ForwardingHistory
 
+
 ### Simple RPC
 
 
- ForwardingHistory allows the caller to query the htlcswitch for a record of all HTLC's forwarded within the target time range, and integer offset within that time range. If no time-range is specified, then the first chunk of the past 24 hrs of forwarding history are returned.  A list of forwarding events are returned. The size of each forwarding event is 40 bytes, and the max message size able to be returned in gRPC is 4 MiB. As a result each message can only contain 50k entries.  Each response has the index offset of the last entry. The index offset can be provided to the request to allow the caller to skip a series of records.
+ForwardingHistory allows the caller to query the htlcswitch for a record of all HTLC's forwarded within the target time range, and integer offset within that time range. If no time-range is specified, then the first chunk of the past 24 hrs of forwarding history are returned.  A list of forwarding events are returned. The size of each forwarding event is 40 bytes, and the max message size able to be returned in gRPC is 4 MiB. As a result each message can only contain 50k entries.  Each response has the index offset of the last entry. The index offset can be provided to the request to allow the caller to skip a series of records.
 
 ```shell
 
-# Query the htlc switch's internal forwarding log for all completed
+# Query the HTLC switch's internal forwarding log for all completed
 # payment circuits (HTLCs) over a particular time range (--start_time and
 # --end_time). The start and end times are meant to be expressed in
 # seconds since the Unix epoch. If a start and end time aren't provided,
@@ -4037,90 +3921,1082 @@ $ lncli fwdinghistory [command options] start_time [end_time] [index_offset] [ma
 # --index_offset value  the number of events to skip (default: 0)
 # --max_events value    the max number of events to return (default: 0)
 ```
-
 ```python
+>>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> import grpc
->>> cert = open('LND_HOMEDIR/tls.cert').read()
->>> creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', creds)
+>>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ForwardingHistoryRequest(
-        start_time=<YOUR_PARAM>,
-        end_time=<YOUR_PARAM>,
-        index_offset=<YOUR_PARAM>,
-        num_max_events=<YOUR_PARAM>,
+        start_time=<uint64>,
+        end_time=<uint64>,
+        index_offset=<uint32>,
+        num_max_events=<uint32>,
     )
->>> response = stub.ForwardingHistory(request)
->>> response
-
+>>> response = stub.ForwardingHistory(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
 { 
-    forwarding_events: <ForwardingEvent>,
-    last_offset_index: <uint32>,
+    "forwarding_events": <array ForwardingEvent>,
+    "last_offset_index": <uint32>,
 }
-
 ```
-
 ```javascript
-> var grpc = require('grpc');
 > var fs = require('fs');
-> var lndCert = fs.readFileSync("LND_HOMEDIR/tls.cert");
-> var credentials = grpc.credentials.createSsl(lndCert);
-> var lnrpcDescriptor = grpc.load("rpc.proto");
-> var lnrpc = lnrpcDescriptor.lnrpc;
-> var lightning = new lnrpc.Lightning('localhost:10009', credentials); 
-> call = lightning.forwardingHistory({ 
-    start_time: <YOUR_PARAM>,
-    end_time: <YOUR_PARAM>,
-    index_offset: <YOUR_PARAM>,
-    num_max_events: <YOUR_PARAM>,
-  }, function(err, response) {
-    console.log('ForwardingHistory: ' + response);
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    start_time: <uint64>, 
+    end_time: <uint64>, 
+    index_offset: <uint32>, 
+    num_max_events: <uint32>, 
+  } 
+> lightning.forwardingHistory(request, function(err, response) {
+    console.log(response);
   })
-
 { 
-    forwarding_events: <ForwardingEvent>,
-    last_offset_index: <uint32>,
+    "forwarding_events": <array ForwardingEvent>,
+    "last_offset_index": <uint32>,
 }
-
 ```
 
 ### gRPC Request: ForwardingHistoryRequest 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-start_time | uint64 | optional | Start time is the starting point of the forwarding history request. All records beyond this point will be included, respecting the end time, and the index offset. 
-end_time | uint64 | optional | End time is the end point of the forwarding history request. The response will carry at most 50k records between the start time and the end time. The index offset can be used to implement pagination. 
-index_offset | uint32 | optional | Index offset is the offset in the time series to start at. As each response can only contain 50k records, callers can use this to skip around within a packed time series. 
-num_max_events | uint32 | optional | The max number of events to return in the response to this query. 
-
-
-
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+start_time | uint64 | Start time is the starting point of the forwarding history request. All records beyond this point will be included, respecting the end time, and the index offset. 
+end_time | uint64 | End time is the end point of the forwarding history request. The response will carry at most 50k records between the start time and the end time. The index offset can be used to implement pagination. 
+index_offset | uint32 | Index offset is the offset in the time series to start at. As each response can only contain 50k records, callers can use this to skip around within a packed time series. 
+num_max_events | uint32 | The max number of events to return in the response to this query.  
 ### gRPC Response: ForwardingHistoryResponse 
 
 
-
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-forwarding_events | ForwardingEvent | repeated | A list of forwarding events from the time slice of the time series specified in the request. 
-last_offset_index | uint32 | optional | The index of the last time in the set of returned forwarding events. Can be used to seek further, pagination style. 
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+forwarding_events | [array ForwardingEvent](#forwardingevent) | A list of forwarding events from the time slice of the time series specified in the request. 
+last_offset_index | uint32 | The index of the last time in the set of returned forwarding events. Can be used to seek further, pagination style.  
 
 
-### ForwardingEvent
+# Messages
+
+## AddInvoiceResponse
 
 
-Field | Type | Label | Description
------ | ---- | ----- | ----------- 
-timestamp | uint64 | optional | Timestamp is the time (unix epoch offset) that this circuit was completed. 
-chan_id_in | uint64 | optional | The incoming channel ID that carried the HTLC that created the circuit. 
-chan_id_out | uint64 | optional | The outgoing channel ID that carried the preimage that completed the circuit. 
-amt_in | uint64 | optional | The total amount of the incoming HTLC that created half the circuit. 
-amt_out | uint64 | optional | The total amount of the outgoign HTLC that created the second half of the circuit. 
-fee | uint64 | optional | The total fee that this payment circuit carried. 
+Parameter | Type | Description
+--------- | ---- | ----------- 
+r_hash | bytes |  
+payment_request | string | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient.  
+
+## ChanInfoRequest
 
 
+Parameter | Type | Description
+--------- | ---- | ----------- 
+chan_id | uint64 | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel.  
 
+## ChangePasswordRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+current_password | bytes | current_password should be the current valid passphrase used to unlock the daemon. 
+new_password | bytes | new_password should be the new passphrase that will be needed to unlock the daemon.  
+
+## ChangePasswordResponse
+
+
+This message has no parameters.
+
+
+## Channel
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+active | bool | Whether this channel is active or not 
+remote_pubkey | string | The identity pubkey of the remote node 
+channel_point | string | The outpoint (txid:index) of the funding transaction. With this value, Bob will be able to generate a signature for Alice's version of the commitment transaction. 
+chan_id | uint64 | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
+capacity | int64 | The total amount of funds held in this channel 
+local_balance | int64 | This node's current balance in this channel 
+remote_balance | int64 | The counterparty's current balance in this channel 
+commit_fee | int64 | The amount calculated to be paid in fees for the current set of commitment transactions. The fee amount is persisted with the channel in order to allow the fee amount to be removed and recalculated with each channel state update, including updates that happen after a system restart. 
+commit_weight | int64 | The weight of the commitment transaction 
+fee_per_kw | int64 | The required number of satoshis per kilo-weight that the requester will pay at all times, for both the funding transaction and commitment transaction. This value can later be updated once the channel is open. 
+unsettled_balance | int64 | The unsettled balance in this channel 
+total_satoshis_sent | int64 | The total number of satoshis we've sent within this channel. 
+total_satoshis_received | int64 | The total number of satoshis we've received within this channel. 
+num_updates | uint64 | The total number of updates conducted within this channel. 
+pending_htlcs | [array HTLC](#htlc) | The list of active, uncleared HTLCs currently pending within the channel. 
+csv_delay | uint32 | The CSV delay expressed in relative blocks. If the channel is force closed, we'll need to wait for this many blocks before we can regain our funds. 
+private | bool | Whether this channel is advertised to the network or not  
+
+## ChannelBalanceRequest
+
+
+This message has no parameters.
+
+
+## ChannelBalanceResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+balance | int64 | Sum of channels balances denominated in satoshis 
+pending_open_balance | int64 | Sum of channels pending balances denominated in satoshis  
+
+## ChannelCloseSummary
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+channel_point | string | The outpoint (txid:index) of the funding transaction. 
+chan_id | uint64 | The unique channel ID for the channel. 
+chain_hash | string | The hash of the genesis block that this channel resides within. 
+closing_tx_hash | string | The txid of the transaction which ultimately closed this channel. 
+remote_pubkey | string | Public key of the remote peer that we formerly had a channel with. 
+capacity | int64 | Total capacity of the channel. 
+close_height | uint32 | Height at which the funding transaction was spent. 
+settled_balance | int64 | Settled balance at the time of channel closure 
+time_locked_balance | int64 | The sum of all the time-locked outputs at the time of channel closure 
+close_type | [ClosureType](#closuretype) | Details on how the channel was closed.  
+
+## ChannelCloseUpdate
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+closing_txid | bytes |  
+success | bool |   
+
+## ChannelEdge
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+channel_id | uint64 | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
+chan_point | string |  
+last_update | uint32 |  
+node1_pub | string |  
+node2_pub | string |  
+capacity | int64 |  
+node1_policy | [RoutingPolicy](#routingpolicy) |  
+node2_policy | [RoutingPolicy](#routingpolicy) |   
+
+## ChannelEdgeUpdate
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+chan_id | uint64 | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
+chan_point | [ChannelPoint](#channelpoint) |  
+capacity | int64 |  
+routing_policy | [RoutingPolicy](#routingpolicy) |  
+advertising_node | string |  
+connecting_node | string |   
+
+## ChannelFeeReport
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+chan_point | string | The channel that this fee report belongs to. 
+base_fee_msat | int64 | The base fee charged regardless of the number of milli-satoshis sent. 
+fee_per_mil | int64 | The amount charged per milli-satoshis transferred expressed in millionths of a satoshi. 
+fee_rate | double | The effective fee rate in milli-satoshis. Computed by dividing the fee_per_mil value by 1 million.  
+
+## ChannelGraph
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+nodes | [array LightningNode](#lightningnode) | The list of `LightningNode`s in this channel graph 
+edges | [array ChannelEdge](#channeledge) | The list of `ChannelEdge`s in this channel graph  
+
+## ChannelGraphRequest
+
+
+This message has no parameters.
+
+
+## ChannelOpenUpdate
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+channel_point | [ChannelPoint](#channelpoint) |   
+
+## ChannelPoint
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+funding_txid_bytes | bytes | Txid of the funding transaction 
+funding_txid_str | string | Hex-encoded string representing the funding transaction 
+output_index | uint32 | The index of the output of the funding transaction  
+
+## CloseChannelRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+channel_point | [ChannelPoint](#channelpoint) | The outpoint (txid:index) of the funding transaction. With this value, Bob will be able to generate a signature for Alice's version of the commitment transaction. 
+force | bool | If true, then the channel will be closed forcibly. This means the current commitment transaction will be signed and broadcast. 
+target_conf | int32 | The target number of blocks that the closure transaction should be confirmed by. 
+sat_per_byte | int64 | A manual fee rate set in sat/byte that should be used when crafting the closure transaction.  
+
+## CloseStatusUpdate
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+close_pending | [PendingUpdate](#pendingupdate) |  
+confirmation | [ConfirmationUpdate](#confirmationupdate) |  
+chan_close | [ChannelCloseUpdate](#channelcloseupdate) |   
+
+## ClosedChannelUpdate
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+chan_id | uint64 | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
+capacity | int64 |  
+closed_height | uint32 |  
+chan_point | [ChannelPoint](#channelpoint) |   
+
+## ClosedChannelsRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+cooperative | bool |  
+local_force | bool |  
+remote_force | bool |  
+breach | bool |  
+funding_canceled | bool |   
+
+## ClosedChannelsResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+channels | [array ChannelCloseSummary](#channelclosesummary) |   
+
+## ConfirmationUpdate
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+block_sha | bytes |  
+block_height | int32 |  
+num_confs_left | uint32 |   
+
+## ConnectPeerRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+addr | [LightningAddress](#lightningaddress) | Lightning address of the peer, in the format `<pubkey>@host` 
+perm | bool | If set, the daemon will attempt to persistently connect to the target peer.  Otherwise, the call will be synchronous.  
+
+## ConnectPeerResponse
+
+
+This message has no parameters.
+
+
+## DebugLevelRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+show | bool |  
+level_spec | string |   
+
+## DebugLevelResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+sub_systems | string |   
+
+## DeleteAllPaymentsRequest
+
+
+This message has no parameters.
+
+
+## DeleteAllPaymentsResponse
+
+
+This message has no parameters.
+
+
+## DisconnectPeerRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+pub_key | string | The pubkey of the node to disconnect from  
+
+## DisconnectPeerResponse
+
+
+This message has no parameters.
+
+
+## FeeLimit
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+fixed | int64 | The fee limit expressed as a fixed amount of satoshis. 
+percent | int64 | The fee limit expressed as a percentage of the payment amount.  
+
+## FeeReportRequest
+
+
+This message has no parameters.
+
+
+## FeeReportResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+channel_fees | [array ChannelFeeReport](#channelfeereport) | An array of channel fee reports which describes the current fee schedule for each channel. 
+day_fee_sum | uint64 | The total amount of fee revenue (in satoshis) the switch has collected over the past 24 hrs. 
+week_fee_sum | uint64 | The total amount of fee revenue (in satoshis) the switch has collected over the past 1 week. 
+month_fee_sum | uint64 | The total amount of fee revenue (in satoshis) the switch has collected over the past 1 month.  
+
+## ForwardingEvent
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+timestamp | uint64 | Timestamp is the time (unix epoch offset) that this circuit was completed. 
+chan_id_in | uint64 | The incoming channel ID that carried the HTLC that created the circuit. 
+chan_id_out | uint64 | The outgoing channel ID that carried the preimage that completed the circuit. 
+amt_in | uint64 | The total amount of the incoming HTLC that created half the circuit. 
+amt_out | uint64 | The total amount of the outgoign HTLC that created the second half of the circuit. 
+fee | uint64 | The total fee that this payment circuit carried.  
+
+## ForwardingHistoryRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+start_time | uint64 | Start time is the starting point of the forwarding history request. All records beyond this point will be included, respecting the end time, and the index offset. 
+end_time | uint64 | End time is the end point of the forwarding history request. The response will carry at most 50k records between the start time and the end time. The index offset can be used to implement pagination. 
+index_offset | uint32 | Index offset is the offset in the time series to start at. As each response can only contain 50k records, callers can use this to skip around within a packed time series. 
+num_max_events | uint32 | The max number of events to return in the response to this query.  
+
+## ForwardingHistoryResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+forwarding_events | [array ForwardingEvent](#forwardingevent) | A list of forwarding events from the time slice of the time series specified in the request. 
+last_offset_index | uint32 | The index of the last time in the set of returned forwarding events. Can be used to seek further, pagination style.  
+
+## GenSeedRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+aezeed_passphrase | bytes | aezeed_passphrase is an optional user provided passphrase that will be used to encrypt the generated aezeed cipher seed. 
+seed_entropy | bytes | seed_entropy is an optional 16-bytes generated via CSPRNG. If not specified, then a fresh set of randomness will be used to create the seed.  
+
+## GenSeedResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+cipher_seed_mnemonic | array string | cipher_seed_mnemonic is a 24-word mnemonic that encodes a prior aezeed cipher seed obtained by the user. This field is optional, as if not provided, then the daemon will generate a new cipher seed for the user. Otherwise, then the daemon will attempt to recover the wallet state linked to this cipher seed. 
+enciphered_seed | bytes | enciphered_seed are the raw aezeed cipher seed bytes. This is the raw cipher text before run through our mnemonic encoding scheme.  
+
+## GetInfoRequest
+
+
+This message has no parameters.
+
+
+## GetInfoResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+identity_pubkey | string | The identity pubkey of the current node. 
+alias | string | If applicable, the alias of the current node, e.g. "bob" 
+num_pending_channels | uint32 | Number of pending channels 
+num_active_channels | uint32 | Number of active channels 
+num_peers | uint32 | Number of peers 
+block_height | uint32 | The node's current view of the height of the best block 
+block_hash | string | The node's current view of the hash of the best block 
+synced_to_chain | bool | Whether the wallet's view is synced to the main chain 
+testnet | bool | Whether the current node is connected to testnet 
+chains | array string | A list of active chains the node is connected to 
+uris | array string | The URIs of the current node. 
+best_header_timestamp | int64 | Timestamp of the block best known to the wallet 
+version | string | The version of the LND software that the node is running.  
+
+## GetTransactionsRequest
+
+
+This message has no parameters.
+
+
+## GraphTopologySubscription
+
+
+This message has no parameters.
+
+
+## GraphTopologyUpdate
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+node_updates | [array NodeUpdate](#nodeupdate) |  
+channel_updates | [array ChannelEdgeUpdate](#channeledgeupdate) |  
+closed_chans | [array ClosedChannelUpdate](#closedchannelupdate) |   
+
+## HTLC
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+incoming | bool |  
+amount | int64 |  
+hash_lock | bytes |  
+expiration_height | uint32 |   
+
+## Hop
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+chan_id | uint64 | The unique channel ID for the channel. The first 3 bytes are the block height, the next 3 the index within the block, and the last 2 bytes are the output index for the channel. 
+chan_capacity | int64 |  
+amt_to_forward | int64 |  
+fee | int64 |  
+expiry | uint32 |  
+amt_to_forward_msat | int64 |  
+fee_msat | int64 |   
+
+## HopHint
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+node_id | string | The public key of the node at the start of the channel. 
+chan_id | uint64 | The unique identifier of the channel. 
+fee_base_msat | uint32 | The base fee of the channel denominated in millisatoshis. 
+fee_proportional_millionths | uint32 | The fee rate of the channel for sending one satoshi across it denominated in millionths of a satoshi. 
+cltv_expiry_delta | uint32 | The time-lock delta of the channel.  
+
+## InitWalletRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+wallet_password | bytes | wallet_password is the passphrase that should be used to encrypt the wallet. This MUST be at least 8 chars in length. After creation, this password is required to unlock the daemon. 
+cipher_seed_mnemonic | array string | cipher_seed_mnemonic is a 24-word mnemonic that encodes a prior aezeed cipher seed obtained by the user. This may have been generated by the GenSeed method, or be an existing seed. 
+aezeed_passphrase | bytes | aezeed_passphrase is an optional user provided passphrase that will be used to encrypt the generated aezeed cipher seed. 
+recovery_window | int32 | recovery_window is an optional argument specifying the address lookahead when restoring a wallet seed. The recovery window applies to each invdividual branch of the BIP44 derivation paths. Supplying a recovery window of zero indicates that no addresses should be recovered, such after the first initialization of the wallet.  
+
+## InitWalletResponse
+
+
+This message has no parameters.
+
+
+## Invoice
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+memo | string | An optional memo to attach along with the invoice. Used for record keeping purposes for the invoice's creator, and will also be set in the description field of the encoded payment request if the description_hash field is not being used. 
+receipt | bytes | An optional cryptographic receipt of payment 
+r_preimage | bytes | The hex-encoded preimage (32 byte) which will allow settling an incoming HTLC payable to this preimage 
+r_hash | bytes | The hash of the preimage 
+value | int64 | The value of this invoice in satoshis 
+settled | bool | Whether this invoice has been fulfilled 
+creation_date | int64 | When this invoice was created 
+settle_date | int64 | When this invoice was settled 
+payment_request | string | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+description_hash | bytes | Hash (SHA-256) of a description of the payment. Used if the description of payment (memo) is too long to naturally fit within the description field of an encoded payment request. 
+expiry | int64 | Payment request expiry time in seconds. Default is 3600 (1 hour). 
+fallback_addr | string | Fallback on-chain address. 
+cltv_expiry | uint64 | Delta to use for the time-lock of the CLTV extended to the final hop. 
+route_hints | [array RouteHint](#routehint) | Route hints that can each be individually used to assist in reaching the invoice's destination. 
+private | bool | Whether this invoice should include routing hints for private channels.  
+
+## InvoiceSubscription
+
+
+This message has no parameters.
+
+
+## LightningAddress
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+pubkey | string | The identity pubkey of the Lightning node 
+host | string | The network location of the lightning node, e.g. `69.69.69.69:1337` or `localhost:10011`  
+
+## LightningNode
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+last_update | uint32 |  
+pub_key | string |  
+alias | string |  
+addresses | [array NodeAddress](#nodeaddress) |  
+color | string |   
+
+## ListChannelsRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+active_only | bool |  
+inactive_only | bool |  
+public_only | bool |  
+private_only | bool |   
+
+## ListChannelsResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+channels | [array Channel](#channel) | The list of active channels  
+
+## ListInvoiceRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+pending_only | bool | Toggles if all invoices should be returned, or only those that are currently unsettled.  
+
+## ListInvoiceResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+invoices | [array Invoice](#invoice) |   
+
+## ListPaymentsRequest
+
+
+This message has no parameters.
+
+
+## ListPaymentsResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+payments | [array Payment](#payment) | The list of payments  
+
+## ListPeersRequest
+
+
+This message has no parameters.
+
+
+## ListPeersResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+peers | [array Peer](#peer) | The list of currently connected peers  
+
+## NetworkInfo
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+graph_diameter | uint32 |  
+avg_out_degree | double |  
+max_out_degree | uint32 |  
+num_nodes | uint32 |  
+num_channels | uint32 |  
+total_network_capacity | int64 |  
+avg_channel_size | double |  
+min_channel_size | int64 |  
+max_channel_size | int64 |   
+
+## NetworkInfoRequest
+
+
+This message has no parameters.
+
+
+## NewAddressRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+type | [AddressType](#addresstype) | The address type  
+
+## NewAddressResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+address | string | The newly generated wallet address  
+
+## NewWitnessAddressRequest
+
+
+This message has no parameters.
+
+
+## NodeAddress
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+network | string |  
+addr | string |   
+
+## NodeInfo
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+node | [LightningNode](#lightningnode) | An individual vertex/node within the channel graph. A node is connected to other nodes by one or more channel edges emanating from it. As the graph is directed, a node will also have an incoming edge attached to it for each outgoing edge. 
+num_channels | uint32 |  
+total_capacity | int64 |   
+
+## NodeInfoRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+pub_key | string | The 33-byte hex-encoded compressed public of the target node  
+
+## NodeUpdate
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+addresses | array string |  
+identity_key | string |  
+global_features | bytes |  
+alias | string |   
+
+## OpenChannelRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+node_pubkey | bytes | The pubkey of the node to open a channel with 
+node_pubkey_string | string | The hex encoded pubkey of the node to open a channel with 
+local_funding_amount | int64 | The number of satoshis the wallet should commit to the channel 
+push_sat | int64 | The number of satoshis to push to the remote side as part of the initial commitment state 
+target_conf | int32 | The target number of blocks that the funding transaction should be confirmed by. 
+sat_per_byte | int64 | A manual fee rate set in sat/byte that should be used when crafting the funding transaction. 
+private | bool | Whether this channel should be private, not announced to the greater network. 
+min_htlc_msat | int64 | The minimum value in millisatoshi we will require for incoming HTLCs on the channel. 
+remote_csv_delay | uint32 | The delay we require on the remote's commitment transaction. If this is not set, it will be scaled automatically with the channel size.  
+
+## OpenStatusUpdate
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+chan_pending | [PendingUpdate](#pendingupdate) |  
+confirmation | [ConfirmationUpdate](#confirmationupdate) |  
+chan_open | [ChannelOpenUpdate](#channelopenupdate) |   
+
+## PayReq
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+destination | string |  
+payment_hash | string |  
+num_satoshis | int64 |  
+timestamp | int64 |  
+expiry | int64 |  
+description | string |  
+description_hash | string |  
+fallback_addr | string |  
+cltv_expiry | int64 |  
+route_hints | [array RouteHint](#routehint) |   
+
+## PayReqString
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+pay_req | string | The payment request string to be decoded  
+
+## Payment
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+payment_hash | string | The payment hash 
+value | int64 | The value of the payment in satoshis 
+creation_date | int64 | The date of this payment 
+path | array string | The path this payment took 
+fee | int64 | The fee paid for this payment in satoshis 
+payment_preimage | string | The payment preimage  
+
+## PaymentHash
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+r_hash_str | string | The hex-encoded payment hash of the invoice to be looked up. The passed payment hash must be exactly 32 bytes, otherwise an error is returned. 
+r_hash | bytes | The payment hash of the invoice to be looked up.  
+
+## Peer
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+pub_key | string | The identity pubkey of the peer 
+address | string | Network address of the peer; eg `127.0.0.1:10011` 
+bytes_sent | uint64 | Bytes of data transmitted to this peer 
+bytes_recv | uint64 | Bytes of data transmitted from this peer 
+sat_sent | int64 | Satoshis sent to this peer 
+sat_recv | int64 | Satoshis received from this peer 
+inbound | bool | A channel is inbound if the counterparty initiated the channel 
+ping_time | int64 | Ping time to this peer  
+
+## PendingChannelsRequest
+
+
+This message has no parameters.
+
+
+## PendingChannelsResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+total_limbo_balance | int64 | The balance in satoshis encumbered in pending channels 
+pending_open_channels | [array PendingOpenChannel](#pendingopenchannel) | Channels pending opening 
+pending_closing_channels | [array ClosedChannel](#closedchannel) | Channels pending closing 
+pending_force_closing_channels | [array ForceClosedChannel](#forceclosedchannel) | Channels pending force closing 
+waiting_close_channels | [array WaitingCloseChannel](#waitingclosechannel) | Channels waiting for closing tx to confirm  
+
+## ClosedChannel
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+channel | [PendingChannel](#pendingchannel) | The pending channel to be closed 
+closing_txid | string | The transaction id of the closing transaction  
+
+## ForceClosedChannel
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+channel | [PendingChannel](#pendingchannel) | The pending channel to be force closed 
+closing_txid | string | The transaction id of the closing transaction 
+limbo_balance | int64 | The balance in satoshis encumbered in this pending channel 
+maturity_height | uint32 | The height at which funds can be sweeped into the wallet 
+blocks_til_maturity | int32 | Remaining # of blocks until the commitment output can be swept. Negative values indicate how many blocks have passed since becoming mature. 
+recovered_balance | int64 | The total value of funds successfully recovered from this channel 
+pending_htlcs | [array PendingHTLC](#pendinghtlc) |   
+
+## PendingChannel
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+remote_node_pub | string |  
+channel_point | string |  
+capacity | int64 |  
+local_balance | int64 |  
+remote_balance | int64 |   
+
+## PendingOpenChannel
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+channel | [PendingChannel](#pendingchannel) | The pending channel 
+confirmation_height | uint32 | The height at which this channel will be confirmed 
+commit_fee | int64 | The amount calculated to be paid in fees for the current set of commitment transactions. The fee amount is persisted with the channel in order to allow the fee amount to be removed and recalculated with each channel state update, including updates that happen after a system restart. 
+commit_weight | int64 | The weight of the commitment transaction 
+fee_per_kw | int64 | The required number of satoshis per kilo-weight that the requester will pay at all times, for both the funding transaction and commitment transaction. This value can later be updated once the channel is open.  
+
+## WaitingCloseChannel
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+channel | [PendingChannel](#pendingchannel) | The pending channel waiting for closing tx to confirm 
+limbo_balance | int64 | The balance in satoshis encumbered in this channel  
+
+## PendingHTLC
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+incoming | bool | The direction within the channel that the htlc was sent 
+amount | int64 | The total value of the htlc 
+outpoint | string | The final output to be swept back to the user's wallet 
+maturity_height | uint32 | The next block height at which we can spend the current stage 
+blocks_til_maturity | int32 | The number of blocks remaining until the current stage can be swept. Negative values indicate how many blocks have passed since becoming mature. 
+stage | uint32 | Indicates whether the htlc is in its first or second stage of recovery  
+
+## PendingUpdate
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+txid | bytes |  
+output_index | uint32 |   
+
+## PolicyUpdateRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+global | bool | If set, then this update applies to all currently active channels. 
+chan_point | [ChannelPoint](#channelpoint) | If set, this update will target a specific channel. 
+base_fee_msat | int64 | The base fee charged regardless of the number of milli-satoshis sent. 
+fee_rate | double | The effective fee rate in milli-satoshis. The precision of this value goes up to 6 decimal places, so 1e-6. 
+time_lock_delta | uint32 | The required timelock delta for HTLCs forwarded over the channel.  
+
+## PolicyUpdateResponse
+
+
+This message has no parameters.
+
+
+## QueryRoutesRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+pub_key | string | The 33-byte hex-encoded public key for the payment destination 
+amt | int64 | The amount to send expressed in satoshis 
+num_routes | int32 | The max number of routes to return. 
+final_cltv_delta | int32 | An optional CLTV delta from the current height that should be used for the timelock of the final hop 
+fee_limit | [FeeLimit](#feelimit) | The maximum number of satoshis that will be paid as a fee of the payment. This value can be represented either as a percentage of the amount being sent, or as a fixed amount of the maximum fee the user is willing the pay to send the payment.  
+
+## QueryRoutesResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+routes | [array Route](#route) |   
+
+## Route
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+total_time_lock | uint32 | The cumulative (final) time lock across the entire route.  This is the CLTV value that should be extended to the first hop in the route. All other hops will decrement the time-lock as advertised, leaving enough time for all hops to wait for or present the payment preimage to complete the payment. 
+total_fees | int64 | The sum of the fees paid at each hop within the final route.  In the case of a one-hop payment, this value will be zero as we don't need to pay a fee it ourself. 
+total_amt | int64 | The total amount of funds required to complete a payment over this route. This value includes the cumulative fees at each hop. As a result, the HTLC extended to the first-hop in the route will need to have at least this many satoshis, otherwise the route will fail at an intermediate node due to an insufficient amount of fees. 
+hops | [array Hop](#hop) | Contains details concerning the specific forwarding details at each hop. 
+total_fees_msat | int64 | The total fees in millisatoshis. 
+total_amt_msat | int64 | The total amount in millisatoshis.  
+
+## RouteHint
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+hop_hints | [array HopHint](#hophint) | A list of hop hints that when chained together can assist in reaching a specific destination.  
+
+## RoutingPolicy
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+time_lock_delta | uint32 |  
+min_htlc | int64 |  
+fee_base_msat | int64 |  
+fee_rate_milli_msat | int64 |   
+
+## SendCoinsRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+addr | string | The address to send coins to 
+amount | int64 | The amount in satoshis to send 
+target_conf | int32 | The target number of blocks that this transaction should be confirmed by. 
+sat_per_byte | int64 | A manual fee rate set in sat/byte that should be used when crafting the transaction.  
+
+## SendCoinsResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+txid | string | The transaction ID of the transaction  
+
+## SendManyRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+AddrToAmount | [array AddrToAmountEntry](#addrtoamountentry) | The map from addresses to amounts 
+target_conf | int32 | The target number of blocks that this transaction should be confirmed by. 
+sat_per_byte | int64 | A manual fee rate set in sat/byte that should be used when crafting the transaction.  
+
+## AddrToAmountEntry
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+key | string |  
+value | int64 |   
+
+## SendManyResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+txid | string | The id of the transaction  
+
+## SendRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+dest | bytes | The identity pubkey of the payment recipient 
+dest_string | string | The hex-encoded identity pubkey of the payment recipient 
+amt | int64 | Number of satoshis to send. 
+payment_hash | bytes | The hash to use within the payment's HTLC 
+payment_hash_string | string | The hex-encoded hash to use within the payment's HTLC 
+payment_request | string | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+final_cltv_delta | int32 | The CLTV delta from the current height that should be used to set the timelock for the final hop. 
+fee_limit | [FeeLimit](#feelimit) | The maximum number of satoshis that will be paid as a fee of the payment. This value can be represented either as a percentage of the amount being sent, or as a fixed amount of the maximum fee the user is willing the pay to send the payment.  
+
+## SendResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+payment_error | string |  
+payment_preimage | bytes |  
+payment_route | [Route](#route) |   
+
+## SendToRouteRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+payment_hash | bytes | The payment hash to use for the HTLC. 
+payment_hash_string | string | An optional hex-encoded payment hash to be used for the HTLC. 
+routes | [array Route](#route) | The set of routes that should be used to attempt to complete the payment.  
+
+## SignMessageRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+msg | bytes | The message to be signed  
+
+## SignMessageResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+signature | string | The signature for the given message  
+
+## StopRequest
+
+
+This message has no parameters.
+
+
+## StopResponse
+
+
+This message has no parameters.
+
+
+## Transaction
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+tx_hash | string | The transaction hash 
+amount | int64 | The transaction ammount, denominated in satoshis 
+num_confirmations | int32 | The number of confirmations 
+block_hash | string | The hash of the block this transaction was included in 
+block_height | int32 | The height of the block this transaction was included in 
+time_stamp | int64 | Timestamp of this transaction 
+total_fees | int64 | Fees paid for this transaction 
+dest_addresses | array string | Addresses that received funds for this transaction  
+
+## TransactionDetails
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+transactions | [array Transaction](#transaction) | The list of transactions relevant to the wallet.  
+
+## UnlockWalletRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+wallet_password | bytes | wallet_password should be the current valid passphrase for the daemon. This will be required to decrypt on-disk material that the daemon requires to function properly. 
+recovery_window | int32 | recovery_window is an optional argument specifying the address lookahead when restoring a wallet seed. The recovery window applies to each invdividual branch of the BIP44 derivation paths. Supplying a recovery window of zero indicates that no addresses should be recovered, such after the first initialization of the wallet.  
+
+## UnlockWalletResponse
+
+
+This message has no parameters.
+
+
+## VerifyMessageRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+msg | bytes | The message over which the signature is to be verified 
+signature | string | The signature to be verified over the given message  
+
+## VerifyMessageResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+valid | bool | Whether the signature was valid over the given message 
+pubkey | string | The pubkey recovered from the signature  
+
+## WalletBalanceRequest
+
+
+This message has no parameters.
+
+
+## WalletBalanceResponse
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+total_balance | int64 | The balance of the wallet 
+confirmed_balance | int64 | The confirmed balance of a wallet(with >= 1 confirmations) 
+unconfirmed_balance | int64 | The unconfirmed balance of a wallet(with 0 confirmations)  
