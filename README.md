@@ -26,6 +26,7 @@ You're going to need:
 
  - **Linux or OS X** — Windows may work, but is unsupported.
  - **Ruby, version 2.2.5 or newer**
+ - **Python, version 3 or newer**
  - **Bundler** — If Ruby is already installed, but the `bundle` command doesn't work, just run `gem install bundler` in a terminal.
 
 ### Running locally
@@ -34,7 +35,7 @@ You're going to need:
 git clone https://github.com/lightninglabs/lightning-api
 
 # Start a local server for testing purposes
-bundle install
+bundle install --path vendor/bundle
 bundle exec middleman server
 ```
 
@@ -43,38 +44,30 @@ You can now see the docs at `http://localhost:4567`.
 ## Regenerating documentation
 
 ```shell
-# Install Jinja for python templating
-pip install Jinja2
+# Install Jinja for python templating.
+pip3 install Jinja2
 
-# Set your $GOPATH to a directory that has access to lncli
+# Set your $GOPATH to a directory that has access to lncli.
 export GOPATH="/path/to/lnd"
 export PATH=$PATH:$GOPATH/bin
 
-# Install annotations
+# Install annotations and protoc-gen-doc.
 go get -u github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis
+go get -u github.com/pseudomuto/protoc-gen-doc
 
-# Get the latest rpc.proto
+# Get the latest rpc.proto.
 curl -o rpc.proto -s https://raw.githubusercontent.com/lightningnetwork/lnd/master/lnrpc/rpc.proto
-```
+curl -o rpc.swagger.json -s https://raw.githubusercontent.com/lightningnetwork/lnd/master/lnrpc/rpc.swagger.json
 
-At this point, you will need to
-[install protoc-gen-doc](https://github.com/pseudomuto/protoc-gen-doc) and place the
-binary in `$GOPATH/bin`, named exactly `protoc-gen-doc`. The binary committed to
-this repo is the Mac OS X version. If running the `protoc -I. ...` command below
-correctly outputs a new `rpc.json` file for you, you may skip this step.
-
-```shell
-# Generate the rpc.json file from rpc.proto, so that render.py can
-# parse it
+# Generate the rpc.json file from rpc.proto, so that render.py can parse it.
 protoc -I. -I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis --doc_out=json,rpc.json:. rpc.proto
 ```
 
-Now, ensure that you have
-[`lnd` installed](http://http://dev.lightning.community/installation/)
+Now, ensure that you have [`lnd` installed](http://http://dev.lightning.community/installation/)
 and your `$GOPATH` set, so that `lncli` is available from the command line.
 Let's run the script to render our local Slate docs:
 ```shell
-python render.py
+python3 render.py
 ```
 
 Now that you're all set up, you can just run `./update_and_render.sh` to
@@ -108,3 +101,34 @@ gsutil -m rsync -d -r ./_site gs://api.lightning.community
 ```
 
 In the future, you can just run `./deploy.sh` to deploy automatically.
+
+## Automatic Updates and Deployment
+
+Updates to the protobuf definitions can be detected by running the Flask server
+within `server.py`.
+
+### Running the server locally
+
+The server uses Flask in order to receive POST requests from GitHub whenever a
+new commit has been pushed to the respository. These POST requests will include
+the HMAC of a secret token set up within the Webhook settings of a repository.
+This token will need to be exported so that the server can verify the request
+from GitHub has been authenticated.
+
+First, ensure that `Flask` is installed with:
+```shell
+$ pip3 install flask
+```
+
+Then, the server can be run with:
+
+```shell
+$ export WEBHOOK_SECRET_TOKEN=YOUR_TOKEN_HERE
+$ FLASK_APP=server.py
+$ flask run
+```
+
+Once a POST request from GitHub has been received, the server will check if
+there were any commits which included a change to the protobuf definitions. If
+there was, then the documentation will be automatically regenerated and
+deployed.

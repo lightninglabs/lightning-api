@@ -1,5 +1,0 @@
-{% if method.response_message.fields | length == 0 %}{}{% else %}
-{ {% for field in method.response_message.fields %}
-    {{ field.name }}: <{{ field.type }}>,{% endfor %}
-}
-{% endif %}

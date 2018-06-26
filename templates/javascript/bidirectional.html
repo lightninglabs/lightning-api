@@ -1,9 +1,13 @@
-> var call = lightning.{{ method.name_js }}({});
-
-> call.on('data', function(message) {
-    console.log(message);
+> var call = {{ method.serviceJS }}.{{ method.nameJS }}({})
+> call.on('data', function(response) {
+    // A response was received from the server.
+    console.log(response);
   });
+> call.on('status', function(status) {
+    // The current status of the stream.
+  });
+> call.on('end', function() {
+    // The server has closed the stream.
+  });
+> call.write(request)
 
-  > call.write({% if method.request_message.fields | length == 0 %}{}}{% else %}{ {% for field in method.request_message.fields %}
-    {{ field.name }}: <YOUR_PARAM>,{% endfor %}
-  }{% endif %});

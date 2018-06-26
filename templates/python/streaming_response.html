@@ -1,3 +1,2 @@
->>> for response in stub.{{ method.name }}(request{% if method.streaming_request %}_iterable{% endif %}):
-    # Do something
-    print response
+>>> for response in stub.{{ method.name }}(request{% if method.streamingRequest %}_iterable{% endif %}{% if method.service != 'WalletUnlocker' %}, metadata=[('macaroon', macaroon)]{% endif %}):
+        print(response)

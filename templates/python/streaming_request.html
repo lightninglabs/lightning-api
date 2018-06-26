@@ -1,12 +1,12 @@
-# Define a generator that returns an Iterable of {{ method.request_type }} objects
+# Define a generator that returns an Iterable of {{ method.requestMessage.name }} objects.
 >>> def request_generator():
-        # Initialization code here
-        print("Starting up")
+        # Initialization code here.
         while True:
-            # Params here can be set as arguments to the generator
-            request = ln.{{ method.request_type }}({% if method.request_message.fields | length == 0 %}){% else %}{% for field in method.request_message.fields %}
-                {{ field.name }}=<YOUR_PARAM>,{% endfor %}
+            # Parameters here can be set as arguments to the generator.
+            request = ln.{{ method.requestMessage.name }}({% if
+	    method.requestMessage.params | length == 0 %}){% else %}{% for param in method.requestMessage.params %}
+                {{ param.name }}=<{{ param.type }}>,{% endfor %}
             ){% endif %}
             yield request
-            # Do things between iterations here
+            # Do things between iterations here.
 >>> request_iterable = request_generator()
