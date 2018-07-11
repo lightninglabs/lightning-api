@@ -1772,7 +1772,7 @@ $ lncli openchannel [command options] node-key local-amt push-amt
 # --node_key value          the identity public key of the target node/peer serialized in compressed format
 # --connect value           (optional) the host:port of the target node
 # --local_amt value         the number of satoshis the wallet should commit to the channel (default: 0)
-# --push_amt value          the number of satoshis to push to the remote side as part of the initial commitment state (default: 0)
+# --push_amt value          the number of satoshis to give the remote side as part of the initial commitment state, this is equivalent to first opening a channel and sending the remote party funds, but done all in one step (default: 0)
 # --block                   block and wait until the channel is fully open
 # --conf_target value       (optional) the number of blocks that the transaction *should* confirm in, will be used for fee estimation (default: 0)
 # --sat_per_byte value      (optional) a manual fee expressed in sat/byte that should be used when crafting the transaction (default: 0)
@@ -2474,12 +2474,16 @@ $ lncli addinvoice [command options] value preimage
         cltv_expiry=<uint64>,
         route_hints=<array RouteHint>,
         private=<bool>,
+        add_index=<uint64>,
+        settle_index=<uint64>,
+        amt_paid=<int64>,
     )
 >>> response = stub.AddInvoice(request, metadata=[('macaroon'), macaroon)])
 >>> print(response)
 { 
     "r_hash": <bytes>,
     "payment_request": <string>,
+    "add_index": <uint64>,
 }
 ```
 ```javascript
@@ -2513,6 +2517,9 @@ $ lncli addinvoice [command options] value preimage
     cltv_expiry: <uint64>, 
     route_hints: <array RouteHint>, 
     private: <bool>, 
+    add_index: <uint64>, 
+    settle_index: <uint64>, 
+    amt_paid: <int64>, 
   } 
 > lightning.addInvoice(request, function(err, response) {
     console.log(response);
@@ -2520,6 +2527,7 @@ $ lncli addinvoice [command options] value preimage
 { 
     "r_hash": <bytes>,
     "payment_request": <string>,
+    "add_index": <uint64>,
 }
 ```
 
@@ -2542,14 +2550,18 @@ expiry | int64 | Payment request expiry time in seconds. Default is 3600 (1 hour
 fallback_addr | string | Fallback on-chain address. 
 cltv_expiry | uint64 | Delta to use for the time-lock of the CLTV extended to the final hop. 
 route_hints | [array RouteHint](#routehint) | Route hints that can each be individually used to assist in reaching the invoice's destination. 
-private | bool | Whether this invoice should include routing hints for private channels.  
+private | bool | Whether this invoice should include routing hints for private channels. 
+add_index | uint64 | The "add" index of this invoice. Each newly created invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all added invoices with an add_index greater than this one. 
+settle_index | uint64 | The "settle" index of this invoice. Each newly settled invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all settled invoices with an settle_index greater than this one. 
+amt_paid | int64 | The amount that was accepted for this invoice. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well.  
 ### gRPC Response: AddInvoiceResponse 
 
 
 Parameter | Type | Description
 --------- | ---- | ----------- 
 r_hash | bytes |  
-payment_request | string | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient.  
+payment_request | string | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+add_index | uint64 | The "add" index of this invoice. Each newly created invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all added invoices with an add_index greater than this one.  
 
 # ListInvoices
 
@@ -2671,6 +2683,9 @@ $ lncli lookupinvoice [command options] rhash
     "cltv_expiry": <uint64>,
     "route_hints": <array RouteHint>,
     "private": <bool>,
+    "add_index": <uint64>,
+    "settle_index": <uint64>,
+    "amt_paid": <int64>,
 }
 ```
 ```javascript
@@ -2711,6 +2726,9 @@ $ lncli lookupinvoice [command options] rhash
     "cltv_expiry": <uint64>,
     "route_hints": <array RouteHint>,
     "private": <bool>,
+    "add_index": <uint64>,
+    "settle_index": <uint64>,
+    "amt_paid": <int64>,
 }
 ```
 
@@ -2740,7 +2758,10 @@ expiry | int64 | Payment request expiry time in seconds. Default is 3600 (1 hour
 fallback_addr | string | Fallback on-chain address. 
 cltv_expiry | uint64 | Delta to use for the time-lock of the CLTV extended to the final hop. 
 route_hints | [array RouteHint](#routehint) | Route hints that can each be individually used to assist in reaching the invoice's destination. 
-private | bool | Whether this invoice should include routing hints for private channels.  
+private | bool | Whether this invoice should include routing hints for private channels. 
+add_index | uint64 | The "add" index of this invoice. Each newly created invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all added invoices with an add_index greater than this one. 
+settle_index | uint64 | The "settle" index of this invoice. Each newly settled invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all settled invoices with an settle_index greater than this one. 
+amt_paid | int64 | The amount that was accepted for this invoice. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well.  
 
 # SubscribeInvoices
 
@@ -2748,7 +2769,7 @@ private | bool | Whether this invoice should include routing hints for private c
 ### Response-streaming RPC
 
 
-SubscribeInvoices returns a uni-directional stream (sever -> client) for notifying the client of newly added/settled invoices.
+SubscribeInvoices returns a uni-directional stream (sever -> client) for notifying the client of newly added/settled invoices. The caller can optionally specify the add_index and/or the settle_index. If the add_index is specified, then we'll first start by sending add invoice events for all invoices with an add_index greater than the specified value.  If the settle_index is specified, the next, we'll send out all settle events for invoices with a settle_index greater than the specified value.  One or both of these fields can be set. If no fields are set, then we'll only send out the latest add/settle events.
 
 ```shell
 
@@ -2762,7 +2783,10 @@ SubscribeInvoices returns a uni-directional stream (sever -> client) for notifyi
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
 >>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
->>> request = ln.InvoiceSubscription()
+>>> request = ln.InvoiceSubscription(
+        add_index=<uint64>,
+        settle_index=<uint64>,
+    )
 >>> for response in stub.SubscribeInvoices(request, metadata=[('macaroon', macaroon)]):
         print(response)
 { 
@@ -2781,6 +2805,9 @@ SubscribeInvoices returns a uni-directional stream (sever -> client) for notifyi
     "cltv_expiry": <uint64>,
     "route_hints": <array RouteHint>,
     "private": <bool>,
+    "add_index": <uint64>,
+    "settle_index": <uint64>,
+    "amt_paid": <int64>,
 }
 ```
 ```javascript
@@ -2798,7 +2825,10 @@ SubscribeInvoices returns a uni-directional stream (sever -> client) for notifyi
   });
 > var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
 > var lightning = new lnrpc.Lightning('localhost:10009', creds);
-> var request = {} 
+> var request = { 
+    add_index: <uint64>, 
+    settle_index: <uint64>, 
+  } 
 > var call = lightning.subscribeInvoices(request)
 > call.on('data', function(response) {
     // A response was received from the server.
@@ -2826,14 +2856,19 @@ SubscribeInvoices returns a uni-directional stream (sever -> client) for notifyi
     "cltv_expiry": <uint64>,
     "route_hints": <array RouteHint>,
     "private": <bool>,
+    "add_index": <uint64>,
+    "settle_index": <uint64>,
+    "amt_paid": <int64>,
 }
 ```
 
 ### gRPC Request: InvoiceSubscription 
 
 
-This request has no parameters.
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+add_index | uint64 | If specified (non-zero), then we'll first start by sending out notifications for all added indexes with an add_index greater than this value. This allows callers to catch up on any events they missed while they weren't connected to the streaming RPC. 
+settle_index | uint64 | If specified (non-zero), then we'll first start by sending out notifications for all settled indexes with an settle_index greater than this value. This allows callers to catch up on any events they missed while they weren't connected to the streaming RPC.  
 ### gRPC Response: Invoice (Streaming)
 
 
@@ -2853,7 +2888,10 @@ expiry | int64 | Payment request expiry time in seconds. Default is 3600 (1 hour
 fallback_addr | string | Fallback on-chain address. 
 cltv_expiry | uint64 | Delta to use for the time-lock of the CLTV extended to the final hop. 
 route_hints | [array RouteHint](#routehint) | Route hints that can each be individually used to assist in reaching the invoice's destination. 
-private | bool | Whether this invoice should include routing hints for private channels.  
+private | bool | Whether this invoice should include routing hints for private channels. 
+add_index | uint64 | The "add" index of this invoice. Each newly created invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all added invoices with an add_index greater than this one. 
+settle_index | uint64 | The "settle" index of this invoice. Each newly settled invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all settled invoices with an settle_index greater than this one. 
+amt_paid | int64 | The amount that was accepted for this invoice. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well.  
 
 # DecodePayReq
 
@@ -3999,7 +4037,8 @@ last_offset_index | uint32 | The index of the last time in the set of returned f
 Parameter | Type | Description
 --------- | ---- | ----------- 
 r_hash | bytes |  
-payment_request | string | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient.  
+payment_request | string | A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+add_index | uint64 | The "add" index of this invoice. Each newly created invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all added invoices with an add_index greater than this one.  
 
 ## ChanInfoRequest
 
@@ -4444,13 +4483,18 @@ expiry | int64 | Payment request expiry time in seconds. Default is 3600 (1 hour
 fallback_addr | string | Fallback on-chain address. 
 cltv_expiry | uint64 | Delta to use for the time-lock of the CLTV extended to the final hop. 
 route_hints | [array RouteHint](#routehint) | Route hints that can each be individually used to assist in reaching the invoice's destination. 
-private | bool | Whether this invoice should include routing hints for private channels.  
+private | bool | Whether this invoice should include routing hints for private channels. 
+add_index | uint64 | The "add" index of this invoice. Each newly created invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all added invoices with an add_index greater than this one. 
+settle_index | uint64 | The "settle" index of this invoice. Each newly settled invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all settled invoices with an settle_index greater than this one. 
+amt_paid | int64 | The amount that was accepted for this invoice. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well.  
 
 ## InvoiceSubscription
 
 
-This message has no parameters.
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+add_index | uint64 | If specified (non-zero), then we'll first start by sending out notifications for all added indexes with an add_index greater than this value. This allows callers to catch up on any events they missed while they weren't connected to the streaming RPC. 
+settle_index | uint64 | If specified (non-zero), then we'll first start by sending out notifications for all settled indexes with an settle_index greater than this value. This allows callers to catch up on any events they missed while they weren't connected to the streaming RPC.  
 
 ## LightningAddress
 
