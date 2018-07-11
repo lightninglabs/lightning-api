@@ -1515,6 +1515,9 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://local
     "cltv_expiry": <uint64>, 
     "route_hints": <array RouteHint>, 
     "private": <boolean>, 
+    "add_index": <uint64>, 
+    "settle_index": <uint64>, 
+    "amt_paid": <int64>, 
 }
 ```
 ```python
@@ -1541,6 +1544,9 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://local
     "cltv_expiry": <uint64>, 
     "route_hints": <array RouteHint>, 
     "private": <boolean>, 
+    "add_index": <uint64>, 
+    "settle_index": <uint64>, 
+    "amt_paid": <int64>, 
 }
 ```
 ```javascript
@@ -1575,6 +1581,9 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://local
     "cltv_expiry": <uint64>, 
     "route_hints": <array RouteHint>, 
     "private": <boolean>, 
+    "add_index": <uint64>, 
+    "settle_index": <uint64>, 
+    "amt_paid": <int64>, 
 }
 ```
 
@@ -1604,7 +1613,10 @@ expiry | int64 | / Payment request expiry time in seconds. Default is 3600 (1 ho
 fallback_addr | string | / Fallback on-chain address. 
 cltv_expiry | uint64 | / Delta to use for the time-lock of the CLTV extended to the final hop. 
 route_hints | [array RouteHint](#routehint) | * Route hints that can each be individually used to assist in reaching the invoice's destination. 
-private | boolean | / Whether this invoice should include routing hints for private channels.  
+private | boolean | / Whether this invoice should include routing hints for private channels. 
+add_index | uint64 | * The "add" index of this invoice. Each newly created invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all added invoices with an add_index greater than this one. 
+settle_index | uint64 | * The "settle" index of this invoice. Each newly settled invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all settled invoices with an settle_index greater than this one. 
+amt_paid | int64 | * The amount that was accepted for this invoice. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well.  
 
 
 
@@ -1669,10 +1681,11 @@ invoices | [array Invoice](#invoice) |
 ```shell
 $ MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 $LND_DIR/admin.macaroon)"
 $ curl -X POST --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://localhost:8080/v1/invoices  \
-    -d '{ "memo":<string>,"receipt":<byte>,"r_preimage":<byte>,"r_hash":<byte>,"value":<int64>,"settled":<boolean>,"creation_date":<int64>,"settle_date":<int64>,"payment_request":<string>,"description_hash":<byte>,"expiry":<int64>,"fallback_addr":<string>,"cltv_expiry":<uint64>,"route_hints":<array RouteHint>,"private":<boolean>, }' 
+    -d '{ "memo":<string>,"receipt":<byte>,"r_preimage":<byte>,"r_hash":<byte>,"value":<int64>,"settled":<boolean>,"creation_date":<int64>,"settle_date":<int64>,"payment_request":<string>,"description_hash":<byte>,"expiry":<int64>,"fallback_addr":<string>,"cltv_expiry":<uint64>,"route_hints":<array RouteHint>,"private":<boolean>,"add_index":<uint64>,"settle_index":<uint64>,"amt_paid":<int64>, }' 
 { 
     "r_hash": <byte>, 
     "payment_request": <string>, 
+    "add_index": <uint64>, 
 }
 ```
 ```python
@@ -1697,12 +1710,16 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://loca
         'cltv_expiry': <uint64>, 
         'route_hints': <array RouteHint>, 
         'private': <boolean>, 
+        'add_index': <uint64>, 
+        'settle_index': <uint64>, 
+        'amt_paid': <int64>, 
     }
 >>> r = requests.post(url, headers=headers, verify=cert_path, data=json.dumps(data))
 >>> print(r.json())
 { 
     "r_hash": <byte>, 
     "payment_request": <string>, 
+    "add_index": <uint64>, 
 }
 ```
 ```javascript
@@ -1725,6 +1742,9 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://loca
     cltv_expiry: <uint64>,
     route_hints: <array RouteHint>,
     private: <boolean>,
+    add_index: <uint64>,
+    settle_index: <uint64>,
+    amt_paid: <int64>,
   };
 > var options = {
     url: 'https://localhost:8080/v1/invoices',
@@ -1742,6 +1762,7 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://loca
 { 
     "r_hash": <byte>, 
     "payment_request": <string>, 
+    "add_index": <uint64>, 
 }
 ```
 
@@ -1765,13 +1786,17 @@ fallback_addr | string | body | / Fallback on-chain address.
 cltv_expiry | uint64 | body | / Delta to use for the time-lock of the CLTV extended to the final hop.
 route_hints | [array RouteHint](#routehint) | body | * Route hints that can each be individually used to assist in reaching the invoice's destination.
 private | boolean | body | / Whether this invoice should include routing hints for private channels.
+add_index | uint64 | body | * The "add" index of this invoice. Each newly created invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all added invoices with an add_index greater than this one.
+settle_index | uint64 | body | * The "settle" index of this invoice. Each newly settled invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all settled invoices with an settle_index greater than this one.
+amt_paid | int64 | body | * The amount that was accepted for this invoice. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well.
 
 ### Response 
 
 Field | Type | Description
 ----- | ---- | ----------- 
 r_hash | byte |  
-payment_request | string | * A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient.  
+payment_request | string | * A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient. 
+add_index | uint64 | * The "add" index of this invoice. Each newly created invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all added invoices with an add_index greater than this one.  
 
 
 
@@ -1797,6 +1822,9 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://local
     "cltv_expiry": <uint64>, 
     "route_hints": <array RouteHint>, 
     "private": <boolean>, 
+    "add_index": <uint64>, 
+    "settle_index": <uint64>, 
+    "amt_paid": <int64>, 
 }
 ```
 ```python
@@ -1825,6 +1853,9 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://local
     "cltv_expiry": <uint64>, 
     "route_hints": <array RouteHint>, 
     "private": <boolean>, 
+    "add_index": <uint64>, 
+    "settle_index": <uint64>, 
+    "amt_paid": <int64>, 
 }
 ```
 ```javascript
@@ -1859,13 +1890,19 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header $MACAROON_HEADER https://local
     "cltv_expiry": <uint64>, 
     "route_hints": <array RouteHint>, 
     "private": <boolean>, 
+    "add_index": <uint64>, 
+    "settle_index": <uint64>, 
+    "amt_paid": <int64>, 
 }
 ```
 
 ### GET /v1/invoices/subscribe
-* SubscribeInvoices returns a uni-directional stream (sever -> client) for notifying the client of newly added/settled invoices.
+* SubscribeInvoices returns a uni-directional stream (sever -> client) for notifying the client of newly added/settled invoices. The caller can optionally specify the add_index and/or the settle_index. If the add_index is specified, then we'll first start by sending add invoice events for all invoices with an add_index greater than the specified value.  If the settle_index is specified, the next, we'll send out all settle events for invoices with a settle_index greater than the specified value.  One or both of these fields can be set. If no fields are set, then we'll only send out the latest add/settle events.
 
-This request has no parameters.
+Field | Type | Placement | Description
+----- | ---- | --------- | ----------- 
+add_index | string | query | * If specified (non-zero), then we'll first start by sending out notifications for all added indexes with an add_index greater than this value. This allows callers to catch up on any events they missed while they weren't connected to the streaming RPC.
+settle_index | string | query | * If specified (non-zero), then we'll first start by sending out notifications for all settled indexes with an settle_index greater than this value. This allows callers to catch up on any events they missed while they weren't connected to the streaming RPC.
 
 ### Response (streaming)
 
@@ -1885,7 +1922,10 @@ expiry | int64 | / Payment request expiry time in seconds. Default is 3600 (1 ho
 fallback_addr | string | / Fallback on-chain address. 
 cltv_expiry | uint64 | / Delta to use for the time-lock of the CLTV extended to the final hop. 
 route_hints | [array RouteHint](#routehint) | * Route hints that can each be individually used to assist in reaching the invoice's destination. 
-private | boolean | / Whether this invoice should include routing hints for private channels.  
+private | boolean | / Whether this invoice should include routing hints for private channels. 
+add_index | uint64 | * The "add" index of this invoice. Each newly created invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all added invoices with an add_index greater than this one. 
+settle_index | uint64 | * The "settle" index of this invoice. Each newly settled invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all settled invoices with an settle_index greater than this one. 
+amt_paid | int64 | * The amount that was accepted for this invoice. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well.  
 
 
 
@@ -2644,6 +2684,7 @@ Field | Type | Description
 ----- | ---- | ----------- 
 r_hash | byte | 
 payment_request | string | * A bare-bones invoice for a payment within the Lightning Network.  With the details of the invoice, the sender has all the data necessary to send a payment to the recipient.
+add_index | uint64 | * The "add" index of this invoice. Each newly created invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all added invoices with an add_index greater than this one.
 
 
 ## ChangePasswordRequest
@@ -2991,6 +3032,9 @@ fallback_addr | string | / Fallback on-chain address.
 cltv_expiry | uint64 | / Delta to use for the time-lock of the CLTV extended to the final hop.
 route_hints | [array RouteHint](#routehint) | * Route hints that can each be individually used to assist in reaching the invoice's destination.
 private | boolean | / Whether this invoice should include routing hints for private channels.
+add_index | uint64 | * The "add" index of this invoice. Each newly created invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all added invoices with an add_index greater than this one.
+settle_index | uint64 | * The "settle" index of this invoice. Each newly settled invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all settled invoices with an settle_index greater than this one.
+amt_paid | int64 | * The amount that was accepted for this invoice. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well.
 
 
 ## LightningAddress
