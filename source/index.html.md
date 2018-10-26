@@ -187,7 +187,7 @@ UnlockWallet is used at startup of lnd to provide a password to unlock the walle
 # The unlock command is used to decrypt lnd's wallet state in order to
 # start up. This command MUST be run after booting up lnd before it's
 # able to carry out its duties. An exception is if a user is running with
-# --noencryptwallet, then a default passphrase will be used.
+# --noseedbackup, then a default passphrase will be used.
 
 $ lncli unlock [command options] [arguments...]
 
@@ -256,8 +256,8 @@ ChangePassword changes the password of the encrypted wallet. This will automatic
 # password. It will automatically unlock the daemon if the password change
 # is successful.
 # If one did not specify a password for their wallet (running lnd with
-# --noencryptwallet), one must restart their daemon without
-# --noencryptwallet and use this command. The "current password" field
+# --noseedbackup), one must restart their daemon without
+# --noseedbackup and use this command. The "current password" field
 # should be left empty.
 
 $ lncli changepassword [arguments...]
@@ -330,7 +330,7 @@ $ lncli walletbalance [arguments...]
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -353,7 +353,7 @@ $ lncli walletbalance [arguments...]
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -403,7 +403,7 @@ $ lncli channelbalance [arguments...]
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -425,7 +425,7 @@ $ lncli channelbalance [arguments...]
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -473,7 +473,7 @@ $ lncli listchaintxns [arguments...]
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -494,7 +494,7 @@ $ lncli listchaintxns [arguments...]
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -547,7 +547,7 @@ $ lncli sendcoins [command options] addr amt
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -573,7 +573,7 @@ $ lncli sendcoins [command options] addr amt
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -624,7 +624,7 @@ SubscribeTransactions creates a uni-directional stream from the server to the cl
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -652,7 +652,7 @@ SubscribeTransactions creates a uni-directional stream from the server to the cl
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -694,7 +694,7 @@ This request has no parameters.
 Parameter | Type | Description
 --------- | ---- | ----------- 
 tx_hash | string | The transaction hash 
-amount | int64 | The transaction ammount, denominated in satoshis 
+amount | int64 | The transaction amount, denominated in satoshis 
 num_confirmations | int32 | The number of confirmations 
 block_hash | string | The hash of the block this transaction was included in 
 block_height | int32 | The height of the block this transaction was included in 
@@ -725,7 +725,7 @@ $ lncli sendmany [command options] send-json-string [--conf_target=N] [--sat_per
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -750,7 +750,7 @@ $ lncli sendmany [command options] send-json-string [--conf_target=N] [--sat_per
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -805,7 +805,7 @@ $ lncli newaddress address-type
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -828,7 +828,7 @@ $ lncli newaddress address-type
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -859,69 +859,6 @@ Parameter | Type | Description
 --------- | ---- | ----------- 
 address | string | The newly generated wallet address  
 
-# NewWitnessAddress
-
-
-### Simple RPC
-
-
-NewWitnessAddress creates a new witness address under control of the local wallet.
-
-```shell
-
-```
-```python
->>> import codecs, grpc, os
->>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
->>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
->>> cert = open('LND_DIR/tls.cert', 'rb').read()
->>> ssl_creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
->>> stub = lnrpc.LightningStub(channel)
->>> request = ln.NewWitnessAddressRequest()
->>> response = stub.NewWitnessAddress(request, metadata=[('macaroon'), macaroon)])
->>> print(response)
-{ 
-    "address": <string>,
-}
-```
-```javascript
-> var fs = require('fs');
-> var grpc = require('grpc');
-> var lnrpc = grpc.load('rpc.proto').lnrpc;
-> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
-> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
-> var sslCreds = grpc.credentials.createSsl(lndCert);
-> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
-    var metadata = new grpc.Metadata()
-    metadata.add('macaroon', macaroon);
-    callback(null, metadata);
-  });
-> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
-> var lightning = new lnrpc.Lightning('localhost:10009', creds);
-> var request = {} 
-> lightning.newWitnessAddress(request, function(err, response) {
-    console.log(response);
-  })
-{ 
-    "address": <string>,
-}
-```
-
-### gRPC Request: NewWitnessAddressRequest 
-
-
-This request has no parameters.
-
-### gRPC Response: NewAddressResponse 
-
-
-Parameter | Type | Description
---------- | ---- | ----------- 
-address | string | The newly generated wallet address  
-
 # SignMessage
 
 
@@ -943,7 +880,7 @@ $ lncli signmessage [command options] msg
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -966,7 +903,7 @@ $ lncli signmessage [command options] msg
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -1020,7 +957,7 @@ $ lncli verifymessage [command options] msg signature
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -1045,7 +982,7 @@ $ lncli verifymessage [command options] msg signature
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -1100,7 +1037,7 @@ $ lncli connect [command options] <pubkey>@host
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -1123,7 +1060,7 @@ $ lncli connect [command options] <pubkey>@host
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -1173,7 +1110,7 @@ $ lncli disconnect [command options] <pubkey>
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -1195,7 +1132,7 @@ $ lncli disconnect [command options] <pubkey>
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -1242,7 +1179,7 @@ $ lncli listpeers [arguments...]
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -1263,7 +1200,7 @@ $ lncli listpeers [arguments...]
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -1309,7 +1246,7 @@ $ lncli getinfo [arguments...]
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -1342,7 +1279,7 @@ $ lncli getinfo [arguments...]
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -1412,7 +1349,7 @@ $ lncli pendingchannels [arguments...]
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -1437,7 +1374,7 @@ $ lncli pendingchannels [arguments...]
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -1495,7 +1432,7 @@ $ lncli listchannels [command options] [arguments...]
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -1521,7 +1458,7 @@ $ lncli listchannels [command options] [arguments...]
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -1577,11 +1514,12 @@ $ lncli closedchannels [command options] [arguments...]
 # --remote_force      list channels that were force-closed by the remote node
 # --breach            list channels for which the remote node attempted to broadcast a prior revoked channel state
 # --funding_canceled  list channels that were never fully opened
+# --abandoned         list channels that were abandoned by the local node
 ```
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -1593,6 +1531,7 @@ $ lncli closedchannels [command options] [arguments...]
         remote_force=<bool>,
         breach=<bool>,
         funding_canceled=<bool>,
+        abandoned=<bool>,
     )
 >>> response = stub.ClosedChannels(request, metadata=[('macaroon'), macaroon)])
 >>> print(response)
@@ -1608,7 +1547,7 @@ $ lncli closedchannels [command options] [arguments...]
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -1621,6 +1560,7 @@ $ lncli closedchannels [command options] [arguments...]
     remote_force: <bool>, 
     breach: <bool>, 
     funding_canceled: <bool>, 
+    abandoned: <bool>, 
   } 
 > lightning.closedChannels(request, function(err, response) {
     console.log(response);
@@ -1639,7 +1579,8 @@ cooperative | bool |
 local_force | bool |  
 remote_force | bool |  
 breach | bool |  
-funding_canceled | bool |   
+funding_canceled | bool |  
+abandoned | bool |   
 ### gRPC Response: ClosedChannelsResponse 
 
 
@@ -1661,7 +1602,7 @@ OpenChannelSync is a synchronous version of the OpenChannel RPC call. This call 
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -1677,6 +1618,8 @@ OpenChannelSync is a synchronous version of the OpenChannel RPC call. This call 
         private=<bool>,
         min_htlc_msat=<int64>,
         remote_csv_delay=<uint32>,
+        min_confs=<int32>,
+        spend_unconfirmed=<bool>,
     )
 >>> response = stub.OpenChannelSync(request, metadata=[('macaroon'), macaroon)])
 >>> print(response)
@@ -1694,7 +1637,7 @@ OpenChannelSync is a synchronous version of the OpenChannel RPC call. This call 
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -1711,6 +1654,8 @@ OpenChannelSync is a synchronous version of the OpenChannel RPC call. This call 
     private: <bool>, 
     min_htlc_msat: <int64>, 
     remote_csv_delay: <uint32>, 
+    min_confs: <int32>, 
+    spend_unconfirmed: <bool>, 
   } 
 > lightning.openChannelSync(request, function(err, response) {
     console.log(response);
@@ -1735,7 +1680,9 @@ target_conf | int32 | The target number of blocks that the funding transaction s
 sat_per_byte | int64 | A manual fee rate set in sat/byte that should be used when crafting the funding transaction. 
 private | bool | Whether this channel should be private, not announced to the greater network. 
 min_htlc_msat | int64 | The minimum value in millisatoshi we will require for incoming HTLCs on the channel. 
-remote_csv_delay | uint32 | The delay we require on the remote's commitment transaction. If this is not set, it will be scaled automatically with the channel size.  
+remote_csv_delay | uint32 | The delay we require on the remote's commitment transaction. If this is not set, it will be scaled automatically with the channel size. 
+min_confs | int32 | The minimum number of confirmations each one of your outputs used for the funding transaction must satisfy. 
+spend_unconfirmed | bool | Whether unconfirmed outputs should be used as inputs for the funding transaction.  
 ### gRPC Response: ChannelPoint 
 
 
@@ -1779,11 +1726,12 @@ $ lncli openchannel [command options] node-key local-amt push-amt
 # --private                 make the channel private, such that it won't be announced to the greater network, and nodes other than the two channel endpoints must be explicitly told about it to be able to route through it
 # --min_htlc_msat value     (optional) the minimum value we will require for incoming HTLCs on the channel (default: 0)
 # --remote_csv_delay value  (optional) the number of blocks we will require our channel counterparty to wait before accessing its funds in case of unilateral close. If this is not set, we will scale the value according to the channel size (default: 0)
+# --min_confs value         (optional) the minimum number of confirmations each one of your outputs used for the funding transaction must satisfy (default: 1)
 ```
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -1799,6 +1747,8 @@ $ lncli openchannel [command options] node-key local-amt push-amt
         private=<bool>,
         min_htlc_msat=<int64>,
         remote_csv_delay=<uint32>,
+        min_confs=<int32>,
+        spend_unconfirmed=<bool>,
     )
 >>> for response in stub.OpenChannel(request, metadata=[('macaroon', macaroon)]):
         print(response)
@@ -1816,7 +1766,7 @@ $ lncli openchannel [command options] node-key local-amt push-amt
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -1833,6 +1783,8 @@ $ lncli openchannel [command options] node-key local-amt push-amt
     private: <bool>, 
     min_htlc_msat: <int64>, 
     remote_csv_delay: <uint32>, 
+    min_confs: <int32>, 
+    spend_unconfirmed: <bool>, 
   } 
 > var call = lightning.openChannel(request)
 > call.on('data', function(response) {
@@ -1865,7 +1817,9 @@ target_conf | int32 | The target number of blocks that the funding transaction s
 sat_per_byte | int64 | A manual fee rate set in sat/byte that should be used when crafting the funding transaction. 
 private | bool | Whether this channel should be private, not announced to the greater network. 
 min_htlc_msat | int64 | The minimum value in millisatoshi we will require for incoming HTLCs on the channel. 
-remote_csv_delay | uint32 | The delay we require on the remote's commitment transaction. If this is not set, it will be scaled automatically with the channel size.  
+remote_csv_delay | uint32 | The delay we require on the remote's commitment transaction. If this is not set, it will be scaled automatically with the channel size. 
+min_confs | int32 | The minimum number of confirmations each one of your outputs used for the funding transaction must satisfy. 
+spend_unconfirmed | bool | Whether unconfirmed outputs should be used as inputs for the funding transaction.  
 ### gRPC Response: OpenStatusUpdate (Streaming)
 
 
@@ -1911,7 +1865,7 @@ $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -1939,7 +1893,7 @@ $ lncli closechannel [command options] funding_txid [output_index [time_limit]]
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -1988,6 +1942,83 @@ close_pending | [PendingUpdate](#pendingupdate) |
 confirmation | [ConfirmationUpdate](#confirmationupdate) |  
 chan_close | [ChannelCloseUpdate](#channelcloseupdate) |   
 
+# AbandonChannel
+
+
+### Simple RPC
+
+
+AbandonChannel removes all channel state from the database except for a close summary. This method can be used to get rid of permanently unusable channels due to bugs fixed in newer versions of lnd. Only available when in debug builds of lnd.
+
+```shell
+
+# Removes all channel state from the database except for a close
+# summary. This method can be used to get rid of permanently unusable
+# channels due to bugs fixed in newer versions of lnd.
+# Only available when lnd is built in debug mode.
+# To view which funding_txids/output_indexes can be used for this command,
+# see the channel_point values within the listchannels command output.
+# The format for a channel_point is 'funding_txid:output_index'.
+
+$ lncli abandonchannel [command options] funding_txid [output_index]
+
+# --funding_txid value  the txid of the channel's funding transaction
+# --output_index value  the output index for the funding output of the funding transaction (default: 0)
+```
+```python
+>>> import codecs, grpc, os
+>>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
+>>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
+>>> cert = open('LND_DIR/tls.cert', 'rb').read()
+>>> ssl_creds = grpc.ssl_channel_credentials(cert)
+>>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
+>>> stub = lnrpc.LightningStub(channel)
+>>> request = ln.AbandonChannelRequest(
+        channel_point=<ChannelPoint>,
+    )
+>>> response = stub.AbandonChannel(request, metadata=[('macaroon'), macaroon)])
+>>> print(response)
+{ 
+}
+```
+```javascript
+> var fs = require('fs');
+> var grpc = require('grpc');
+> var lnrpc = grpc.load('rpc.proto').lnrpc;
+> process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA'
+> var lndCert = fs.readFileSync('LND_DIR/tls.cert');
+> var sslCreds = grpc.credentials.createSsl(lndCert);
+> var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
+    var metadata = new grpc.Metadata()
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+  });
+> var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+> var lightning = new lnrpc.Lightning('localhost:10009', creds);
+> var request = { 
+    channel_point: <ChannelPoint>, 
+  } 
+> lightning.abandonChannel(request, function(err, response) {
+    console.log(response);
+  })
+{ 
+}
+```
+
+### gRPC Request: AbandonChannelRequest 
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+channel_point | [ChannelPoint](#channelpoint) |   
+### gRPC Response: AbandonChannelResponse 
+
+
+This response has no parameters.
+
+
 # SendPayment
 
 
@@ -2025,11 +2056,12 @@ $ lncli sendpayment [command options] dest amt payment_hash final_cltv_delta | -
 # --debug_send                    use the debug rHash when sending the HTLC
 # --pay_req value                 a zpay32 encoded payment request to fulfill
 # --final_cltv_delta value        the number of blocks the last hop has to reveal the preimage (default: 0)
+# --force, -f                     will skip payment request confirmation
 ```
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -2069,7 +2101,7 @@ $ lncli sendpayment [command options] dest amt payment_hash final_cltv_delta | -
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -2142,7 +2174,7 @@ SendPaymentSync is the synchronous non-streaming version of SendPayment. This RP
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -2174,7 +2206,7 @@ SendPaymentSync is the synchronous non-streaming version of SendPayment. This RP
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -2259,7 +2291,7 @@ $ lncli sendtoroute [command options] [arguments...]
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -2294,7 +2326,7 @@ $ lncli sendtoroute [command options] [arguments...]
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -2357,7 +2389,7 @@ SendToRouteSync is a synchronous version of SendToRoute. It Will block until the
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -2384,7 +2416,7 @@ SendToRouteSync is a synchronous version of SendToRoute. It Will block until the
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -2452,7 +2484,7 @@ $ lncli addinvoice [command options] value preimage
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -2477,6 +2509,8 @@ $ lncli addinvoice [command options] value preimage
         add_index=<uint64>,
         settle_index=<uint64>,
         amt_paid=<int64>,
+        amt_paid_sat=<int64>,
+        amt_paid_msat=<int64>,
     )
 >>> response = stub.AddInvoice(request, metadata=[('macaroon'), macaroon)])
 >>> print(response)
@@ -2494,7 +2528,7 @@ $ lncli addinvoice [command options] value preimage
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -2520,6 +2554,8 @@ $ lncli addinvoice [command options] value preimage
     add_index: <uint64>, 
     settle_index: <uint64>, 
     amt_paid: <int64>, 
+    amt_paid_sat: <int64>, 
+    amt_paid_msat: <int64>, 
   } 
 > lightning.addInvoice(request, function(err, response) {
     console.log(response);
@@ -2553,7 +2589,9 @@ route_hints | [array RouteHint](#routehint) | Route hints that can each be indiv
 private | bool | Whether this invoice should include routing hints for private channels. 
 add_index | uint64 | The "add" index of this invoice. Each newly created invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all added invoices with an add_index greater than this one. 
 settle_index | uint64 | The "settle" index of this invoice. Each newly settled invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all settled invoices with an settle_index greater than this one. 
-amt_paid | int64 | The amount that was accepted for this invoice. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well.  
+amt_paid | int64 | Deprecated, use amt_paid_sat or amt_paid_msat. 
+amt_paid_sat | int64 | The amount that was accepted for this invoice, in satoshis. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well. 
+amt_paid_msat | int64 | The amount that was accepted for this invoice, in millisatoshis. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well.  
 ### gRPC Response: AddInvoiceResponse 
 
 
@@ -2569,20 +2607,35 @@ add_index | uint64 | The "add" index of this invoice. Each newly created invoice
 ### Simple RPC
 
 
-ListInvoices returns a list of all the invoices currently stored within the database. Any active debug invoices are ignored.
+ListInvoices returns a list of all the invoices currently stored within the database. Any active debug invoices are ignored. It has full support for paginated responses, allowing users to query for specific invoices through their add_index. This can be done by using either the first_index_offset or last_index_offset fields included in the response as the index_offset of the next request. The reversed flag is set by default in order to paginate backwards. If you wish to paginate forwards, you must explicitly set the flag to false. If none of the parameters are specified, then the last 100 invoices will be returned.
 
 ```shell
 
-# List all invoices currently stored.
+# This command enables the retrieval of all invoices currently stored
+# within the database. It has full support for paginationed responses,
+# allowing users to query for specific invoices through their add_index.
+# This can be done by using either the first_index_offset or
+# last_index_offset fields included in the response as the index_offset of
+# the next request. The reversed flag is set by default in order to
+# paginate backwards. If you wish to paginate forwards, you must
+# explicitly set the flag to false. If none of the parameters are
+# specified, then the last 100 invoices will be returned.
+# For example: if you have 200 invoices, "lncli listinvoices" will return
+# the last 100 created. If you wish to retrieve the previous 100, the
+# first_offset_index of the response can be used as the index_offset of
+# the next listinvoices request.
 
 $ lncli listinvoices [command options] [arguments...]
 
-# --pending_only  toggles if all invoices should be returned, or only those that are currently unsettled
+# --pending_only        toggles if all invoices should be returned, or only those that are currently unsettled
+# --index_offset value  the index of an invoice that will be used as either the start or end of a query to determine which invoices should be returned in the response (default: 0)
+# --max_invoices value  the max number of invoices to return (default: 0)
+# --reversed            if set, the invoices returned precede the given index_offset, allowing backwards pagination
 ```
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -2590,11 +2643,16 @@ $ lncli listinvoices [command options] [arguments...]
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ListInvoiceRequest(
         pending_only=<bool>,
+        index_offset=<uint64>,
+        num_max_invoices=<uint64>,
+        reversed=<bool>,
     )
 >>> response = stub.ListInvoices(request, metadata=[('macaroon'), macaroon)])
 >>> print(response)
 { 
     "invoices": <array Invoice>,
+    "last_index_offset": <uint64>,
+    "first_index_offset": <uint64>,
 }
 ```
 ```javascript
@@ -2605,7 +2663,7 @@ $ lncli listinvoices [command options] [arguments...]
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -2614,12 +2672,17 @@ $ lncli listinvoices [command options] [arguments...]
 > var lightning = new lnrpc.Lightning('localhost:10009', creds);
 > var request = { 
     pending_only: <bool>, 
+    index_offset: <uint64>, 
+    num_max_invoices: <uint64>, 
+    reversed: <bool>, 
   } 
 > lightning.listInvoices(request, function(err, response) {
     console.log(response);
   })
 { 
     "invoices": <array Invoice>,
+    "last_index_offset": <uint64>,
+    "first_index_offset": <uint64>,
 }
 ```
 
@@ -2628,13 +2691,18 @@ $ lncli listinvoices [command options] [arguments...]
 
 Parameter | Type | Description
 --------- | ---- | ----------- 
-pending_only | bool | Toggles if all invoices should be returned, or only those that are currently unsettled.  
+pending_only | bool | If set, only unsettled invoices will be returned in the response. 
+index_offset | uint64 | The index of an invoice that will be used as either the start or end of a query to determine which invoices should be returned in the response. 
+num_max_invoices | uint64 | The max number of invoices to return in the response to this query. 
+reversed | bool | If set, the invoices returned will result from seeking backwards from the specified index offset. This can be used to paginate backwards.  
 ### gRPC Response: ListInvoiceResponse 
 
 
 Parameter | Type | Description
 --------- | ---- | ----------- 
-invoices | [array Invoice](#invoice) |   
+invoices | [array Invoice](#invoice) | A list of invoices from the time slice of the time series specified in the request. 
+last_index_offset | uint64 | The index of the last item in the set of returned invoices. This can be used to seek further, pagination style. 
+first_index_offset | uint64 | The index of the last item in the set of returned invoices. This can be used to seek backwards, pagination style.  
 
 # LookupInvoice
 
@@ -2655,7 +2723,7 @@ $ lncli lookupinvoice [command options] rhash
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -2686,6 +2754,8 @@ $ lncli lookupinvoice [command options] rhash
     "add_index": <uint64>,
     "settle_index": <uint64>,
     "amt_paid": <int64>,
+    "amt_paid_sat": <int64>,
+    "amt_paid_msat": <int64>,
 }
 ```
 ```javascript
@@ -2696,7 +2766,7 @@ $ lncli lookupinvoice [command options] rhash
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -2729,6 +2799,8 @@ $ lncli lookupinvoice [command options] rhash
     "add_index": <uint64>,
     "settle_index": <uint64>,
     "amt_paid": <int64>,
+    "amt_paid_sat": <int64>,
+    "amt_paid_msat": <int64>,
 }
 ```
 
@@ -2761,7 +2833,9 @@ route_hints | [array RouteHint](#routehint) | Route hints that can each be indiv
 private | bool | Whether this invoice should include routing hints for private channels. 
 add_index | uint64 | The "add" index of this invoice. Each newly created invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all added invoices with an add_index greater than this one. 
 settle_index | uint64 | The "settle" index of this invoice. Each newly settled invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all settled invoices with an settle_index greater than this one. 
-amt_paid | int64 | The amount that was accepted for this invoice. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well.  
+amt_paid | int64 | Deprecated, use amt_paid_sat or amt_paid_msat. 
+amt_paid_sat | int64 | The amount that was accepted for this invoice, in satoshis. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well. 
+amt_paid_msat | int64 | The amount that was accepted for this invoice, in millisatoshis. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well.  
 
 # SubscribeInvoices
 
@@ -2769,7 +2843,7 @@ amt_paid | int64 | The amount that was accepted for this invoice. This will ONLY
 ### Response-streaming RPC
 
 
-SubscribeInvoices returns a uni-directional stream (sever -> client) for notifying the client of newly added/settled invoices. The caller can optionally specify the add_index and/or the settle_index. If the add_index is specified, then we'll first start by sending add invoice events for all invoices with an add_index greater than the specified value.  If the settle_index is specified, the next, we'll send out all settle events for invoices with a settle_index greater than the specified value.  One or both of these fields can be set. If no fields are set, then we'll only send out the latest add/settle events.
+SubscribeInvoices returns a uni-directional stream (server -> client) for notifying the client of newly added/settled invoices. The caller can optionally specify the add_index and/or the settle_index. If the add_index is specified, then we'll first start by sending add invoice events for all invoices with an add_index greater than the specified value.  If the settle_index is specified, the next, we'll send out all settle events for invoices with a settle_index greater than the specified value.  One or both of these fields can be set. If no fields are set, then we'll only send out the latest add/settle events.
 
 ```shell
 
@@ -2777,7 +2851,7 @@ SubscribeInvoices returns a uni-directional stream (sever -> client) for notifyi
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -2808,6 +2882,8 @@ SubscribeInvoices returns a uni-directional stream (sever -> client) for notifyi
     "add_index": <uint64>,
     "settle_index": <uint64>,
     "amt_paid": <int64>,
+    "amt_paid_sat": <int64>,
+    "amt_paid_msat": <int64>,
 }
 ```
 ```javascript
@@ -2818,7 +2894,7 @@ SubscribeInvoices returns a uni-directional stream (sever -> client) for notifyi
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -2859,6 +2935,8 @@ SubscribeInvoices returns a uni-directional stream (sever -> client) for notifyi
     "add_index": <uint64>,
     "settle_index": <uint64>,
     "amt_paid": <int64>,
+    "amt_paid_sat": <int64>,
+    "amt_paid_msat": <int64>,
 }
 ```
 
@@ -2891,7 +2969,9 @@ route_hints | [array RouteHint](#routehint) | Route hints that can each be indiv
 private | bool | Whether this invoice should include routing hints for private channels. 
 add_index | uint64 | The "add" index of this invoice. Each newly created invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all added invoices with an add_index greater than this one. 
 settle_index | uint64 | The "settle" index of this invoice. Each newly settled invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all settled invoices with an settle_index greater than this one. 
-amt_paid | int64 | The amount that was accepted for this invoice. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well.  
+amt_paid | int64 | Deprecated, use amt_paid_sat or amt_paid_msat. 
+amt_paid_sat | int64 | The amount that was accepted for this invoice, in satoshis. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well. 
+amt_paid_msat | int64 | The amount that was accepted for this invoice, in millisatoshis. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well.  
 
 # DecodePayReq
 
@@ -2912,7 +2992,7 @@ $ lncli decodepayreq [command options] pay_req
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -2944,7 +3024,7 @@ $ lncli decodepayreq [command options] pay_req
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -3011,7 +3091,7 @@ $ lncli listpayments [arguments...]
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -3032,7 +3112,7 @@ $ lncli listpayments [arguments...]
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -3074,7 +3154,7 @@ DeleteAllPayments deletes all outgoing payments from DB.
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -3094,7 +3174,7 @@ DeleteAllPayments deletes all outgoing payments from DB.
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -3134,18 +3214,20 @@ DescribeGraph returns a description of the latest graph state from the point of 
 
 $ lncli describegraph [command options] [arguments...]
 
-# --render  If set, then an image of graph will be generated and displayed. The generated image is stored within the current directory with a file name of 'graph.svg'
+# --include_unannounced  If set, unannounced channels will be included in the graph. Unannounced channels are both private channels, and public channels that are not yet announced to the network.
 ```
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
 >>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
->>> request = ln.ChannelGraphRequest()
+>>> request = ln.ChannelGraphRequest(
+        include_unannounced=<bool>,
+    )
 >>> response = stub.DescribeGraph(request, metadata=[('macaroon'), macaroon)])
 >>> print(response)
 { 
@@ -3161,14 +3243,16 @@ $ lncli describegraph [command options] [arguments...]
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
   });
 > var creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
 > var lightning = new lnrpc.Lightning('localhost:10009', creds);
-> var request = {} 
+> var request = { 
+    include_unannounced: <bool>, 
+  } 
 > lightning.describeGraph(request, function(err, response) {
     console.log(response);
   })
@@ -3181,8 +3265,9 @@ $ lncli describegraph [command options] [arguments...]
 ### gRPC Request: ChannelGraphRequest 
 
 
-This request has no parameters.
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+include_unannounced | bool | Whether unannounced channels are included in the response or not. If set, unannounced channels are included. Unannounced channels are both private channels, and public channels that are not yet announced to the network.  
 ### gRPC Response: ChannelGraph 
 
 
@@ -3210,7 +3295,7 @@ $ lncli getchaninfo [command options] chan_id
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -3240,7 +3325,7 @@ $ lncli getchaninfo [command options] chan_id
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -3304,7 +3389,7 @@ $ lncli getnodeinfo [command options] [arguments...]
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -3329,7 +3414,7 @@ $ lncli getnodeinfo [command options] [arguments...]
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -3380,15 +3465,15 @@ $ lncli queryroutes [command options] dest amt
 
 # --dest value               the 33-byte hex-encoded public key for the payment destination
 # --amt value                the amount to send expressed in satoshis (default: 0)
-# --fee_limit value          maximum fee allowed in satoshis when sendingthe payment (default: 0)
-# --fee_limit_percent value  percentage of the payment's amount used as themaximum fee allowed when sending the payment (default: 0)
+# --fee_limit value          maximum fee allowed in satoshis when sending the payment (default: 0)
+# --fee_limit_percent value  percentage of the payment's amount used as the maximum fee allowed when sending the payment (default: 0)
 # --num_max_routes value     the max number of routes to be returned (default: 10) (default: 10)
 # --final_cltv_delta value   (optional) number of blocks the last hop has to reveal the preimage (default: 0)
 ```
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -3415,7 +3500,7 @@ $ lncli queryroutes [command options] dest amt
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -3472,7 +3557,7 @@ $ lncli getnetworkinfo [arguments...]
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -3501,7 +3586,7 @@ $ lncli getnetworkinfo [arguments...]
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -3564,7 +3649,7 @@ $ lncli stop [arguments...]
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -3584,7 +3669,7 @@ $ lncli stop [arguments...]
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -3624,7 +3709,7 @@ SubscribeChannelGraph launches a streaming RPC that allows the caller to receive
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -3647,7 +3732,7 @@ SubscribeChannelGraph launches a streaming RPC that allows the caller to receive
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -3709,7 +3794,7 @@ $ lncli debuglevel [command options] [arguments...]
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -3733,7 +3818,7 @@ $ lncli debuglevel [command options] [arguments...]
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -3785,7 +3870,7 @@ $ lncli feereport [arguments...]
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -3809,7 +3894,7 @@ $ lncli feereport [arguments...]
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -3868,7 +3953,7 @@ $ lncli updatechanpolicy [command options] base_fee_msat fee_rate time_lock_delt
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -3894,7 +3979,7 @@ $ lncli updatechanpolicy [command options] base_fee_msat fee_rate time_lock_delt
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -3962,7 +4047,7 @@ $ lncli fwdinghistory [command options] start_time [end_time] [index_offset] [ma
 ```python
 >>> import codecs, grpc, os
 >>> import rpc_pb2 as ln, rpc_pb2_grpc as lnrpc
->>> macaroon = codecs.encode(open('LND_DIR/admin.macaroon', 'rb').read(), 'hex')
+>>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex')
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
@@ -3989,7 +4074,7 @@ $ lncli fwdinghistory [command options] start_time [end_time] [index_offset] [ma
 > var lndCert = fs.readFileSync('LND_DIR/tls.cert');
 > var sslCreds = grpc.credentials.createSsl(lndCert);
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
@@ -4030,6 +4115,19 @@ last_offset_index | uint32 | The index of the last time in the set of returned f
 
 
 # Messages
+
+## AbandonChannelRequest
+
+
+Parameter | Type | Description
+--------- | ---- | ----------- 
+channel_point | [ChannelPoint](#channelpoint) |   
+
+## AbandonChannelResponse
+
+
+This message has no parameters.
+
 
 ## AddInvoiceResponse
 
@@ -4169,8 +4267,9 @@ edges | [array ChannelEdge](#channeledge) | The list of `ChannelEdge`s in this c
 ## ChannelGraphRequest
 
 
-This message has no parameters.
-
+Parameter | Type | Description
+--------- | ---- | ----------- 
+include_unannounced | bool | Whether unannounced channels are included in the response or not. If set, unannounced channels are included. Unannounced channels are both private channels, and public channels that are not yet announced to the network.  
 
 ## ChannelOpenUpdate
 
@@ -4226,7 +4325,8 @@ cooperative | bool |
 local_force | bool |  
 remote_force | bool |  
 breach | bool |  
-funding_canceled | bool |   
+funding_canceled | bool |  
+abandoned | bool |   
 
 ## ClosedChannelsResponse
 
@@ -4486,7 +4586,9 @@ route_hints | [array RouteHint](#routehint) | Route hints that can each be indiv
 private | bool | Whether this invoice should include routing hints for private channels. 
 add_index | uint64 | The "add" index of this invoice. Each newly created invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all added invoices with an add_index greater than this one. 
 settle_index | uint64 | The "settle" index of this invoice. Each newly settled invoice will increment this index making it monotonically increasing. Callers to the SubscribeInvoices call can use this to instantly get notified of all settled invoices with an settle_index greater than this one. 
-amt_paid | int64 | The amount that was accepted for this invoice. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well.  
+amt_paid | int64 | Deprecated, use amt_paid_sat or amt_paid_msat. 
+amt_paid_sat | int64 | The amount that was accepted for this invoice, in satoshis. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well. 
+amt_paid_msat | int64 | The amount that was accepted for this invoice, in millisatoshis. This will ONLY be set if this invoice has been settled. We provide this field as if the invoice was created with a zero value, then we need to record what amount was ultimately accepted. Additionally, it's possible that the sender paid MORE that was specified in the original invoice. So we'll record that here as well.  
 
 ## InvoiceSubscription
 
@@ -4537,14 +4639,19 @@ channels | [array Channel](#channel) | The list of active channels
 
 Parameter | Type | Description
 --------- | ---- | ----------- 
-pending_only | bool | Toggles if all invoices should be returned, or only those that are currently unsettled.  
+pending_only | bool | If set, only unsettled invoices will be returned in the response. 
+index_offset | uint64 | The index of an invoice that will be used as either the start or end of a query to determine which invoices should be returned in the response. 
+num_max_invoices | uint64 | The max number of invoices to return in the response to this query. 
+reversed | bool | If set, the invoices returned will result from seeking backwards from the specified index offset. This can be used to paginate backwards.  
 
 ## ListInvoiceResponse
 
 
 Parameter | Type | Description
 --------- | ---- | ----------- 
-invoices | [array Invoice](#invoice) |   
+invoices | [array Invoice](#invoice) | A list of invoices from the time slice of the time series specified in the request. 
+last_index_offset | uint64 | The index of the last item in the set of returned invoices. This can be used to seek further, pagination style. 
+first_index_offset | uint64 | The index of the last item in the set of returned invoices. This can be used to seek backwards, pagination style.  
 
 ## ListPaymentsRequest
 
@@ -4607,12 +4714,6 @@ Parameter | Type | Description
 --------- | ---- | ----------- 
 address | string | The newly generated wallet address  
 
-## NewWitnessAddressRequest
-
-
-This message has no parameters.
-
-
 ## NodeAddress
 
 
@@ -4660,7 +4761,9 @@ target_conf | int32 | The target number of blocks that the funding transaction s
 sat_per_byte | int64 | A manual fee rate set in sat/byte that should be used when crafting the funding transaction. 
 private | bool | Whether this channel should be private, not announced to the greater network. 
 min_htlc_msat | int64 | The minimum value in millisatoshi we will require for incoming HTLCs on the channel. 
-remote_csv_delay | uint32 | The delay we require on the remote's commitment transaction. If this is not set, it will be scaled automatically with the channel size.  
+remote_csv_delay | uint32 | The delay we require on the remote's commitment transaction. If this is not set, it will be scaled automatically with the channel size. 
+min_confs | int32 | The minimum number of confirmations each one of your outputs used for the funding transaction must satisfy. 
+spend_unconfirmed | bool | Whether unconfirmed outputs should be used as inputs for the funding transaction.  
 
 ## OpenStatusUpdate
 
@@ -4700,11 +4803,13 @@ pay_req | string | The payment request string to be decoded
 Parameter | Type | Description
 --------- | ---- | ----------- 
 payment_hash | string | The payment hash 
-value | int64 | The value of the payment in satoshis 
+value | int64 | Deprecated, use value_sat or value_msat. 
 creation_date | int64 | The date of this payment 
 path | array string | The path this payment took 
 fee | int64 | The fee paid for this payment in satoshis 
-payment_preimage | string | The payment preimage  
+payment_preimage | string | The payment preimage 
+value_sat | int64 | The value of the payment in satoshis 
+value_msat | int64 | The value of the payment in milli-satoshis  
 
 ## PaymentHash
 
@@ -4878,7 +4983,8 @@ Parameter | Type | Description
 time_lock_delta | uint32 |  
 min_htlc | int64 |  
 fee_base_msat | int64 |  
-fee_rate_milli_msat | int64 |   
+fee_rate_milli_msat | int64 |  
+disabled | bool |   
 
 ## SendCoinsRequest
 
@@ -4985,7 +5091,7 @@ This message has no parameters.
 Parameter | Type | Description
 --------- | ---- | ----------- 
 tx_hash | string | The transaction hash 
-amount | int64 | The transaction ammount, denominated in satoshis 
+amount | int64 | The transaction amount, denominated in satoshis 
 num_confirmations | int32 | The number of confirmations 
 block_hash | string | The hash of the block this transaction was included in 
 block_height | int32 | The height of the block this transaction was included in 

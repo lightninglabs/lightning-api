@@ -53,7 +53,7 @@ export PATH=$PATH:$GOPATH/bin
 
 # Install annotations and protoc-gen-doc.
 go get -u github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis
-go get -u github.com/pseudomuto/protoc-gen-doc
+go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc
 
 # Get the latest rpc.proto.
 curl -o rpc.proto -s https://raw.githubusercontent.com/lightningnetwork/lnd/master/lnrpc/rpc.proto
@@ -105,7 +105,7 @@ In the future, you can just run `./deploy.sh` to deploy automatically.
 ## Automatic Updates and Deployment
 
 Updates to the protobuf definitions can be detected by running the Flask server
-within `server.py`.
+within `app.py`.
 
 ### Running the server locally
 
@@ -124,7 +124,7 @@ Then, the server can be run with:
 
 ```shell
 $ export WEBHOOK_SECRET_TOKEN=YOUR_TOKEN_HERE
-$ FLASK_APP=server.py
+$ FLASK_APP=app.py
 $ flask run
 ```
 

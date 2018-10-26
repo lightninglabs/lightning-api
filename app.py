@@ -39,10 +39,10 @@ def handle_proto_update():
 
     github_payload = request.headers.get('X-Hub-Signature')
     if not github_payload:
-        return '', 400
+        return '', 200
 
     if not verify_signature(github_payload, request.data):
-        return '', 400
+        return '', 200
 
     data = request.get_json()
     commits = data['commits']

@@ -1,7 +1,7 @@
 ```javascript
 > var fs = require('fs');
 > var request = require('request');{% if endpoint.service != 'WalletUnlocker' %}
-> var macaroon = fs.readFileSync('LND_DIR/admin.macaroon').toString('hex');{% endif %}{% if endpoint.type == 'POST' %}
+> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');{% endif %}{% if endpoint.type == 'POST' %}
 > var requestBody = { {% for param in endpoint.requestParams %}
     {{ param.name }}: <{{ param.type }}>,{% endfor %}
   };{% endif %}
