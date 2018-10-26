@@ -7,7 +7,7 @@
 > var sslCreds = grpc.credentials.createSsl(lndCert);{% if method.service == 'WalletUnlocker' %}
 > var {{ method.serviceJS }} = new lnrpc.{{ method.service }}('localhost:10009', sslCreds);{% else %}
 > var macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
-    var macaroon = fs.readFileSync("LND_DIR/admin.macaroon").toString('hex');
+    var macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
     var metadata = new grpc.Metadata()
     metadata.add('macaroon', macaroon);
     callback(null, metadata);
