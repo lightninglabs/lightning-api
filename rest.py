@@ -51,10 +51,24 @@ def parse_rest_definition_params(definition):
                 p['type'] = 'array ' + ref
                 p['link'] = ref.lower()
         else:
-            if def_param.get('format'):
-                p['type'] = def_param['format']
+            param_type = def_param.get('type')
+            param_format = def_param.get('format')
+
+            # If the format is defined, we'll use that over the type as it
+            # provides more detail.
+            if param_format:
+                # However, if the parameter is of type string and it's not a
+                # base64 encoded byte array, then we'll use the string type
+                # directly. We do this to prevent issues when parsing large
+                # numbers (int64, uint64) in some languages as they see these
+                # types as strings rather than integers.
+                if param_type == 'string' and param_format != 'byte':
+                    p['type'] = param_type
+                else:
+                    p['type'] = param_format
+            # Otherwise, we only have the type available, so we'll use that.
             else:
-                p['type'] = def_param['type']
+                p['type'] = param_type
 
         params.append(p)
 
