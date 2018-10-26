@@ -1,3 +1,7 @@
+#!/bin/bash
+
+set -e
+
 # We'll default to fetching the latest version of the RPC files. Otherwise, we'll use the commit hash provided.
 commit="master"
 [ -n "$1" ] && commit=$1
@@ -13,8 +17,7 @@ pushd $GOPATH/src/github.com/lightningnetwork/lnd
 git reset --hard HEAD
 git pull
 git checkout $commit
-make
-make install
+make clean && make && make install
 popd
 
 # Render the new docs.
