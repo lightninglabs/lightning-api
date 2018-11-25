@@ -337,7 +337,7 @@ $ lncli walletbalance [arguments...]
 >>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.WalletBalanceRequest()
->>> response = stub.WalletBalance(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.WalletBalance(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "total_balance": <int64>,
@@ -410,7 +410,7 @@ $ lncli channelbalance [arguments...]
 >>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ChannelBalanceRequest()
->>> response = stub.ChannelBalance(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.ChannelBalance(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "balance": <int64>,
@@ -480,7 +480,7 @@ $ lncli listchaintxns [arguments...]
 >>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.GetTransactionsRequest()
->>> response = stub.GetTransactions(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.GetTransactions(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "transactions": <array Transaction>,
@@ -559,7 +559,7 @@ $ lncli sendcoins [command options] addr amt
         target_conf=<int32>,
         sat_per_byte=<int64>,
     )
->>> response = stub.SendCoins(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.SendCoins(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "txid": <string>,
@@ -736,7 +736,7 @@ $ lncli sendmany [command options] send-json-string [--conf_target=N] [--sat_per
         target_conf=<int32>,
         sat_per_byte=<int64>,
     )
->>> response = stub.SendMany(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.SendMany(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "txid": <string>,
@@ -814,7 +814,7 @@ $ lncli newaddress address-type
 >>> request = ln.NewAddressRequest(
         type=<AddressType>,
     )
->>> response = stub.NewAddress(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.NewAddress(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "address": <string>,
@@ -889,7 +889,7 @@ $ lncli signmessage [command options] msg
 >>> request = ln.SignMessageRequest(
         msg=<bytes>,
     )
->>> response = stub.SignMessage(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.SignMessage(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "signature": <string>,
@@ -967,7 +967,7 @@ $ lncli verifymessage [command options] msg signature
         msg=<bytes>,
         signature=<string>,
     )
->>> response = stub.VerifyMessage(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.VerifyMessage(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "valid": <bool>,
@@ -1047,7 +1047,7 @@ $ lncli connect [command options] <pubkey>@host
         addr=<LightningAddress>,
         perm=<bool>,
     )
->>> response = stub.ConnectPeer(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.ConnectPeer(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
 }
@@ -1119,7 +1119,7 @@ $ lncli disconnect [command options] <pubkey>
 >>> request = ln.DisconnectPeerRequest(
         pub_key=<string>,
     )
->>> response = stub.DisconnectPeer(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.DisconnectPeer(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
 }
@@ -1186,7 +1186,7 @@ $ lncli listpeers [arguments...]
 >>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ListPeersRequest()
->>> response = stub.ListPeers(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.ListPeers(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "peers": <array Peer>,
@@ -1253,7 +1253,7 @@ $ lncli getinfo [arguments...]
 >>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.GetInfoRequest()
->>> response = stub.GetInfo(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.GetInfo(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "identity_pubkey": <string>,
@@ -1356,7 +1356,7 @@ $ lncli pendingchannels [arguments...]
 >>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.PendingChannelsRequest()
->>> response = stub.PendingChannels(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.PendingChannels(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "total_limbo_balance": <int64>,
@@ -1444,7 +1444,7 @@ $ lncli listchannels [command options] [arguments...]
         public_only=<bool>,
         private_only=<bool>,
     )
->>> response = stub.ListChannels(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.ListChannels(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "channels": <array Channel>,
@@ -1533,7 +1533,7 @@ $ lncli closedchannels [command options] [arguments...]
         funding_canceled=<bool>,
         abandoned=<bool>,
     )
->>> response = stub.ClosedChannels(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.ClosedChannels(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "channels": <array ChannelCloseSummary>,
@@ -1621,7 +1621,7 @@ OpenChannelSync is a synchronous version of the OpenChannel RPC call. This call 
         min_confs=<int32>,
         spend_unconfirmed=<bool>,
     )
->>> response = stub.OpenChannelSync(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.OpenChannelSync(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "funding_txid_bytes": <bytes>,
@@ -1977,7 +1977,7 @@ $ lncli abandonchannel [command options] funding_txid [output_index]
 >>> request = ln.AbandonChannelRequest(
         channel_point=<ChannelPoint>,
     )
->>> response = stub.AbandonChannel(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.AbandonChannel(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
 }
@@ -2190,7 +2190,7 @@ SendPaymentSync is the synchronous non-streaming version of SendPayment. This RP
         final_cltv_delta=<int32>,
         fee_limit=<FeeLimit>,
     )
->>> response = stub.SendPaymentSync(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.SendPaymentSync(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "payment_error": <string>,
@@ -2400,7 +2400,7 @@ SendToRouteSync is a synchronous version of SendToRoute. It Will block until the
         payment_hash_string=<string>,
         routes=<array Route>,
     )
->>> response = stub.SendToRouteSync(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.SendToRouteSync(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "payment_error": <string>,
@@ -2512,7 +2512,7 @@ $ lncli addinvoice [command options] value preimage
         amt_paid_sat=<int64>,
         amt_paid_msat=<int64>,
     )
->>> response = stub.AddInvoice(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.AddInvoice(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "r_hash": <bytes>,
@@ -2647,7 +2647,7 @@ $ lncli listinvoices [command options] [arguments...]
         num_max_invoices=<uint64>,
         reversed=<bool>,
     )
->>> response = stub.ListInvoices(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.ListInvoices(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "invoices": <array Invoice>,
@@ -2733,7 +2733,7 @@ $ lncli lookupinvoice [command options] rhash
         r_hash_str=<string>,
         r_hash=<bytes>,
     )
->>> response = stub.LookupInvoice(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.LookupInvoice(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "memo": <string>,
@@ -3001,7 +3001,7 @@ $ lncli decodepayreq [command options] pay_req
 >>> request = ln.PayReqString(
         pay_req=<string>,
     )
->>> response = stub.DecodePayReq(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.DecodePayReq(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "destination": <string>,
@@ -3098,7 +3098,7 @@ $ lncli listpayments [arguments...]
 >>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.ListPaymentsRequest()
->>> response = stub.ListPayments(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.ListPayments(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "payments": <array Payment>,
@@ -3161,7 +3161,7 @@ DeleteAllPayments deletes all outgoing payments from DB.
 >>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.DeleteAllPaymentsRequest()
->>> response = stub.DeleteAllPayments(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.DeleteAllPayments(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
 }
@@ -3228,7 +3228,7 @@ $ lncli describegraph [command options] [arguments...]
 >>> request = ln.ChannelGraphRequest(
         include_unannounced=<bool>,
     )
->>> response = stub.DescribeGraph(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.DescribeGraph(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "nodes": <array LightningNode>,
@@ -3304,7 +3304,7 @@ $ lncli getchaninfo [command options] chan_id
 >>> request = ln.ChanInfoRequest(
         chan_id=<uint64>,
     )
->>> response = stub.GetChanInfo(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.GetChanInfo(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "channel_id": <uint64>,
@@ -3398,7 +3398,7 @@ $ lncli getnodeinfo [command options] [arguments...]
 >>> request = ln.NodeInfoRequest(
         pub_key=<string>,
     )
->>> response = stub.GetNodeInfo(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.GetNodeInfo(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "node": <LightningNode>,
@@ -3486,7 +3486,7 @@ $ lncli queryroutes [command options] dest amt
         final_cltv_delta=<int32>,
         fee_limit=<FeeLimit>,
     )
->>> response = stub.QueryRoutes(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.QueryRoutes(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "routes": <array Route>,
@@ -3564,7 +3564,7 @@ $ lncli getnetworkinfo [arguments...]
 >>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.NetworkInfoRequest()
->>> response = stub.GetNetworkInfo(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.GetNetworkInfo(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "graph_diameter": <uint32>,
@@ -3656,7 +3656,7 @@ $ lncli stop [arguments...]
 >>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.StopRequest()
->>> response = stub.StopDaemon(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.StopDaemon(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
 }
@@ -3804,7 +3804,7 @@ $ lncli debuglevel [command options] [arguments...]
         show=<bool>,
         level_spec=<string>,
     )
->>> response = stub.DebugLevel(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.DebugLevel(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "sub_systems": <string>,
@@ -3877,7 +3877,7 @@ $ lncli feereport [arguments...]
 >>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
 >>> stub = lnrpc.LightningStub(channel)
 >>> request = ln.FeeReportRequest()
->>> response = stub.FeeReport(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.FeeReport(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "channel_fees": <array ChannelFeeReport>,
@@ -3966,7 +3966,7 @@ $ lncli updatechanpolicy [command options] base_fee_msat fee_rate time_lock_delt
         fee_rate=<double>,
         time_lock_delta=<uint32>,
     )
->>> response = stub.UpdateChannelPolicy(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.UpdateChannelPolicy(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
 }
@@ -4059,7 +4059,7 @@ $ lncli fwdinghistory [command options] start_time [end_time] [index_offset] [ma
         index_offset=<uint32>,
         num_max_events=<uint32>,
     )
->>> response = stub.ForwardingHistory(request, metadata=[('macaroon'), macaroon)])
+>>> response = stub.ForwardingHistory(request, metadata=[('macaroon', macaroon)])
 >>> print(response)
 { 
     "forwarding_events": <array ForwardingEvent>,
