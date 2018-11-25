@@ -1,2 +1,2 @@
->>> response = stub.{{ method.name }}(request{% if method.service != 'WalletUnlocker' %}, metadata=[('macaroon'), macaroon)]{% endif %})
+>>> response = stub.{{ method.name }}(request{% if method.service != 'WalletUnlocker' %}, metadata=[('macaroon', macaroon)]{% endif %})
 >>> print(response)
