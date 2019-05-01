@@ -110,6 +110,35 @@ def parse_grpc_messages(messages, fileName, packageFiles):
     return grpc_messages
 
 
+def parse_grpc_enum_params(enum):
+    """ Parses the parameters of a gRPC enum and returns them as a list """
+    params = []
+    for param in enum['values']:
+        _, description = parse_description(param['description'])
+        parsed_param = {
+            'name': param['name'],
+            'description': description,
+            'number': param['number']
+        }
+        params.append(parsed_param)
+    return params
+
+
+def parse_grpc_enums(enums):
+    """ Parses the different gRPC enums found within the rpc.json file """
+    grpc_messages = {}
+    for enum in enums:
+        name = enum['name']
+        params = parse_grpc_enum_params(enum)
+        grpc_messages[name] = {
+            'name': name,
+            'description': enum['description'],
+            'params': params,
+            'link': name.lower()
+        }
+    return grpc_messages
+
+
 def parse_grpc_methods(services, messages, fileName):
     """
     Parses the different gRPC methods of the different services found within the
@@ -214,6 +243,7 @@ def render_grpc():
     grpc_json_files = json.loads(open(PROTO_DIR + '/generated.json', 'r').read())['files']
     grpc_messages = {}
     grpc_methods = {}
+    grpc_enums = {}
     grpc_package_files = {}
     files = []
     experimental = []
@@ -236,6 +266,7 @@ def render_grpc():
     for file in grpc_json_files:
         files.append(file['name'])
         grpc_methods.update(parse_grpc_methods(file['services'], grpc_messages, file['name']))
+        grpc_enums.update(parse_grpc_enums(file['enums']))
 
     ordering = sorted(grpc_methods.keys())
     for _, method in grpc_methods.items():
@@ -261,6 +292,7 @@ def render_grpc():
     methods_list.sort(key=lambda m: m['index'])
 
     rendered_docs = template.render(
+        enums=grpc_enums,
         methods=methods_list,
         messages=grpc_messages,
         files=files,

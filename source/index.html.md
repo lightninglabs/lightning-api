@@ -10928,3 +10928,254 @@ num_backups | uint32 | The total number of successful backups that have been mad
 num_pending_backups | uint32 | The total number of backups in the session that are currently pending to be acknowledged by the watchtower. 
 max_backups | uint32 | The maximum number of backups allowed by the watchtower session. 
 sweep_sat_per_byte | uint32 | The fee rate, in satoshis per vbyte, that will be used by the watchtower for the justice transaction in the event of a channel breach.  
+
+
+# Enumerations
+
+## AddressType
+`AddressType` has to be one of:
+
+- `p2wkh`: Pay to witness key hash (`WITNESS_PUBKEY_HASH` = 0)
+- `np2wkh`: Pay to nested witness key hash (`NESTED_PUBKEY_HASH` = 1)
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>WITNESS_PUBKEY_HASH</code> | <code>0</code> |  
+<code>NESTED_PUBKEY_HASH</code> | <code>1</code> |  
+<code>UNUSED_WITNESS_PUBKEY_HASH</code> | <code>2</code> |  
+<code>UNUSED_NESTED_PUBKEY_HASH</code> | <code>3</code> |  
+
+## ClosureType
+
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>COOPERATIVE_CLOSE</code> | <code>0</code> |  
+<code>LOCAL_FORCE_CLOSE</code> | <code>1</code> |  
+<code>REMOTE_FORCE_CLOSE</code> | <code>2</code> |  
+<code>BREACH_CLOSE</code> | <code>3</code> |  
+<code>FUNDING_CANCELED</code> | <code>4</code> |  
+<code>ABANDONED</code> | <code>5</code> |  
+
+## Initiator
+
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>UNKNOWN</code> | <code>0</code> |  
+<code>LOCAL</code> | <code>1</code> |  
+<code>REMOTE</code> | <code>2</code> |  
+<code>BOTH</code> | <code>3</code> |  
+
+## UpdateType
+
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>OPEN_CHANNEL</code> | <code>0</code> |  
+<code>CLOSED_CHANNEL</code> | <code>1</code> |  
+<code>ACTIVE_CHANNEL</code> | <code>2</code> |  
+<code>INACTIVE_CHANNEL</code> | <code>3</code> |  
+<code>PENDING_OPEN_CHANNEL</code> | <code>4</code> |  
+
+## CommitmentType
+
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>LEGACY</code> | <code>0</code> | A channel using the legacy commitment format having tweaked to_remote keys. 
+<code>STATIC_REMOTE_KEY</code> | <code>1</code> | A channel that uses the modern commitment format where the key in the output of the remote party does not change each state. This makes back up and recovery easier as when the channel is closed, the funds go directly to that key. 
+<code>ANCHORS</code> | <code>2</code> | A channel that uses a commitment format that has anchor outputs on the commitments, allowing fee bumping after a force close transaction has been broadcast. 
+<code>UNKNOWN_COMMITMENT_TYPE</code> | <code>999</code> | Returned when the commitment type isn't known or unavailable. 
+
+## FailureCode
+
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>RESERVED</code> | <code>0</code> | The numbers assigned in this enumeration match the failure codes as defined in BOLT #4. Because protobuf 3 requires enums to start with 0, a RESERVED value is added. 
+<code>INCORRECT_OR_UNKNOWN_PAYMENT_DETAILS</code> | <code>1</code> |  
+<code>INCORRECT_PAYMENT_AMOUNT</code> | <code>2</code> |  
+<code>FINAL_INCORRECT_CLTV_EXPIRY</code> | <code>3</code> |  
+<code>FINAL_INCORRECT_HTLC_AMOUNT</code> | <code>4</code> |  
+<code>FINAL_EXPIRY_TOO_SOON</code> | <code>5</code> |  
+<code>INVALID_REALM</code> | <code>6</code> |  
+<code>EXPIRY_TOO_SOON</code> | <code>7</code> |  
+<code>INVALID_ONION_VERSION</code> | <code>8</code> |  
+<code>INVALID_ONION_HMAC</code> | <code>9</code> |  
+<code>INVALID_ONION_KEY</code> | <code>10</code> |  
+<code>AMOUNT_BELOW_MINIMUM</code> | <code>11</code> |  
+<code>FEE_INSUFFICIENT</code> | <code>12</code> |  
+<code>INCORRECT_CLTV_EXPIRY</code> | <code>13</code> |  
+<code>CHANNEL_DISABLED</code> | <code>14</code> |  
+<code>TEMPORARY_CHANNEL_FAILURE</code> | <code>15</code> |  
+<code>REQUIRED_NODE_FEATURE_MISSING</code> | <code>16</code> |  
+<code>REQUIRED_CHANNEL_FEATURE_MISSING</code> | <code>17</code> |  
+<code>UNKNOWN_NEXT_PEER</code> | <code>18</code> |  
+<code>TEMPORARY_NODE_FAILURE</code> | <code>19</code> |  
+<code>PERMANENT_NODE_FAILURE</code> | <code>20</code> |  
+<code>PERMANENT_CHANNEL_FAILURE</code> | <code>21</code> |  
+<code>EXPIRY_TOO_FAR</code> | <code>22</code> |  
+<code>MPP_TIMEOUT</code> | <code>23</code> |  
+<code>INTERNAL_FAILURE</code> | <code>997</code> | An internal error occurred. 
+<code>UNKNOWN_FAILURE</code> | <code>998</code> | The error source is known, but the failure itself couldn't be decoded. 
+<code>UNREADABLE_FAILURE</code> | <code>999</code> | An unreadable failure result is returned if the received failure message cannot be decrypted. In that case the error source is unknown. 
+
+## FeatureBit
+
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>DATALOSS_PROTECT_REQ</code> | <code>0</code> |  
+<code>DATALOSS_PROTECT_OPT</code> | <code>1</code> |  
+<code>INITIAL_ROUING_SYNC</code> | <code>3</code> |  
+<code>UPFRONT_SHUTDOWN_SCRIPT_REQ</code> | <code>4</code> |  
+<code>UPFRONT_SHUTDOWN_SCRIPT_OPT</code> | <code>5</code> |  
+<code>GOSSIP_QUERIES_REQ</code> | <code>6</code> |  
+<code>GOSSIP_QUERIES_OPT</code> | <code>7</code> |  
+<code>TLV_ONION_REQ</code> | <code>8</code> |  
+<code>TLV_ONION_OPT</code> | <code>9</code> |  
+<code>EXT_GOSSIP_QUERIES_REQ</code> | <code>10</code> |  
+<code>EXT_GOSSIP_QUERIES_OPT</code> | <code>11</code> |  
+<code>STATIC_REMOTE_KEY_REQ</code> | <code>12</code> |  
+<code>STATIC_REMOTE_KEY_OPT</code> | <code>13</code> |  
+<code>PAYMENT_ADDR_REQ</code> | <code>14</code> |  
+<code>PAYMENT_ADDR_OPT</code> | <code>15</code> |  
+<code>MPP_REQ</code> | <code>16</code> |  
+<code>MPP_OPT</code> | <code>17</code> |  
+
+## HTLCStatus
+
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>IN_FLIGHT</code> | <code>0</code> |  
+<code>SUCCEEDED</code> | <code>1</code> |  
+<code>FAILED</code> | <code>2</code> |  
+
+## InvoiceState
+
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>OPEN</code> | <code>0</code> |  
+<code>SETTLED</code> | <code>1</code> |  
+<code>CANCELED</code> | <code>2</code> |  
+<code>ACCEPTED</code> | <code>3</code> |  
+
+## InvoiceHTLCState
+
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>ACCEPTED</code> | <code>0</code> |  
+<code>SETTLED</code> | <code>1</code> |  
+<code>CANCELED</code> | <code>2</code> |  
+
+## NodeMetricType
+
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>UNKNOWN</code> | <code>0</code> |  
+<code>BETWEENNESS_CENTRALITY</code> | <code>1</code> |  
+
+## PaymentStatus
+
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>UNKNOWN</code> | <code>0</code> |  
+<code>IN_FLIGHT</code> | <code>1</code> |  
+<code>SUCCEEDED</code> | <code>2</code> |  
+<code>FAILED</code> | <code>3</code> |  
+
+## SyncType
+
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>UNKNOWN_SYNC</code> | <code>0</code> | Denotes that we cannot determine the peer's current sync type. 
+<code>ACTIVE_SYNC</code> | <code>1</code> | Denotes that we are actively receiving new graph updates from the peer. 
+<code>PASSIVE_SYNC</code> | <code>2</code> | Denotes that we are not receiving new graph updates from the peer. 
+
+## EventType
+
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>UNKNOWN</code> | <code>0</code> |  
+<code>SEND</code> | <code>1</code> |  
+<code>RECEIVE</code> | <code>2</code> |  
+<code>FORWARD</code> | <code>3</code> |  
+
+## AnchorState
+
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>LIMBO</code> | <code>0</code> |  
+<code>RECOVERED</code> | <code>1</code> |  
+<code>LOST</code> | <code>2</code> |  
+
+## FailureDetail
+
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>UNKNOWN</code> | <code>0</code> |  
+<code>NO_DETAIL</code> | <code>1</code> |  
+<code>ONION_DECODE</code> | <code>2</code> |  
+<code>LINK_NOT_ELIGIBLE</code> | <code>3</code> |  
+<code>ON_CHAIN_TIMEOUT</code> | <code>4</code> |  
+<code>HTLC_EXCEEDS_MAX</code> | <code>5</code> |  
+<code>INSUFFICIENT_BALANCE</code> | <code>6</code> |  
+<code>INCOMPLETE_FORWARD</code> | <code>7</code> |  
+<code>HTLC_ADD_FAILED</code> | <code>8</code> |  
+<code>FORWARDS_DISABLED</code> | <code>9</code> |  
+<code>INVOICE_CANCELED</code> | <code>10</code> |  
+<code>INVOICE_UNDERPAID</code> | <code>11</code> |  
+<code>INVOICE_EXPIRY_TOO_SOON</code> | <code>12</code> |  
+<code>INVOICE_NOT_OPEN</code> | <code>13</code> |  
+<code>MPP_INVOICE_TIMEOUT</code> | <code>14</code> |  
+<code>ADDRESS_MISMATCH</code> | <code>15</code> |  
+<code>SET_TOTAL_MISMATCH</code> | <code>16</code> |  
+<code>SET_TOTAL_TOO_LOW</code> | <code>17</code> |  
+<code>SET_OVERPAID</code> | <code>18</code> |  
+<code>UNKNOWN_INVOICE</code> | <code>19</code> |  
+<code>INVALID_KEYSEND</code> | <code>20</code> |  
+<code>MPP_IN_PROGRESS</code> | <code>21</code> |  
+<code>CIRCULAR_ROUTE</code> | <code>22</code> |  
+
+## PaymentState
+
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>IN_FLIGHT</code> | <code>0</code> | Payment is still in flight. 
+<code>SUCCEEDED</code> | <code>1</code> | Payment completed successfully. 
+<code>FAILED_TIMEOUT</code> | <code>2</code> | There are more routes to try, but the payment timeout was exceeded. 
+<code>FAILED_NO_ROUTE</code> | <code>3</code> | All possible routes were tried and failed permanently. Or were no routes to the destination at all. 
+<code>FAILED_ERROR</code> | <code>4</code> | A non-recoverable error has occured. 
+<code>FAILED_INCORRECT_PAYMENT_DETAILS</code> | <code>5</code> | Payment details incorrect (unknown hash, invalid amt or invalid final cltv delta) 
+<code>FAILED_INSUFFICIENT_BALANCE</code> | <code>6</code> | Insufficient local balance. 
+
+## WitnessType
+
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>UNKNOWN_WITNESS</code> | <code>0</code> |  
+<code>COMMITMENT_TIME_LOCK</code> | <code>1</code> | A witness that allows us to spend the output of a commitment transaction after a relative lock-time lockout. 
+<code>COMMITMENT_NO_DELAY</code> | <code>2</code> | A witness that allows us to spend a settled no-delay output immediately on a counterparty's commitment transaction. 
+<code>COMMITMENT_REVOKE</code> | <code>3</code> | A witness that allows us to sweep the settled output of a malicious counterparty's who broadcasts a revoked commitment transaction. 
+<code>HTLC_OFFERED_REVOKE</code> | <code>4</code> | A witness that allows us to sweep an HTLC which we offered to the remote party in the case that they broadcast a revoked commitment state. 
+<code>HTLC_ACCEPTED_REVOKE</code> | <code>5</code> | A witness that allows us to sweep an HTLC output sent to us in the case that the remote party broadcasts a revoked commitment state. 
+<code>HTLC_OFFERED_TIMEOUT_SECOND_LEVEL</code> | <code>6</code> | A witness that allows us to sweep an HTLC output that we extended to a party, but was never fulfilled.  This HTLC output isn't directly on the commitment transaction, but is the result of a confirmed second-level HTLC transaction. As a result, we can only spend this after a CSV delay. 
+<code>HTLC_ACCEPTED_SUCCESS_SECOND_LEVEL</code> | <code>7</code> | A witness that allows us to sweep an HTLC output that was offered to us, and for which we have a payment preimage. This HTLC output isn't directly on our commitment transaction, but is the result of confirmed second-level HTLC transaction. As a result, we can only spend this after a CSV delay. 
+<code>HTLC_OFFERED_REMOTE_TIMEOUT</code> | <code>8</code> | A witness that allows us to sweep an HTLC that we offered to the remote party which lies in the commitment transaction of the remote party. We can spend this output after the absolute CLTV timeout of the HTLC as passed. 
+<code>HTLC_ACCEPTED_REMOTE_SUCCESS</code> | <code>9</code> | A witness that allows us to sweep an HTLC that was offered to us by the remote party. We use this witness in the case that the remote party goes to chain, and we know the pre-image to the HTLC. We can sweep this without any additional timeout. 
+<code>HTLC_SECOND_LEVEL_REVOKE</code> | <code>10</code> | A witness that allows us to sweep an HTLC from the remote party's commitment transaction in the case that the broadcast a revoked commitment, but then also immediately attempt to go to the second level to claim the HTLC. 
+<code>WITNESS_KEY_HASH</code> | <code>11</code> | A witness type that allows us to spend a regular p2wkh output that's sent to an output which is under complete control of the backing wallet. 
+<code>NESTED_WITNESS_KEY_HASH</code> | <code>12</code> | A witness type that allows us to sweep an output that sends to a nested P2SH script that pays to a key solely under our control. 
+<code>COMMITMENT_ANCHOR</code> | <code>13</code> | A witness type that allows us to spend our anchor on the commitment transaction. 
