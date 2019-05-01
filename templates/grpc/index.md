@@ -68,3 +68,8 @@ Alternatively, the REST documentation can be found [here](./rest).
 {% for messageName, message in messages.items() %}
 {% include 'grpc/message.md' %}
 {% endfor %}
+
+# Enumerations
+{% for enumName, enum in enums.items() %}
+{% include 'grpc/enum.md' %}
+{% endfor %}

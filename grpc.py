@@ -81,6 +81,35 @@ def parse_grpc_messages(messages):
     return grpc_messages
 
 
+def parse_grpc_enum_params(enum):
+    """ Parses the parameters of a gRPC enum and returns them as a list """
+    params = []
+    for param in enum['values']:
+        _, description = parse_description(param['description'])
+        parsed_param = {
+            'name': param['name'],
+            'description': description,
+            'number': param['number']
+        }
+        params.append(parsed_param)
+    return params
+
+
+def parse_grpc_enums(enums):
+    """ Parses the different gRPC enums found within the rpc.json file """
+    grpc_messages = {}
+    for enum in enums:
+        name = enum['name']
+        params = parse_grpc_enum_params(enum)
+        grpc_messages[name] = {
+            'name': name,
+            'description': enum['description'],
+            'params': params,
+            'link': name.lower()
+        }
+    return grpc_messages
+
+
 def parse_grpc_methods(services, messages):
     """
     Parses the different gRPC methods of the different services found within the
@@ -246,6 +275,7 @@ def render_grpc():
     grpc_json = json.loads(open('rpc.json', 'r').read())['files'][0]
     grpc_messages = parse_grpc_messages(grpc_json['messages'])
     grpc_methods = parse_grpc_methods(grpc_json['services'], grpc_messages)
+    grpc_enums = parse_grpc_enums(grpc_json['enums'])
 
     # Parse out the streaming info from rpc.proto
     streaming_info = parse_out_streaming()
@@ -276,6 +306,7 @@ def render_grpc():
     methods_list.sort(key=lambda m: m['index'])
 
     rendered_docs = template.render(
+        enums=grpc_enums,
         methods=methods_list,
         messages=grpc_messages)
 
