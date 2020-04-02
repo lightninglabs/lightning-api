@@ -1,4 +1,4 @@
-### gRPC Request: {{ method.requestType }} {% if method.streamingRequest %}(Streaming){% endif %}
+### gRPC Request: [{{ method.requestFullType }} {% if method.streamingRequest %}(Streaming){% endif %}]({{ gitHubUrl }}/blob/{{ commit }}/lnrpc/{{method.requestMessage.file}}#L{{method.requestMessage.line}})
 {{ method.requestMessage.description }}
 {% if method.requestMessage.params|length == 0 %}
 This request has no parameters.

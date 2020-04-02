@@ -4,7 +4,12 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 import json
 import re
 import subprocess
+import os
 
+PROTO_DIR = os.environ.get('PROTO_DIR')
+EXPERIMENTAL_PACKAGES = os.environ.get('EXPERIMENTAL_PACKAGES')
+GITHUB_URL = os.environ.get('GITHUB_URL')
+COMMIT = os.environ.get('COMMIT')
 
 def parse_description(description):
     """
@@ -36,6 +41,23 @@ def parse_description(description):
     return command, description
 
 
+def parse_line_number(message_name, files):
+    """
+    Parses the *.proto files to see on what line number the message appears.
+    """
+
+    for file in files:
+        with open(PROTO_DIR + '/' + file) as data_file:
+            content = data_file.read()
+
+        lines = content.split('\n')
+        message_line = 'message ' + message_name + ' {'
+        if message_line in lines:
+            index = lines.index(message_line)
+            return file, index + 1
+
+    return '', -1
+
 def parse_grpc_message_params(message):
     """
     Parses the parameters of a gRPC message and returns them as a list.
@@ -63,25 +85,32 @@ def parse_grpc_message_params(message):
     return params
 
 
-def parse_grpc_messages(messages):
+def parse_grpc_messages(messages, fileName, packageFiles):
     """
     Parses the different gRPC messages found within the rpc.json file.
     """
 
     grpc_messages = {}
     for message in messages:
-        name = message['name']
+        name = message['fullName']
+        package = name.split('.')[0]
+        if package not in packageFiles:
+            continue
+
+        fileName, line = parse_line_number(message['name'], packageFiles[package])
         params = parse_grpc_message_params(message)
         grpc_messages[name] = {
             'name': name,
             'params': params,
-            'link': name.lower()
+            'link': name.lower(),
+            'file': fileName,
+            'line': line,
         }
 
     return grpc_messages
 
 
-def parse_grpc_methods(services, messages):
+def parse_grpc_methods(services, messages, fileName):
     """
     Parses the different gRPC methods of the different services found within the
     rpc.json file.
@@ -97,35 +126,26 @@ def parse_grpc_methods(services, messages):
             method['serviceJS'] = service['name'][0].lower() + \
                 service['name'][1:]
 
+            fullName = service['name'] + '.' + name
+            method['fullName'] = fullName
+            method['fileName'] = fileName
+
+            serviceFullName = service['fullName']
+            method['packageName'] = serviceFullName.replace('.' + service['name'], '')
+
             # Parse the corresponding lncli command and description.
             method['lncliCommand'], method['description'] = \
                 parse_description(method['description'])
 
-            method['requestMessage'] = messages[method['requestType']]
-            method['responseMessage'] = messages[method['responseType']]
+            method['requestMessage'] = messages[method['requestFullType']]
+            method['responseMessage'] = messages[method['responseFullType']]
 
-            grpc_methods[name] = method
+            method['streamingRequest'] = method['requestStreaming']
+            method['streamingResponse'] = method['responseStreaming']
+
+            grpc_methods[fullName] = method
 
     return grpc_methods
-
-
-def construct_method_order(filename):
-    """
-    Reads from a proto file to parse an ordering for gRPC methods.
-    """
-
-    proto_lines = open(filename).readlines()
-
-    ordering = {}
-    counter = 0
-    for line in proto_lines:
-        tokenized_line = re.split(' |\(|\)', line.strip())
-        if len(tokenized_line) >= 1 and tokenized_line[0] == 'rpc':
-            rpc_name = tokenized_line[1]
-            ordering[rpc_name] = counter
-            counter += 1
-
-    return ordering
 
 
 def parse_lncli_help(command):
@@ -133,7 +153,8 @@ def parse_lncli_help(command):
     Parses the help output from an gRPC method's corresponding lncli command.
     """
 
-    help_output = subprocess.check_output(['lncli', command, '-h']) \
+    commandParts = command.split(' ')
+    help_output = subprocess.check_output(['lncli'] + commandParts + ['-h']) \
         .decode('utf-8') \
         .split('\n')
 
@@ -176,92 +197,56 @@ def parse_lncli_help(command):
     return lncli_info
 
 
-def parse_out_streaming():
-    """
-    Parses rpc.proto to see if methods are streaming or not
-    This information can't be gleaned from rpc.json since protoc-gen-doc does
-    not return this information
-    """
-
-    with open('rpc.proto') as data_file:
-        lines = data_file.readlines()
-
-    streaming_info = {}
-
-    for line in lines:
-        streaming_request = False
-        streaming_response = False
-
-        # Ex1: 'rpc SendPayment(stream SendRequest)returns( stream SendResponse )'
-        # Ex2: 'rpc SubscribeTransactions (GetTransactionsRequest) returns (stream Transaction)'
-        match = re.search(r'(?:rpc )(.*)(?: ?\()(?: ?)(.*)(?:\) ?returns ?\()(?: ?)(.*)\)', line)
-
-        if line.strip()[:len('rpc')] == 'rpc':
-            pass
-
-        # If this is a line defining a rpc method
-        if match:
-            # Ex1: 'SendPayment'
-            # Ex2: 'SubscribeTransactions'
-            method_name = match.group(1).strip()
-
-            # Ex1: 'stream SendRequest'
-            # Ex2: 'GetTransactionsRequest'
-            method_request = match.group(2).strip()
-
-            # Ex1: 'stream SendRequest'
-            # Ex2: 'stream Transaction'
-            method_response = match.group(3).strip()
-
-            # If the response string starts with 'stream'
-            if method_response[:len('stream')] == 'stream':
-                streaming_response = True
-
-                # If the request string starts with 'stream'
-                if method_request[:len('stream')] == 'stream':
-                    streaming_request = True
-
-            streaming_info[method_name] = (streaming_request, streaming_response)
-
-    return streaming_info
-
-
 def render_grpc():
     """
-    Given a template, a proto file, and its JSON representation, renders full
+    Given a template and the JSON representation of a set of proto files, renders full
     Slate documentation of the `lnd` API.
 
     Location of
-    - proto file: `rpc.proto`
-    - proto JSON: `rpc.json`
+    - proto JSON: `$PROTO_DIR/generated.json`
     - template: `templates/index_template.md`
     - Slate markdown output: `source/index.html.md`
     """
 
-    # Construct the ordering of methods from rpc.proto
-    ordering = construct_method_order('rpc.proto')
-
     # Read the json representation of the proto and construct a Python dict of
     # the methods and messages.
-    grpc_json = json.loads(open('rpc.json', 'r').read())['files'][0]
-    grpc_messages = parse_grpc_messages(grpc_json['messages'])
-    grpc_methods = parse_grpc_methods(grpc_json['services'], grpc_messages)
+    print('Parsing file ' + PROTO_DIR + '/generated.json')
+    grpc_json_files = json.loads(open(PROTO_DIR + '/generated.json', 'r').read())['files']
+    grpc_messages = {}
+    grpc_methods = {}
+    grpc_package_files = {}
+    files = []
+    experimental = []
+    for file in grpc_json_files:
+        pkg = file['package']
+        if pkg not in grpc_package_files:
+            grpc_package_files[pkg] = []
 
-    # Parse out the streaming info from rpc.proto
-    streaming_info = parse_out_streaming()
+        grpc_package_files[pkg].append(file['name'])
+        if pkg in EXPERIMENTAL_PACKAGES:
+            experimental.append({
+              'package': pkg,
+              'file': file['name'],
+              'service': file['services'][0]['name']
+            })
 
+    for file in grpc_json_files:
+        grpc_messages.update(parse_grpc_messages(file['messages'], file['name'], grpc_package_files))
+
+    for file in grpc_json_files:
+        files.append(file['name'])
+        grpc_methods.update(parse_grpc_methods(file['services'], grpc_messages, file['name']))
+
+    ordering = sorted(grpc_methods.keys())
     for _, method in grpc_methods.items():
         # Add the ordering information into the parsed rpc methods
-        index = ordering[method['name']]
+        index = ordering.index(method['fullName'])
         method['index'] = index
 
         # Make calls to lncli -h and populate the method with that information.
         lncli_command = method.get('lncliCommand')
         if lncli_command:
             method['lncliInfo'] = parse_lncli_help(lncli_command)
-
-        method['streamingRequest'], method['streamingResponse'] = \
-                streaming_info[method['name']]
 
     # Load from the `templates` dir
     env = Environment(
@@ -277,7 +262,11 @@ def render_grpc():
 
     rendered_docs = template.render(
         methods=methods_list,
-        messages=grpc_messages)
+        messages=grpc_messages,
+        files=files,
+        experimental=experimental,
+        gitHubUrl=GITHUB_URL,
+        commit=COMMIT)
 
     # Write the file to the source directory.
     with open('source/index.html.md', 'w') as f:

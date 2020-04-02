@@ -1,21 +1,27 @@
 #!/usr/bin/env python3
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from grpc import parse_description
+from pathlib import Path
+from os.path import relpath
 
 import json
 import re
+import os
 
+PROTO_DIR = os.environ.get('PROTO_DIR')
+WS_ENABLED = os.environ.get('WS_ENABLED')
+GITHUB_URL = os.environ.get('GITHUB_URL')
+COMMIT = os.environ.get('COMMIT')
 
 def parse_rest_ref(ref):
     """
-    Convenience method that removes the "#/definitions/lnrpc" prefix from the
+    Convenience method that removes the "#/definitions/" prefix from the
     reference name to a REST definition.
     """
 
-    # It's possible that the name doesn't include the "lnrpc" prefix, so we'll
-    # make sure to do it separately.
     ref = ref.replace('#/definitions/', '')
-    return ref.replace('lnrpc', '')
+    ref = ref.replace('#/x-stream-definitions/', '')
+    return ref
 
 
 def parse_rest_definition_params(definition):
@@ -83,7 +89,6 @@ def parse_rest_definitions(definitions):
 
     rest_definitions = {}
     for name, definition in definitions.items():
-        name = name.replace('lnrpc', '')
         params = parse_rest_definition_params(definition)
 
         rest_definitions[name] = {
@@ -168,10 +173,16 @@ def parse_rest_endpoints(json_endpoints, definitions):
                 request_properties, definitions)
 
             response_properties = request_properties['responses']['200']
-            ref = parse_rest_ref(response_properties['schema']['$ref'])
-            endpoint_response_params = definitions[ref]['params']
+            if '$ref' in response_properties['schema']:
+                rawRef = response_properties['schema']['$ref']
+                isStreaming = 'x-stream-definitions' in rawRef
+                ref = parse_rest_ref(response_properties['schema']['$ref'])
 
-            isStreaming = response_properties['description'] == '(streaming responses)'
+            if 'properties' in response_properties['schema']:
+                isStreaming = True
+                ref = parse_rest_ref(response_properties['schema']['properties']['result']['$ref'])
+
+            endpoint_response_params = definitions[ref]['params']
 
             endpoint = {
                 'path': path,
@@ -181,6 +192,7 @@ def parse_rest_endpoints(json_endpoints, definitions):
                 'requestParams': endpoint_request_params,
                 'responseParams': endpoint_response_params,
                 'isStreaming': isStreaming,
+                'wsEnabled': 'true' in WS_ENABLED,
                 'service': request_properties['tags'][0],
             }
 
@@ -199,9 +211,19 @@ def render_rest():
     Renders the REST documentation from parsing the swagger JSON file.
     """
 
-    data = json.load(open('rpc.swagger.json', 'r'))
-    definitions = parse_rest_definitions(data['definitions'])
-    endpoints = parse_rest_endpoints(data['paths'], definitions)
+    definitions = {}
+    endpoints = {}
+    files = []
+
+    for path in Path(PROTO_DIR).rglob('*.swagger.json'):
+        print('Parsing file ' + str(path))
+        files.append(str(path).replace(PROTO_DIR + '/', ''))
+        data = json.load(open(path, 'r'))
+        definitions.update(parse_rest_definitions(data['definitions']))
+
+        if 'x-stream-definitions' in data:
+            definitions.update(parse_rest_definitions(data['x-stream-definitions']))
+        endpoints.update(parse_rest_endpoints(data['paths'], definitions))
 
     env = Environment(
         loader=FileSystemLoader('templates'),
@@ -211,7 +233,10 @@ def render_rest():
     template = env.get_template('rest/index.md')
     docs = template.render(
         definitions=definitions.values(),
-        endpoints=endpoints)
+        endpoints=endpoints,
+        files=files,
+        gitHubUrl=GITHUB_URL,
+        commit=COMMIT)
 
     with open('source/rest/index.html.md', 'w') as f:
         f.write(docs)

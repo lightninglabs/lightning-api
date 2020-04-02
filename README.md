@@ -25,8 +25,8 @@ Pay special attention to these files:
 You're going to need:
 
  - **Linux or OS X** — Windows may work, but is unsupported.
- - **Ruby, version 2.2.5 or newer**
- - **Python, version 3 or newer**
+ - **Ruby, version 2.3.1 or newer**
+ - **Python, version 3.7 or newer**
  - **Bundler** — If Ruby is already installed, but the `bundle` command doesn't work, just run `gem install bundler` in a terminal.
 
 ### Running locally
@@ -47,20 +47,12 @@ You can now see the docs at `http://localhost:4567`.
 # Install Jinja for python templating.
 pip3 install Jinja2
 
-# Set your $GOPATH to a directory that has access to lncli.
-export GOPATH="/path/to/lnd"
-export PATH=$PATH:$GOPATH/bin
-
-# Install annotations and protoc-gen-doc.
+# Install the protoc-gen-doc plugin for generating documentation from proto files.
 go get -u github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis
 go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc
 
-# Get the latest rpc.proto.
-curl -o rpc.proto -s https://raw.githubusercontent.com/lightningnetwork/lnd/master/lnrpc/rpc.proto
-curl -o rpc.swagger.json -s https://raw.githubusercontent.com/lightningnetwork/lnd/master/lnrpc/rpc.swagger.json
-
-# Generate the rpc.json file from rpc.proto, so that render.py can parse it.
-protoc -I. -I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis --doc_out=json,rpc.json:. rpc.proto
+# Run the script that updates the documentation.
+./update_and_render.sh
 ```
 
 Now, ensure that you have [`lnd` installed](http://http://dev.lightning.community/installation/)

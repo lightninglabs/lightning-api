@@ -8,7 +8,7 @@ language_tabs:
 
 toc_footers:
   - <a href='http://dev.lightning.community'>Developer site</a>
-  - <a href='mailto:max@lightning.engineering'>Contact Us</a>
+  - <a href='mailto:hello@lightning.engineering'>Contact Us</a>
   - Powered by <a href='https://github.com/lord/slate'>Slate</a>
 
 search: true
@@ -36,13 +36,31 @@ make a gRPC request to an `lnd` instance: a TLS/SSL connection and a macaroon
 used for RPC authentication. The examples to the right will show how these can
 be used in order to make a successful, secure, and authenticated gRPC request.
 
-The original `rpc.proto` file from which the gRPC documentation was generated
-can be found [here](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
+The original `*.proto` files from which the gRPC documentation was generated
+can be found here:
 
-Alternatively, the REST documentation can be found [here](./rest).
+{% for file in files %}- [`{{ file }}`]({{ gitHubUrl }}/blob/{{ commit }}/lnrpc/{{file}})
+{% endfor %}
+
+
+This is the reference for the **gRPC API**. Alternatively, there is also a [REST
+API which is documented here](./rest).
+
+<small>This documentation was
+[generated automatically](https://github.com/lightninglabs/lightning-api) against commit
+[`{{ commit }}`]({{ gitHubUrl }}/tree/{{ commit }}).</small>
+
+## Experimental services
+
+The following RPCs/services are currently considered to be experimental. This means
+they are subject to change in the future. They also need to be enabled with a
+compile-time flag to be active (they are active in the official release binaries).
+
+{% for ex in experimental %}- Service `{{ ex.service }}` (file `{{ ex.file }}`)
+{% endfor %} 
 
 {% for method in methods %}
-# {{ method.name }}
+# {{ method.fullName }}
 
 {% if not method.streamingRequest and not method.streamingResponse %}
 ### Simple RPC

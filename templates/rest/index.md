@@ -8,7 +8,7 @@ language_tabs:
 
 toc_footers:
   - <a href='http://dev.lightning.community'>Developer site</a>
-  - <a href='mailto:max@lightning.engineering'>Contact Us</a>
+  - <a href='mailto:hello@lightning.engineering'>Contact Us</a>
   - Powered by <a href='https://github.com/lord/slate'>Slate</a>
 
 search: true
@@ -35,17 +35,26 @@ make an HTTP request to an `lnd` instance: a TLS/SSL connection and a macaroon
 used for RPC authentication. The examples to the right will show how these can
 be used in order to make a successful, secure, and authenticated HTTP request.
 
-The original `rpc.proto` file from which the gRPC documentation was generated
-can be found [here](https://github.com/lightningnetwork/lnd/blob/master/lnrpc/rpc.proto).
+The original `*.swagger.js` files from which the gRPC documentation was generated
+can be found here:
+
+{% for file in files %}- [`{{ file }}`]({{ gitHubUrl }}/blob/{{ commit }}/lnrpc/{{file}})
+{% endfor %}
 
 NOTE: The documentation is currently lacking how to receive streaming responses
 from streaming endpoints in JavaScript. If you would like to contribute this
 change, please take a look at [https://github.com/lightninglabs/lightning-api](https://github.com/lightninglabs/lightning-api).
 
-NOTE: The `byte` field type must be set as the base64 encoded string
+NOTE: The `byte` field type must be set as the URL safe base64 encoded string
 representation of a raw byte array.
 
-Alternatively, the gRPC documentation can be found [here](../).
+
+This is the reference for the **REST API**. Alternatively, there is also a [gRPC
+API which is documented here](../).
+
+<small>This documentation was
+[generated automatically](https://github.com/lightninglabs/lightning-api) against commit
+[`{{ commit }}`]({{ gitHubUrl }}/tree/{{ commit }}).</small>
 
 {% for basePath, endpoints in endpoints.items() %}
 # {{ basePath }}
