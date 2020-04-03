@@ -41,10 +41,6 @@ can be found here:
 {% for file in files %}- [`{{ file }}`]({{ gitHubUrl }}/blob/{{ commit }}/lnrpc/{{file}})
 {% endfor %}
 
-NOTE: The documentation is currently lacking how to receive streaming responses
-from streaming endpoints in JavaScript. If you would like to contribute this
-change, please take a look at [https://github.com/lightninglabs/lightning-api](https://github.com/lightninglabs/lightning-api).
-
 NOTE: The `byte` field type must be set as the URL safe base64 encoded string
 representation of a raw byte array.
 

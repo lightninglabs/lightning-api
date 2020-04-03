@@ -41,10 +41,6 @@ can be found here:
 - [`rpc.swagger.json`](https://github.com/lightningnetwork/lnd/blob/7e6f3ece239e94f05da1a5d0492ce9767069dbbc/lnrpc/rpc.swagger.json)
 
 
-NOTE: The documentation is currently lacking how to receive streaming responses
-from streaming endpoints in JavaScript. If you would like to contribute this
-change, please take a look at [https://github.com/lightninglabs/lightning-api](https://github.com/lightninglabs/lightning-api).
-
 NOTE: The `byte` field type must be set as the URL safe base64 encoded string
 representation of a raw byte array.
 
@@ -84,26 +80,27 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/balance/blockchain',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "total_balance": <string>, 
-    "confirmed_balance": <string>, 
-    "unconfirmed_balance": <string>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/balance/blockchain',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "total_balance": <string>, 
+//      "confirmed_balance": <string>, 
+//      "unconfirmed_balance": <string>, 
+//  }
 ```
 
 ### GET /v1/balance/blockchain
@@ -146,25 +143,26 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/balance/channels',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "balance": <string>, 
-    "pending_open_balance": <string>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/balance/channels',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "balance": <string>, 
+//      "pending_open_balance": <string>, 
+//  }
 ```
 
 ### GET /v1/balance/channels
@@ -205,24 +203,25 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var requestBody = { 
+const fs = require('fs');
+const request = require('request');
+let requestBody = { 
     current_password: <byte>,
     new_password: <byte>,
-  };
-> var options = {
-    url: 'https://localhost:8080/v1/changepassword',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    form: JSON.stringify(requestBody),
-  };
-> request.post(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
 }
+let options = {
+  url: 'https://localhost:8080/v1/changepassword',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  form: JSON.stringify(requestBody),
+}
+request.post(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//  }
 ```
 
 ### POST /v1/changepassword
@@ -263,24 +262,25 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/channels',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "channels": <array lnrpcChannel>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/channels',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "channels": <array lnrpcChannel>, 
+//  }
 ```
 
 ### GET /v1/channels
@@ -342,10 +342,10 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var requestBody = { 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let requestBody = { 
     node_pubkey: <byte>,
     node_pubkey_string: <string>,
     local_funding_amount: <string>,
@@ -359,25 +359,26 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
     spend_unconfirmed: <boolean>,
     close_address: <string>,
     funding_shim: <lnrpcFundingShim>,
-  };
-> var options = {
-    url: 'https://localhost:8080/v1/channels',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-    form: JSON.stringify(requestBody),
-  };
-> request.post(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "funding_txid_bytes": <byte>, 
-    "funding_txid_str": <string>, 
-    "output_index": <int64>, 
 }
+let options = {
+  url: 'https://localhost:8080/v1/channels',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
+  form: JSON.stringify(requestBody),
+}
+request.post(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "funding_txid_bytes": <byte>, 
+//      "funding_txid_str": <string>, 
+//      "output_index": <int64>, 
+//  }
 ```
 
 ### POST /v1/channels
@@ -433,25 +434,67 @@ $ curl -X DELETE --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/channels/{channel_point.funding_txid_str}/{channel_point.output_index}',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.delete(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "result": <lnrpcCloseStatusUpdate>, 
-    "error": <runtimeStreamError>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/channels/{channel_point.funding_txid_str}/{channel_point.output_index}',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.delete(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "result": <lnrpcCloseStatusUpdate>, 
+//      "error": <runtimeStreamError>, 
+//  }
+
+
+
+// --------------------------
+// Example with websockets:
+// --------------------------
+const WebSocket = require('ws');
+const fs = require('fs');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let ws = new WebSocket('wss://localhost:8080/v1/channels/{channel_point.funding_txid_str}/{channel_point.output_index}?method=DELETE', {
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  headers: {
+    'Grpc-Metadata-Macaroon': macaroon,
+  },
+});
+let requestBody = { 
+  channel_point.funding_txid_str: <string>,
+  channel_point.output_index: <int64>,
+  channel_point.funding_txid_bytes: <string>,
+  force: <boolean>,
+  target_conf: <int32>,
+  sat_per_byte: <string>,
+  delivery_address: <string>,
+}
+ws.on('open', function() {
+    ws.send(JSON.stringify(requestBody));
+});
+ws.on('error', function(err) {
+    console.log('Error: ' + err);
+});
+ws.on('message', function(body) {
+    console.log(body);
+});
+// Console output (repeated for every message in the stream):
+//  { 
+//      "result": <lnrpcCloseStatusUpdate>, 
+//      "error": <runtimeStreamError>, 
+//  }
+
+
 ```
 
 ### DELETE /v1/channels/{channel_point.funding_txid_str}/{channel_point.output_index}
@@ -497,23 +540,24 @@ $ curl -X DELETE --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/channels/abandon/{channel_point.funding_txid_str}/{channel_point.output_index}',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.delete(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/channels/abandon/{channel_point.funding_txid_str}/{channel_point.output_index}',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.delete(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//  }
 ```
 
 ### DELETE /v1/channels/abandon/{channel_point.funding_txid_str}/{channel_point.output_index}
@@ -557,25 +601,26 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/channels/backup',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "result": <lnrpcChanBackupSnapshot>, 
-    "error": <runtimeStreamError>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/channels/backup',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "result": <lnrpcChanBackupSnapshot>, 
+//      "error": <runtimeStreamError>, 
+//  }
 ```
 
 ### GET /v1/channels/backup
@@ -614,25 +659,26 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/channels/backup/{chan_point.funding_txid_str}/{chan_point.output_index}',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "chan_point": <lnrpcChannelPoint>, 
-    "chan_backup": <byte>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/channels/backup/{chan_point.funding_txid_str}/{chan_point.output_index}',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "chan_point": <lnrpcChannelPoint>, 
+//      "chan_backup": <byte>, 
+//  }
 ```
 
 ### GET /v1/channels/backup/{chan_point.funding_txid_str}/{chan_point.output_index}
@@ -679,28 +725,29 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var requestBody = { 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let requestBody = { 
     chan_backups: <lnrpcChannelBackups>,
     multi_chan_backup: <byte>,
-  };
-> var options = {
-    url: 'https://localhost:8080/v1/channels/backup/restore',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-    form: JSON.stringify(requestBody),
-  };
-> request.post(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
 }
+let options = {
+  url: 'https://localhost:8080/v1/channels/backup/restore',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
+  form: JSON.stringify(requestBody),
+}
+request.post(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//  }
 ```
 
 ### POST /v1/channels/backup/restore
@@ -744,28 +791,29 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var requestBody = { 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let requestBody = { 
     result: <lnrpcChanBackupSnapshot>,
     error: <runtimeStreamError>,
-  };
-> var options = {
-    url: 'https://localhost:8080/v1/channels/backup/verify',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-    form: JSON.stringify(requestBody),
-  };
-> request.post(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
 }
+let options = {
+  url: 'https://localhost:8080/v1/channels/backup/verify',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
+  form: JSON.stringify(requestBody),
+}
+request.post(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//  }
 ```
 
 ### POST /v1/channels/backup/verify
@@ -806,24 +854,25 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/channels/closed',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "channels": <array lnrpcChannelCloseSummary>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/channels/closed',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "channels": <array lnrpcChannelCloseSummary>, 
+//  }
 ```
 
 ### GET /v1/channels/closed
@@ -877,28 +926,29 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/channels/pending',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "total_limbo_balance": <string>, 
-    "pending_open_channels": <array PendingChannelsResponsePendingOpenChannel>, 
-    "pending_closing_channels": <array PendingChannelsResponseClosedChannel>, 
-    "pending_force_closing_channels": <array PendingChannelsResponseForceClosedChannel>, 
-    "waiting_close_channels": <array PendingChannelsResponseWaitingCloseChannel>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/channels/pending',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "total_limbo_balance": <string>, 
+//      "pending_open_channels": <array PendingChannelsResponsePendingOpenChannel>, 
+//      "pending_closing_channels": <array PendingChannelsResponseClosedChannel>, 
+//      "pending_force_closing_channels": <array PendingChannelsResponseForceClosedChannel>, 
+//      "waiting_close_channels": <array PendingChannelsResponseWaitingCloseChannel>, 
+//  }
 ```
 
 ### GET /v1/channels/pending
@@ -961,10 +1011,10 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var requestBody = { 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let requestBody = { 
     dest: <byte>,
     dest_string: <string>,
     amt: <string>,
@@ -980,24 +1030,25 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
     dest_custom_records: <object>,
     allow_self_payment: <boolean>,
     dest_features: <array lnrpcFeatureBit>,
-  };
-> var options = {
-    url: 'https://localhost:8080/v1/channels/transactions',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-    form: JSON.stringify(requestBody),
-  };
-> request.post(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "result": <lnrpcSendResponse>, 
-    "error": <runtimeStreamError>, 
 }
+let options = {
+  url: 'https://localhost:8080/v1/channels/transactions',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
+  form: JSON.stringify(requestBody),
+}
+request.post(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "result": <lnrpcSendResponse>, 
+//      "error": <runtimeStreamError>, 
+//  }
 ```
 
 ### POST /v1/channels/transactions
@@ -1061,31 +1112,32 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var requestBody = { 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let requestBody = { 
     payment_hash: <byte>,
     payment_hash_string: <string>,
     route: <lnrpcRoute>,
-  };
-> var options = {
-    url: 'https://localhost:8080/v1/channels/transactions/route',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-    form: JSON.stringify(requestBody),
-  };
-> request.post(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "result": <lnrpcSendResponse>, 
-    "error": <runtimeStreamError>, 
 }
+let options = {
+  url: 'https://localhost:8080/v1/channels/transactions/route',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
+  form: JSON.stringify(requestBody),
+}
+request.post(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "result": <lnrpcSendResponse>, 
+//      "error": <runtimeStreamError>, 
+//  }
 ```
 
 ### POST /v1/channels/transactions/route
@@ -1138,10 +1190,10 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var requestBody = { 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let requestBody = { 
     global: <boolean>,
     chan_point: <lnrpcChannelPoint>,
     base_fee_msat: <string>,
@@ -1150,22 +1202,23 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
     max_htlc_msat: <string>,
     min_htlc_msat: <string>,
     min_htlc_msat_specified: <boolean>,
-  };
-> var options = {
-    url: 'https://localhost:8080/v1/chanpolicy',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-    form: JSON.stringify(requestBody),
-  };
-> request.post(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
 }
+let options = {
+  url: 'https://localhost:8080/v1/chanpolicy',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
+  form: JSON.stringify(requestBody),
+}
+request.post(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//  }
 ```
 
 ### POST /v1/chanpolicy
@@ -1218,27 +1271,28 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/fees',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "channel_fees": <array lnrpcChannelFeeReport>, 
-    "day_fee_sum": <string>, 
-    "week_fee_sum": <string>, 
-    "month_fee_sum": <string>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/fees',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "channel_fees": <array lnrpcChannelFeeReport>, 
+//      "day_fee_sum": <string>, 
+//      "week_fee_sum": <string>, 
+//      "month_fee_sum": <string>, 
+//  }
 ```
 
 ### GET /v1/fees
@@ -1280,21 +1334,22 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var options = {
-    url: 'https://localhost:8080/v1/genseed',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "cipher_seed_mnemonic": <array string>, 
-    "enciphered_seed": <byte>, 
+const fs = require('fs');
+const request = require('request');
+let options = {
+  url: 'https://localhost:8080/v1/genseed',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "cipher_seed_mnemonic": <array string>, 
+//      "enciphered_seed": <byte>, 
+//  }
 ```
 
 ### GET /v1/genseed
@@ -1369,40 +1424,41 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/getinfo',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "version": <string>, 
-    "identity_pubkey": <string>, 
-    "alias": <string>, 
-    "color": <string>, 
-    "num_pending_channels": <int64>, 
-    "num_active_channels": <int64>, 
-    "num_inactive_channels": <int64>, 
-    "num_peers": <int64>, 
-    "block_height": <int64>, 
-    "block_hash": <string>, 
-    "best_header_timestamp": <string>, 
-    "synced_to_chain": <boolean>, 
-    "synced_to_graph": <boolean>, 
-    "testnet": <boolean>, 
-    "chains": <array lnrpcChain>, 
-    "uris": <array string>, 
-    "features": <object>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/getinfo',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "version": <string>, 
+//      "identity_pubkey": <string>, 
+//      "alias": <string>, 
+//      "color": <string>, 
+//      "num_pending_channels": <int64>, 
+//      "num_active_channels": <int64>, 
+//      "num_inactive_channels": <int64>, 
+//      "num_peers": <int64>, 
+//      "block_height": <int64>, 
+//      "block_hash": <string>, 
+//      "best_header_timestamp": <string>, 
+//      "synced_to_chain": <boolean>, 
+//      "synced_to_graph": <boolean>, 
+//      "testnet": <boolean>, 
+//      "chains": <array lnrpcChain>, 
+//      "uris": <array string>, 
+//      "features": <object>, 
+//  }
 ```
 
 ### GET /v1/getinfo
@@ -1459,25 +1515,26 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/graph',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "nodes": <array lnrpcLightningNode>, 
-    "edges": <array lnrpcChannelEdge>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/graph',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "nodes": <array lnrpcLightningNode>, 
+//      "edges": <array lnrpcChannelEdge>, 
+//  }
 ```
 
 ### GET /v1/graph
@@ -1533,31 +1590,32 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/graph/edge/{chan_id}',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "channel_id": <string>, 
-    "chan_point": <string>, 
-    "last_update": <int64>, 
-    "node1_pub": <string>, 
-    "node2_pub": <string>, 
-    "capacity": <string>, 
-    "node1_policy": <lnrpcRoutingPolicy>, 
-    "node2_policy": <lnrpcRoutingPolicy>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/graph/edge/{chan_id}',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "channel_id": <string>, 
+//      "chan_point": <string>, 
+//      "last_update": <int64>, 
+//      "node1_pub": <string>, 
+//      "node2_pub": <string>, 
+//      "capacity": <string>, 
+//      "node1_policy": <lnrpcRoutingPolicy>, 
+//      "node2_policy": <lnrpcRoutingPolicy>, 
+//  }
 ```
 
 ### GET /v1/graph/edge/{chan_id}
@@ -1625,34 +1683,35 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/graph/info',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "graph_diameter": <int64>, 
-    "avg_out_degree": <double>, 
-    "max_out_degree": <int64>, 
-    "num_nodes": <int64>, 
-    "num_channels": <int64>, 
-    "total_network_capacity": <string>, 
-    "avg_channel_size": <double>, 
-    "min_channel_size": <string>, 
-    "max_channel_size": <string>, 
-    "median_channel_size_sat": <string>, 
-    "num_zombie_chans": <string>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/graph/info',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "graph_diameter": <int64>, 
+//      "avg_out_degree": <double>, 
+//      "max_out_degree": <int64>, 
+//      "num_nodes": <int64>, 
+//      "num_channels": <int64>, 
+//      "total_network_capacity": <string>, 
+//      "avg_channel_size": <double>, 
+//      "min_channel_size": <string>, 
+//      "max_channel_size": <string>, 
+//      "median_channel_size_sat": <string>, 
+//      "num_zombie_chans": <string>, 
+//  }
 ```
 
 ### GET /v1/graph/info
@@ -1707,27 +1766,28 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/graph/node/{pub_key}',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "node": <lnrpcLightningNode>, 
-    "num_channels": <int64>, 
-    "total_capacity": <string>, 
-    "channels": <array lnrpcChannelEdge>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/graph/node/{pub_key}',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "node": <lnrpcLightningNode>, 
+//      "num_channels": <int64>, 
+//      "total_capacity": <string>, 
+//      "channels": <array lnrpcChannelEdge>, 
+//  }
 ```
 
 ### GET /v1/graph/node/{pub_key}
@@ -1772,24 +1832,25 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/graph/nodemetrics',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "betweenness_centrality": <object>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/graph/nodemetrics',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "betweenness_centrality": <object>, 
+//  }
 ```
 
 ### GET /v1/graph/nodemetrics
@@ -1832,25 +1893,26 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/graph/routes/{pub_key}/{amt}',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "routes": <array lnrpcRoute>, 
-    "success_prob": <double>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/graph/routes/{pub_key}/{amt}',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "routes": <array lnrpcRoute>, 
+//      "success_prob": <double>, 
+//  }
 ```
 
 ### GET /v1/graph/routes/{pub_key}/{amt}
@@ -1909,27 +1971,28 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var requestBody = { 
+const fs = require('fs');
+const request = require('request');
+let requestBody = { 
     wallet_password: <byte>,
     cipher_seed_mnemonic: <array string>,
     aezeed_passphrase: <byte>,
     recovery_window: <int32>,
     channel_backups: <lnrpcChanBackupSnapshot>,
-  };
-> var options = {
-    url: 'https://localhost:8080/v1/initwallet',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    form: JSON.stringify(requestBody),
-  };
-> request.post(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
 }
+let options = {
+  url: 'https://localhost:8080/v1/initwallet',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  form: JSON.stringify(requestBody),
+}
+request.post(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//  }
 ```
 
 ### POST /v1/initwallet
@@ -1975,25 +2038,26 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/invoice/{r_hash_str}',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "result": <lnrpcInvoice>, 
-    "error": <runtimeStreamError>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/invoice/{r_hash_str}',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "result": <lnrpcInvoice>, 
+//      "error": <runtimeStreamError>, 
+//  }
 ```
 
 ### GET /v1/invoice/{r_hash_str}
@@ -2040,26 +2104,27 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/invoices',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "invoices": <array lnrpcInvoice>, 
-    "last_index_offset": <string>, 
-    "first_index_offset": <string>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/invoices',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "invoices": <array lnrpcInvoice>, 
+//      "last_index_offset": <string>, 
+//      "first_index_offset": <string>, 
+//  }
 ```
 
 ### GET /v1/invoices
@@ -2111,31 +2176,32 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var requestBody = { 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let requestBody = { 
     result: <lnrpcInvoice>,
     error: <runtimeStreamError>,
-  };
-> var options = {
-    url: 'https://localhost:8080/v1/invoices',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-    form: JSON.stringify(requestBody),
-  };
-> request.post(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "r_hash": <byte>, 
-    "payment_request": <string>, 
-    "add_index": <string>, 
 }
+let options = {
+  url: 'https://localhost:8080/v1/invoices',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
+  form: JSON.stringify(requestBody),
+}
+request.post(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "r_hash": <byte>, 
+//      "payment_request": <string>, 
+//      "add_index": <string>, 
+//  }
 ```
 
 ### POST /v1/invoices
@@ -2183,25 +2249,62 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/invoices/subscribe',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "result": <lnrpcInvoice>, 
-    "error": <runtimeStreamError>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/invoices/subscribe',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "result": <lnrpcInvoice>, 
+//      "error": <runtimeStreamError>, 
+//  }
+
+
+
+// --------------------------
+// Example with websockets:
+// --------------------------
+const WebSocket = require('ws');
+const fs = require('fs');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let ws = new WebSocket('wss://localhost:8080/v1/invoices/subscribe?method=GET', {
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  headers: {
+    'Grpc-Metadata-Macaroon': macaroon,
+  },
+});
+let requestBody = { 
+  add_index: <string>,
+  settle_index: <string>,
+}
+ws.on('open', function() {
+    ws.send(JSON.stringify(requestBody));
+});
+ws.on('error', function(err) {
+    console.log('Error: ' + err);
+});
+ws.on('message', function(body) {
+    console.log(body);
+});
+// Console output (repeated for every message in the stream):
+//  { 
+//      "result": <lnrpcInvoice>, 
+//      "error": <runtimeStreamError>, 
+//  }
+
+
 ```
 
 ### GET /v1/invoices/subscribe
@@ -2248,28 +2351,29 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var requestBody = { 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let requestBody = { 
     permissions: <array lnrpcMacaroonPermission>,
-  };
-> var options = {
-    url: 'https://localhost:8080/v1/macaroon',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-    form: JSON.stringify(requestBody),
-  };
-> request.post(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "macaroon": <string>, 
 }
+let options = {
+  url: 'https://localhost:8080/v1/macaroon',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
+  form: JSON.stringify(requestBody),
+}
+request.post(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "macaroon": <string>, 
+//  }
 ```
 
 ### POST /v1/macaroon
@@ -2310,24 +2414,25 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/newaddress',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "address": <string>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/newaddress',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "address": <string>, 
+//  }
 ```
 
 ### GET /v1/newaddress
@@ -2372,26 +2477,27 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/payments',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "payments": <array lnrpcPayment>, 
-    "first_index_offset": <string>, 
-    "last_index_offset": <string>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/payments',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "payments": <array lnrpcPayment>, 
+//      "first_index_offset": <string>, 
+//      "last_index_offset": <string>, 
+//  }
 ```
 
 ### GET /v1/payments
@@ -2432,23 +2538,24 @@ $ curl -X DELETE --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/payments',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.delete(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/payments',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.delete(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//  }
 ```
 
 ### DELETE /v1/payments
@@ -2510,36 +2617,37 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/payreq/{pay_req}',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "destination": <string>, 
-    "payment_hash": <string>, 
-    "num_satoshis": <string>, 
-    "timestamp": <string>, 
-    "expiry": <string>, 
-    "description": <string>, 
-    "description_hash": <string>, 
-    "fallback_addr": <string>, 
-    "cltv_expiry": <string>, 
-    "route_hints": <array lnrpcRouteHint>, 
-    "payment_addr": <byte>, 
-    "num_msat": <string>, 
-    "features": <object>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/payreq/{pay_req}',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "destination": <string>, 
+//      "payment_hash": <string>, 
+//      "num_satoshis": <string>, 
+//      "timestamp": <string>, 
+//      "expiry": <string>, 
+//      "description": <string>, 
+//      "description_hash": <string>, 
+//      "fallback_addr": <string>, 
+//      "cltv_expiry": <string>, 
+//      "route_hints": <array lnrpcRouteHint>, 
+//      "payment_addr": <byte>, 
+//      "num_msat": <string>, 
+//      "features": <object>, 
+//  }
 ```
 
 ### GET /v1/payreq/{pay_req}
@@ -2592,24 +2700,25 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/peers',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "peers": <array lnrpcPeer>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/peers',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "peers": <array lnrpcPeer>, 
+//  }
 ```
 
 ### GET /v1/peers
@@ -2650,28 +2759,29 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var requestBody = { 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let requestBody = { 
     addr: <lnrpcLightningAddress>,
     perm: <boolean>,
-  };
-> var options = {
-    url: 'https://localhost:8080/v1/peers',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-    form: JSON.stringify(requestBody),
-  };
-> request.post(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
 }
+let options = {
+  url: 'https://localhost:8080/v1/peers',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
+  form: JSON.stringify(requestBody),
+}
+request.post(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//  }
 ```
 
 ### POST /v1/peers
@@ -2707,23 +2817,24 @@ $ curl -X DELETE --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/peers/{pub_key}',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.delete(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/peers/{pub_key}',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.delete(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//  }
 ```
 
 ### DELETE /v1/peers/{pub_key}
@@ -2767,28 +2878,29 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var requestBody = { 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let requestBody = { 
     msg: <byte>,
-  };
-> var options = {
-    url: 'https://localhost:8080/v1/signmessage',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-    form: JSON.stringify(requestBody),
-  };
-> request.post(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "signature": <string>, 
 }
+let options = {
+  url: 'https://localhost:8080/v1/signmessage',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
+  form: JSON.stringify(requestBody),
+}
+request.post(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "signature": <string>, 
+//  }
 ```
 
 ### POST /v1/signmessage
@@ -2838,32 +2950,33 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var requestBody = { 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let requestBody = { 
     start_time: <string>,
     end_time: <string>,
     index_offset: <int64>,
     num_max_events: <int64>,
-  };
-> var options = {
-    url: 'https://localhost:8080/v1/switch',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-    form: JSON.stringify(requestBody),
-  };
-> request.post(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "forwarding_events": <array lnrpcForwardingEvent>, 
-    "last_offset_index": <int64>, 
 }
+let options = {
+  url: 'https://localhost:8080/v1/switch',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
+  form: JSON.stringify(requestBody),
+}
+request.post(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "forwarding_events": <array lnrpcForwardingEvent>, 
+//      "last_offset_index": <int64>, 
+//  }
 ```
 
 ### POST /v1/switch
@@ -2908,24 +3021,25 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/transactions',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "transactions": <array lnrpcTransaction>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/transactions',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "transactions": <array lnrpcTransaction>, 
+//  }
 ```
 
 ### GET /v1/transactions
@@ -2969,32 +3083,33 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var requestBody = { 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let requestBody = { 
     addr: <string>,
     amount: <string>,
     target_conf: <int32>,
     sat_per_byte: <string>,
     send_all: <boolean>,
-  };
-> var options = {
-    url: 'https://localhost:8080/v1/transactions',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-    form: JSON.stringify(requestBody),
-  };
-> request.post(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "txid": <string>, 
 }
+let options = {
+  url: 'https://localhost:8080/v1/transactions',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
+  form: JSON.stringify(requestBody),
+}
+request.post(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "txid": <string>, 
+//  }
 ```
 
 ### POST /v1/transactions
@@ -3041,25 +3156,26 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/transactions/fee',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "fee_sat": <string>, 
-    "feerate_sat_per_byte": <string>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/transactions/fee',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "fee_sat": <string>, 
+//      "feerate_sat_per_byte": <string>, 
+//  }
 ```
 
 ### GET /v1/transactions/fee
@@ -3103,25 +3219,26 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var requestBody = { 
+const fs = require('fs');
+const request = require('request');
+let requestBody = { 
     wallet_password: <byte>,
     recovery_window: <int32>,
     channel_backups: <lnrpcChanBackupSnapshot>,
-  };
-> var options = {
-    url: 'https://localhost:8080/v1/unlockwallet',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    form: JSON.stringify(requestBody),
-  };
-> request.post(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
 }
+let options = {
+  url: 'https://localhost:8080/v1/unlockwallet',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  form: JSON.stringify(requestBody),
+}
+request.post(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//  }
 ```
 
 ### POST /v1/unlockwallet
@@ -3163,24 +3280,25 @@ $ curl -X GET --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://loc
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var options = {
-    url: 'https://localhost:8080/v1/utxos',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-  };
-> request.get(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "utxos": <array lnrpcUtxo>, 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let options = {
+  url: 'https://localhost:8080/v1/utxos',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
 }
+request.get(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "utxos": <array lnrpcUtxo>, 
+//  }
 ```
 
 ### GET /v1/utxos
@@ -3229,30 +3347,31 @@ $ curl -X POST --cacert $LND_DIR/tls.cert --header "$MACAROON_HEADER" https://lo
 }
 ```
 ```javascript
-> var fs = require('fs');
-> var request = require('request');
-> var macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-> var requestBody = { 
+const fs = require('fs');
+const request = require('request');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+let requestBody = { 
     msg: <byte>,
     signature: <string>,
-  };
-> var options = {
-    url: 'https://localhost:8080/v1/verifymessage',
-    // Work-around for self-signed certificates.
-    rejectUnauthorized: false,
-    json: true, 
-    headers: {
-      'Grpc-Metadata-macaroon': macaroon,
-    },
-    form: JSON.stringify(requestBody),
-  };
-> request.post(options, function(error, response, body) {
-    console.log(body);
-  });
-{ 
-    "valid": <boolean>, 
-    "pubkey": <string>, 
 }
+let options = {
+  url: 'https://localhost:8080/v1/verifymessage',
+  // Work-around for self-signed certificates.
+  rejectUnauthorized: false,
+  json: true, 
+  headers: {
+    'Grpc-Metadata-macaroon': macaroon,
+  },
+  form: JSON.stringify(requestBody),
+}
+request.post(options, function(error, response, body) {
+  console.log(body);
+});
+// Console output:
+//  { 
+//      "valid": <boolean>, 
+//      "pubkey": <string>, 
+//  }
 ```
 
 ### POST /v1/verifymessage

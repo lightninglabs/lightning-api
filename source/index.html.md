@@ -10957,16 +10957,6 @@ Alias            | Code               | Description
 <code>FUNDING_CANCELED</code> | <code>4</code> |  
 <code>ABANDONED</code> | <code>5</code> |  
 
-## Initiator
-
-
-Alias            | Code               | Description
----------------- | ------------------ | ----------- 
-<code>UNKNOWN</code> | <code>0</code> |  
-<code>LOCAL</code> | <code>1</code> |  
-<code>REMOTE</code> | <code>2</code> |  
-<code>BOTH</code> | <code>3</code> |  
-
 ## UpdateType
 
 
@@ -11052,6 +11042,16 @@ Alias            | Code               | Description
 <code>IN_FLIGHT</code> | <code>0</code> |  
 <code>SUCCEEDED</code> | <code>1</code> |  
 <code>FAILED</code> | <code>2</code> |  
+
+## Initiator
+
+
+Alias            | Code               | Description
+---------------- | ------------------ | ----------- 
+<code>INITIATOR_UNKNOWN</code> | <code>0</code> |  
+<code>INITIATOR_LOCAL</code> | <code>1</code> |  
+<code>INITIATOR_REMOTE</code> | <code>2</code> |  
+<code>INITIATOR_BOTH</code> | <code>3</code> |  
 
 ## InvoiceState
 
