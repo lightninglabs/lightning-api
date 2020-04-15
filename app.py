@@ -8,8 +8,7 @@ import os
 
 app = Flask(__name__)
 
-RPC_PROTO = 'lnrpc/rpc.proto'
-
+RPC_PROTO = '.proto'
 
 def verify_signature(signature, payload):
     """
@@ -23,7 +22,7 @@ def verify_signature(signature, payload):
 
 
 def update_and_render():
-    call('./update_and_render.sh', shell=True)
+    call('./update.sh', shell=True)
 
 
 def deploy_updated_docs():
@@ -34,7 +33,7 @@ def deploy_updated_docs():
 def handle_proto_update():
     """
     Listen for POST requests from GitHub in order to determine when a commit has
-    modified the lnrpc protobuf definitions.
+    modified the lnrpc or looprpc protobuf definitions.
     """
 
     github_payload = request.headers.get('X-Hub-Signature')
@@ -49,7 +48,7 @@ def handle_proto_update():
     for commit in commits:
         modified_files = commit['modified']
         for modified_file in modified_files:
-            if modified_file == RPC_PROTO:
+            if RPC_PROTO in modified_file:
                 update_and_render()
                 deploy_updated_docs()
                 return '', 200

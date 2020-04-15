@@ -1,6 +1,6 @@
 ```python
 >>> import codecs, grpc, os
->>> import rpc_pb2 as ln, rpc_pb2_grpc as {{ method.packageName }}{% if method.service != 'WalletUnlocker' %}
+>>> import rpc_pb2 as {{component}}, rpc_pb2_grpc as {{ method.packageName }}{% if method.service != 'WalletUnlocker' %}
 >>> macaroon = codecs.encode(open('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon', 'rb').read(), 'hex'){% endif %}
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()

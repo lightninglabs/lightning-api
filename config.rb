@@ -54,6 +54,9 @@ end
 # If you want Middleman to listen on a different port, you can set that below
 set :port, 4567
 
+set :build_dir, "build/all"
+set :index_file, "lnd.html"
+
 helpers do
   require './lib/toc_data.rb'
 end

@@ -1,19 +1,3 @@
----
-title: LND gRPC API Reference
-
-language_tabs:
-  - shell
-  - python
-  - javascript
-
-toc_footers:
-  - <a href='http://dev.lightning.community'>Developer site</a>
-  - <a href='mailto:hello@lightning.engineering'>Contact Us</a>
-  - Powered by <a href='https://github.com/lord/slate'>Slate</a>
-
-search: true
----
-
 # LND gRPC API Reference
 
 Welcome to the gRPC API reference documentation for LND, the Lightning Network
@@ -39,16 +23,16 @@ be used in order to make a successful, secure, and authenticated gRPC request.
 The original `*.proto` files from which the gRPC documentation was generated
 can be found here:
 
-{% for file in files %}- [`{{ file }}`]({{ gitHubUrl }}/blob/{{ commit }}/lnrpc/{{file}})
+{% for file in files %}- [`{{ file }}`]({{ repoUrl }}/blob/{{ commit }}/{{ rpcdir }}/{{file}})
 {% endfor %}
 
 
 This is the reference for the **gRPC API**. Alternatively, there is also a [REST
-API which is documented here](./rest).
+API which is documented here](#lnd-rest-api-reference).
 
 <small>This documentation was
 [generated automatically](https://github.com/lightninglabs/lightning-api) against commit
-[`{{ commit }}`]({{ gitHubUrl }}/tree/{{ commit }}).</small>
+[`{{ commit }}`]({{ repoUrl }}/tree/{{ commit }}).</small>
 
 ## Experimental services
 
@@ -56,38 +40,42 @@ The following RPCs/services are currently considered to be experimental. This me
 they are subject to change in the future. They also need to be enabled with a
 compile-time flag to be active (they are active in the official release binaries).
 
-{% for ex in experimental %}- Service `{{ ex.service }}` (file `{{ ex.file }}`)
+{% for ex in experimental %}- [Service _{{ ex.service }}_](#service-{{ ex.service|lower }}) (file `{{ ex.file }}`)
 {% endfor %} 
 
-{% for method in methods %}
-# {{ method.fullName }}
+{% for service in services %}
+# Service _{{ service.name }}_
+
+{% for method in service_methods[service.name].methods %}
+## {{ method.name }}
 
 {% if not method.streamingRequest and not method.streamingResponse %}
-### Simple RPC
+#### Unary RPC
 {% elif not method.streamingRequest and method.streamingResponse %}
-### Response-streaming RPC
+#### Server-streaming RPC
 {% elif method.streamingRequest and not method.streamingResponse %}
-### Request-streaming RPC
+#### Client-streaming RPC
 {% elif method.streamingRequest and method.streamingResponse %}
-### Bidirectional-streaming RPC
+#### Bidirectional-streaming RPC
 {% endif %}
 
 {{ method.description }}
 
 {% include 'grpc/shell.md' %}
-{% include 'grpc/python.md' %}
-{% include 'grpc/javascript.md' %}
+{% include 'grpc/lnd_python.md' %}
+{% include 'grpc/lnd_javascript.md' %}
 
 {% include 'grpc/request.md' %}
 {% include 'grpc/response.md' %}
 {% endfor %}
+{% endfor %}
 
-# Messages
+# gRPC Messages
 {% for messageName, message in messages.items() %}
 {% include 'grpc/message.md' %}
 {% endfor %}
 
-# Enumerations
-{% for enumName, enum in enums.items() %}
+# gRPC Enums
+{% for enum in enums %}
 {% include 'grpc/enum.md' %}
 {% endfor %}

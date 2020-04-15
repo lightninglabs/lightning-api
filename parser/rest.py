@@ -1,19 +1,10 @@
 #!/usr/bin/env python3
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-from grpc import parse_description
-from pathlib import Path
-from os.path import relpath
+from parser.grpc import parse_description
 
-import json
 import re
 import os
 
-PROTO_DIR = os.environ.get('PROTO_DIR')
-WS_ENABLED = os.environ.get('WS_ENABLED')
-GITHUB_URL = os.environ.get('GITHUB_URL')
-COMMIT = os.environ.get('COMMIT')
-
-def parse_rest_ref(ref):
+def parse_ref(ref):
     """
     Convenience method that removes the "#/definitions/" prefix from the
     reference name to a REST definition.
@@ -21,10 +12,16 @@ def parse_rest_ref(ref):
 
     ref = ref.replace('#/definitions/', '')
     ref = ref.replace('#/x-stream-definitions/', '')
+
+    # Workaround for nested messages that the Swagger generator doesn't know
+    # where to place.
+    if ref.startswith('PendingChannelsResponse'):
+        ref = 'lnrpc' + ref
+
     return ref
 
 
-def parse_rest_definition_params(definition):
+def parse_definition_params(definition):
     """
     Parses the different parameters of a REST definition found within the
     swagger JSON file and returns them as a list.
@@ -39,21 +36,21 @@ def parse_rest_definition_params(definition):
 
         # Parse the parameter's description.
         if def_param.get('description'):
-            _, p['description'] = parse_description(def_param['description'])
+            p['description'] = parse_description(def_param['description'])
         elif def_param.get('title'):
-            _, p['description'] = parse_description(def_param['title'])
+            p['description'] = parse_description(def_param['title'])
 
         # Parse the parameter's type.
         param_type = def_param.get('type')
         if param_type is None:
-            ref = parse_rest_ref(def_param['$ref'])
+            ref = parse_ref(def_param['$ref'])
             p['type'] = ref
             p['link'] = ref.lower()
         elif param_type == 'array':
             if def_param['items'].get('type'):
                 p['type'] = 'array ' + def_param['items']['type']
             elif def_param['items'].get('$ref'):
-                ref = parse_rest_ref(def_param['items']['$ref'])
+                ref = parse_ref(def_param['items']['$ref'])
                 p['type'] = 'array ' + ref
                 p['link'] = ref.lower()
         else:
@@ -81,26 +78,67 @@ def parse_rest_definition_params(definition):
     return params
 
 
-def parse_rest_definitions(definitions):
+def parse_enum_options(definition, description):
+    enum_options = {}
+    for i, option in enumerate(definition['enum']):
+        enum_options[option] = {
+            'name': option,
+            'value': i,
+        }
+
+    splits = description.split(' - ')
+    pattern = '(\w+): \*\s*(.*)'
+    for split in splits:
+        match = re.search(pattern, split, re.M | re.S)
+        if match:
+            enum_options[match.group(1)]['description'] = match.group(2)
+
+    return enum_options
+
+
+def parse_definitions(definitions):
     """
     Parses the different REST definitions found within the swagger JSON file.
     These definitions include the custom types defined within the protos.
     """
 
-    rest_definitions = {}
+    rest_properties = {}
+    rest_enums = {}
     for name, definition in definitions.items():
-        params = parse_rest_definition_params(definition)
+        # Workaround for nested messages that the Swagger generator doesn't know
+        # where to place.
+        if name.startswith('PendingChannelsResponse'):
+            name = 'lnrpc' + name
 
-        rest_definitions[name] = {
-            'name': name,
-            'params': params,
-            'link': name.lower()
-        }
+        if definition.get('properties'):
+            params = parse_definition_params(definition)
+            rest_properties[name] = {
+                'name': name,
+                'params': params,
+                'link': name.lower(),
+            }
 
-    return rest_definitions
+        elif definition.get('enum'):
+            desc = ''
+            if 'description' in definition:
+                desc = parse_description(definition['description'])
+
+            options = parse_enum_options(definition, desc)
+            rest_enums[name] = {
+                'name': name,
+                'options': options.values(),
+            }
+        else:
+            rest_properties[name] = {
+                'name': name,
+                'params': [],
+                'link': name.lower(),
+            }
+
+    return rest_properties, rest_enums
 
 
-def parse_rest_endpoint_request_params(request_properties, definitions):
+def parse_endpoint_request_params(request_properties, definitions):
     """
     Parses the different request parameters of an endpoint found within the
     swagger JSON file and returns them as a list.
@@ -111,7 +149,7 @@ def parse_rest_endpoint_request_params(request_properties, definitions):
         return []
 
     if len(request_params) == 1 and request_params[0].get('schema'):
-        ref = parse_rest_ref(request_params[0]['schema']['$ref'])
+        ref = parse_ref(request_params[0]['schema']['$ref'])
         params = definitions[ref]['params']
         for param in params:
             param['placement'] = 'body'
@@ -123,12 +161,12 @@ def parse_rest_endpoint_request_params(request_properties, definitions):
         p = {'name': param['name'], 'placement': param['in']}
 
         if param.get('description'):
-            _, p['description'] = parse_description(param['description'])
+            p['description'] = parse_description(param['description'])
 
         # Parse the parameter's type.
         param_type = param.get('type')
         if param_type is None:
-            ref = parse_rest_ref(param['schema']['$ref'])
+            ref = parse_ref(param['schema']['$ref'])
             schema_def = definitions[ref]
             p['type'] = schema_def['name']
             p['link'] = schema_def['link']
@@ -142,7 +180,7 @@ def parse_rest_endpoint_request_params(request_properties, definitions):
     return params
 
 
-def parse_rest_endpoints(json_endpoints, definitions):
+def parse_endpoints(json_endpoints, definitions, ws_enabled):
     """
     Parses the different REST endpoints found within the swagger JSON file and
     returns them as a dictionary, each indexed by its base path.
@@ -166,21 +204,20 @@ def parse_rest_endpoints(json_endpoints, definitions):
         # request and response paramaters.
         endpoints = []
         for request_type, request_properties in requests.items():
-            _, endpoint_request_description = parse_description(
-                request_properties['summary'])
+            endpoint_request_description = parse_description(request_properties['summary'])
 
-            endpoint_request_params = parse_rest_endpoint_request_params(
+            endpoint_request_params = parse_endpoint_request_params(
                 request_properties, definitions)
 
             response_properties = request_properties['responses']['200']
             if '$ref' in response_properties['schema']:
                 rawRef = response_properties['schema']['$ref']
                 isStreaming = 'x-stream-definitions' in rawRef
-                ref = parse_rest_ref(response_properties['schema']['$ref'])
+                ref = parse_ref(response_properties['schema']['$ref'])
 
             if 'properties' in response_properties['schema']:
                 isStreaming = True
-                ref = parse_rest_ref(response_properties['schema']['properties']['result']['$ref'])
+                ref = parse_ref(response_properties['schema']['properties']['result']['$ref'])
 
             endpoint_response_params = definitions[ref]['params']
 
@@ -192,7 +229,7 @@ def parse_rest_endpoints(json_endpoints, definitions):
                 'requestParams': endpoint_request_params,
                 'responseParams': endpoint_response_params,
                 'isStreaming': isStreaming,
-                'wsEnabled': 'true' in WS_ENABLED,
+                'wsEnabled': 'true' in ws_enabled,
                 'service': request_properties['tags'][0],
             }
 
@@ -204,39 +241,3 @@ def parse_rest_endpoints(json_endpoints, definitions):
             rest_endpoints[base_path].append(endpoint)
 
     return rest_endpoints
-
-
-def render_rest():
-    """
-    Renders the REST documentation from parsing the swagger JSON file.
-    """
-
-    definitions = {}
-    endpoints = {}
-    files = []
-
-    for path in Path(PROTO_DIR).rglob('*.swagger.json'):
-        print('Parsing file ' + str(path))
-        files.append(str(path).replace(PROTO_DIR + '/', ''))
-        data = json.load(open(path, 'r'))
-        definitions.update(parse_rest_definitions(data['definitions']))
-
-        if 'x-stream-definitions' in data:
-            definitions.update(parse_rest_definitions(data['x-stream-definitions']))
-        endpoints.update(parse_rest_endpoints(data['paths'], definitions))
-
-    env = Environment(
-        loader=FileSystemLoader('templates'),
-        autoescape=select_autoescape(['html'])
-    )
-
-    template = env.get_template('rest/index.md')
-    docs = template.render(
-        definitions=definitions.values(),
-        endpoints=endpoints,
-        files=files,
-        gitHubUrl=GITHUB_URL,
-        commit=COMMIT)
-
-    with open('source/rest/index.html.md', 'w') as f:
-        f.write(docs)

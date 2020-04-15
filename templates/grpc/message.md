@@ -1,4 +1,4 @@
-## {{ messageName }}
+### {{ messageName }}
 {{ message.description }}
 {% if message.params | length == 0 %}
 This message has no parameters.

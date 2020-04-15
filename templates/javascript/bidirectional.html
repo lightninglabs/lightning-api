@@ -1,13 +1,12 @@
-> var call = {{ method.serviceJS }}.{{ method.nameJS }}({})
-> call.on('data', function(response) {
-    // A response was received from the server.
-    console.log(response);
-  });
-> call.on('status', function(status) {
-    // The current status of the stream.
-  });
-> call.on('end', function() {
-    // The server has closed the stream.
-  });
-> call.write(request)
-
+let call = {{ method.serviceJS }}.{{ method.nameJS }}({});
+call.on('data', function(response) {
+  // A response was received from the server.
+  console.log(response);
+});
+call.on('status', function(status) {
+  // The current status of the stream.
+});
+call.on('end', function() {
+  // The server has closed the stream.
+});
+call.write(request);

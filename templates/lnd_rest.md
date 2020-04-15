@@ -1,19 +1,3 @@
----
-title: LND REST API Reference
-
-language_tabs:
-  - shell
-  - python
-  - javascript
-
-toc_footers:
-  - <a href='http://dev.lightning.community'>Developer site</a>
-  - <a href='mailto:hello@lightning.engineering'>Contact Us</a>
-  - Powered by <a href='https://github.com/lord/slate'>Slate</a>
-
-search: true
----
-
 # LND REST API Reference
 
 Welcome to the REST API reference documentation for LND, the Lightning Network
@@ -38,27 +22,27 @@ be used in order to make a successful, secure, and authenticated HTTP request.
 The original `*.swagger.js` files from which the gRPC documentation was generated
 can be found here:
 
-{% for file in files %}- [`{{ file }}`]({{ gitHubUrl }}/blob/{{ commit }}/lnrpc/{{file}})
+{% for file in files %}- [`{{ file }}`]({{ repoUrl }}/blob/{{ commit }}/{{ rpcdir }}/{{file}})
 {% endfor %}
 
-NOTE: The `byte` field type must be set as the URL safe base64 encoded string
+**NOTE**: The `byte` field type must be set as the base64 encoded string
 representation of a raw byte array.
 
 
 This is the reference for the **REST API**. Alternatively, there is also a [gRPC
-API which is documented here](../).
+API which is documented here](#lnd-grpc-api-reference).
 
 <small>This documentation was
 [generated automatically](https://github.com/lightninglabs/lightning-api) against commit
-[`{{ commit }}`]({{ gitHubUrl }}/tree/{{ commit }}).</small>
+[`{{ commit }}`]({{ repoUrl }}/tree/{{ commit }}).</small>
 
 {% for basePath, endpoints in endpoints.items() %}
-# {{ basePath }}
+## {{ basePath }}
 {% for endpoint in endpoints %}
 
-{% include 'rest/shell.md' %}
-{% include 'rest/python.md' %}
-{% include 'rest/javascript.md' %}
+{% include 'rest/lnd_shell.md' %}
+{% include 'rest/lnd_python.md' %}
+{% include 'rest/lnd_javascript.md' %}
 
 {% include 'rest/request.md' %}
 {% include 'rest/response.md' %}
@@ -66,7 +50,12 @@ API which is documented here](../).
 {% endfor %}
 {% endfor %}
 
-# Definitions
-{% for definition in definitions %}
-{% include 'rest/definitions.md' %}
+# REST messages
+{% for property in properties %}
+{% include 'rest/property.md' %}
+{% endfor %}
+
+# REST Enums
+{% for enum in enums %}
+{% include 'rest/enum.md' %}
 {% endfor %}

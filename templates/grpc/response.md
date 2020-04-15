@@ -1,4 +1,4 @@
-### gRPC Response: [{{ method.responseFullType }} {% if method.streamingResponse %}(Streaming){% endif %}]({{ gitHubUrl }}/blob/{{ commit }}/lnrpc/{{method.responseMessage.file}}#L{{method.responseMessage.line}})
+### gRPC Response: [{{ method.responseFullType }} {% if method.streamingResponse %}(Streaming){% endif %}]({{ repoUrl }}/blob/{{ commit }}/{{ rpcdir }}/{{method.responseMessage.file}}#L{{method.responseMessage.line}})
 {{ method.responseMessage.description }}
 {% if method.responseMessage.params | length == 0 %}
 This response has no parameters.

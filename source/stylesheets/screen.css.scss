@@ -613,3 +613,18 @@ html, body {
 .highlight, .highlight .w {
   background-color: $code-bg;
 }
+
+
+// Custom styles for lnd&friends.
+
+// Section headers
+.toc-link[data-title$="API Reference"], .toc-link[data-title$="API References"] {
+  text-transform: uppercase;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  font-weight: bold;
+}
+
+.toc-link[data-title$="API Reference"] {
+  border-bottom: 1px solid $nav-footer-border-color;
+}
