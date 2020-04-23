@@ -18,7 +18,62 @@ Pay special attention to these files:
 - `deploy.sh`: Build static site from Slate markdown and deploy to Google Cloud
   Platform
 
-## Running the site locally
+## Running the site locally with docker
+
+### Prerequisites
+
+You're going to need:
+ - **Docker CE** installed
+
+### Running locally
+
+```shell
+./docker-update-render.sh
+bundle exec middleman server
+```
+
+You can now see the docs at `http://localhost:4567`.
+
+### Deployment
+
+The Lightning API is deployed with Google Cloud Platform. Visit [this blog
+post](https://little418.com/2015/07/jekyll-google-cloud-storage.html) for more
+information.
+
+#### Steps
+
+1. Install Google Cloud SDK and authenticate into it:
+```bash
+brew cask install google-cloud-sdk
+gcloud auth login
+```
+
+2. Run the build and deploy script:
+```bash
+./docker-build-deploy.sh
+```
+
+### Running the server locally
+
+The server uses Flask in order to receive POST requests from GitHub whenever a
+new commit has been pushed to the respository. These POST requests will include
+the HMAC of a secret token set up within the Webhook settings of a repository.
+This token will need to be exported so that the server can verify the request
+from GitHub has been authenticated.
+
+The server can be run with:
+
+```shell
+$ export WEBHOOK_SECRET_TOKEN=YOUR_TOKEN_HERE
+$ ./docker-run-server.sh
+```
+
+Once a POST request from GitHub has been received, the server will check if
+there were any commits which included a change to the protobuf definitions. If
+there was, then the documentation will be automatically regenerated and
+deployed.
+
+## Running the site locally (the old way)
 
 ### Prerequisites
 
@@ -41,7 +96,7 @@ bundle exec middleman server
 
 You can now see the docs at `http://localhost:4567`.
 
-## Regenerating documentation
+### Regenerating documentation
 
 ```shell
 # Install Jinja for python templating.
@@ -55,23 +110,13 @@ go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc
 ./update_and_render.sh
 ```
 
-Now, ensure that you have [`lnd` installed](http://http://dev.lightning.community/installation/)
-and your `$GOPATH` set, so that `lncli` is available from the command line.
-Let's run the script to render our local Slate docs:
-```shell
-python3 render.py
-```
-
-Now that you're all set up, you can just run `./update_and_render.sh` to
-automatically pull the latest rpc.proto and render the local Slate docs.
-
-## Deployment
+### Deployment
 
 The Lightning API is deployed with Google Cloud Platform. Visit [this blog
 post](https://little418.com/2015/07/jekyll-google-cloud-storage.html) for more
 information.
 
-### Steps
+#### Steps
 
 1. Install Google Cloud SDK and authenticate into it:
 ```bash

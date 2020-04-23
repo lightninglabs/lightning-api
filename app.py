@@ -22,11 +22,11 @@ def verify_signature(signature, payload):
 
 
 def update_and_render():
-    call('./update.sh', shell=True)
+    call('./docker-update-render.sh', shell=True)
 
 
 def deploy_updated_docs():
-    call('./deploy.sh', shell=True)
+    call('./docker-build-deploy.sh', shell=True)
 
 
 @app.route('/update', methods=['POST'])
@@ -49,8 +49,7 @@ def handle_proto_update():
         modified_files = commit['modified']
         for modified_file in modified_files:
             if RPC_PROTO in modified_file:
-                update_and_render()
-                deploy_updated_docs()
+                update_render_deploy()
                 return '', 200
 
     return '', 200
