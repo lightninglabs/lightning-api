@@ -20,15 +20,6 @@ def verify_signature(signature, payload):
     sig = 'sha1=' + h.hexdigest()
     return hmac.compare_digest(sig, signature)
 
-
-def update_and_render():
-    call('./docker-update-render.sh', shell=True)
-
-
-def deploy_updated_docs():
-    call('./docker-build-deploy.sh', shell=True)
-
-
 @app.route('/update', methods=['POST'])
 def handle_proto_update():
     """
@@ -49,7 +40,12 @@ def handle_proto_update():
         modified_files = commit['modified']
         for modified_file in modified_files:
             if RPC_PROTO in modified_file:
-                update_render_deploy()
+                # We already run inside the docker container, so we need to call the commands directly.
+                call('./update.sh', shell=True)
+                call('bundle exec middleman build --clean', shell=True)
+                call('./split-projects.sh', shell=True)
+                call('gsutil -m rsync -d -r ./build/lnd gs://api.lightning.community', shell=True)
+                call('gsutil -m rsync -d -r ./build/loop gs://lightning.engineering/loopapi', shell=True)
                 return '', 200
 
     return '', 200

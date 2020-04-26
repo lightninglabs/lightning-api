@@ -95,8 +95,10 @@ def parse_messages(proto_dir, messages, fileName, packageFiles):
 
         fileName, line = parse_line_number(proto_dir, message['name'], packageFiles[package])
         params = parse_message_params(message)
+        shortName = name.replace(package + '.', '')
         grpc_messages[name] = {
             'name': name,
+            'shortName': shortName,
             'params': params,
             'link': name.lower(),
             'file': fileName,
@@ -154,7 +156,11 @@ def parse_methods(services, messages, fileName, command):
             serviceFullName = service['fullName']
 
             # Parse the corresponding command and description.
-            subcommand, description = parse_method_description(command, method['description'])
+            subCommand, description = parse_method_description(command, method['description'])
+
+            # Extract the generated stub name for the python artifacts.
+            packageName = serviceFullName.replace('.' + service['name'], '')
+            stubFileName = fileName.replace(packageName + '/', '').replace('.proto', '')
 
             grpc_methods[fullName] = {
                 **method,
@@ -163,8 +169,9 @@ def parse_methods(services, messages, fileName, command):
                 'serviceJS': service['name'][0].lower() + service['name'][1:],
                 'fullName': fullName,
                 'fileName': fileName,
-                'packageName': serviceFullName.replace('.' + service['name'], ''),
-                'subcommand': subcommand,
+                'stubFileName': stubFileName,
+                'packageName': packageName,
+                'subcommand': subCommand,
                 'description': description,
                 'requestMessage': messages[method['requestFullType']],
                 'responseMessage': messages[method['responseFullType']],

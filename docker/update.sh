@@ -76,6 +76,3 @@ EXPERIMENTAL_PACKAGES=""
 INSTALL_CMD="go install ./..."
 APPEND_TO_FILE=source/loop.html.md
 compile
-
-# Clean up.
-rm -rf $PROTO_ROOT_DIR

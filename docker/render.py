@@ -83,6 +83,10 @@ def render_grpc():
     services_list = [v for k, v in grpc_services.items()]
     services_list.sort(key=lambda m: m['index'])
 
+    # Sort all other lists.
+    files.sort()
+    experimental.sort(key=lambda e: e['service'])
+
     # Load from the `templates` dir
     env = Environment(
         loader=FileSystemLoader('templates'),

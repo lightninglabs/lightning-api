@@ -1,8 +1,17 @@
 ```javascript
 const fs = require('fs');
 const grpc = require('grpc');
+const protoLoader = require('@grpc/proto-loader');
+const loaderOptions = {
+  keepCase: true,
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: true
+};
+{% if method.fileName == 'rpc.proto' %}const packageDefinition = protoLoader.loadSync('{{ method.fileName }}', loaderOptions);{% endif %}{% if method.fileName != 'rpc.proto' %}const packageDefinition = protoLoader.loadSync(['rpc.proto', '{{ method.fileName }}'], loaderOptions);{% endif %}
+const {{ method.packageName }} = grpc.loadPackageDefinition(packageDefinition).{{ method.packageName }};
 const macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
-const {{ method.packageName }} = grpc.load('{{ method.fileName }}').{{ method.packageName }};
 process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA';
 const lndCert = fs.readFileSync('LND_DIR/tls.cert');
 const sslCreds = grpc.credentials.createSsl(lndCert);{% if method.service == 'WalletUnlocker' %}
