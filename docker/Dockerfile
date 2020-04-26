@@ -30,13 +30,14 @@ COPY install_proto.sh /tmp/work/
 RUN /tmp/work/install_proto.sh
 RUN go get -v -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc
 
-# Do some of the heavier lifting now so we already have some things cached.
-RUN git clone https://github.com/lightningnetwork/lnd /tmp/apidoc/lnd \
-  && cd /tmp/apidoc/lnd \
-  && make
-RUN git clone https://github.com/lightninglabs/loop /tmp/apidoc/loop \
-  && cd /tmp/apidoc/loop \
-  && go build ./...
+# Compile both projects to have most dependencies and build steps cached.
+RUN git clone https://github.com/lightningnetwork/lnd /tmp/lnd \
+  && cd /tmp/lnd \
+  && make \
+  && git clone https://github.com/lightninglabs/loop /tmp/loop \
+  && cd /tmp/loop \
+  && go build ./... \
+  && rm -rf /tmp/lnd /tmp/loop
 
 # Copy the rest of the files last so changes won't trigger a full rebuild of the image.
 COPY . /tmp/work

@@ -3,22 +3,22 @@
 set -e
 
 function compile() {
+  echo "Using ${COMPONENT} repo URL ${REPO_URL} and commit ${CHECKOUT_COMMIT}"
+
   PROTO_DIR=$PROTO_ROOT_DIR/$COMPONENT
   LOCAL_REPO_PATH=/tmp/apidoc/$COMPONENT
   if [[ ! -d $LOCAL_REPO_PATH ]]; then
     git clone $REPO_URL $LOCAL_REPO_PATH
   fi
 
-  # Update lncli to the respective commit.
+  # Update the repository to the respective CHECKOUT_COMMIT and install the binary.
   pushd $LOCAL_REPO_PATH
   COMMIT=$(git rev-parse HEAD)
-  if [ $commit != "nocompile" ]; then
-    git reset --hard HEAD
-    git pull
-    git checkout $commit
-    COMMIT=$(git rev-parse HEAD)
-    eval $INSTALL_CMD
-  fi
+  git reset --hard HEAD
+  git pull
+  git checkout $CHECKOUT_COMMIT
+  COMMIT=$(git rev-parse HEAD)
+  eval $INSTALL_CMD
   popd
 
   # Copy over all proto and json files from the checked out lnd source directory.
@@ -41,20 +41,21 @@ function compile() {
 
 # Generic options.
 WS_ENABLED="${WS_ENABLED:-false}"
+LND_FORK="${LND_FORK:-lightningnetwork}"
+LND_COMMIT="${LND_COMMIT:-master}"
+LOOP_FORK="${LOOP_FORK:-lightninglabs}"
+LOOP_COMMIT="${LOOP_COMMIT:-master}"
 PROTO_ROOT_DIR="build/protos"
 
 # Remove previously generated templates.
 rm -rf $PROTO_ROOT_DIR
 rm -rf source/*.html.md
 
-# We'll default to fetching the latest version of the RPC files. Otherwise, we'll use the commit hash provided.
-commit="master"
-[ -n "$1" ] && commit=$1
-
 ########################
 ## Compile docs for lnd
 ########################
-REPO_URL="https://github.com/lightningnetwork/lnd"
+REPO_URL="https://github.com/${LND_FORK}/lnd"
+CHECKOUT_COMMIT=$LND_COMMIT
 COMPONENT=lnd
 COMMAND=lncli
 PROTO_SRC_DIR=lnrpc
@@ -67,7 +68,8 @@ compile
 ########################
 ## Compile docs for loop
 ########################
-REPO_URL="https://github.com/lightninglabs/loop"
+REPO_URL="https://github.com/${LOOP_FORK}/loop"
+CHECKOUT_COMMIT=$LOOP_COMMIT
 COMPONENT=loop
 COMMAND=loop
 PROTO_SRC_DIR=looprpc
