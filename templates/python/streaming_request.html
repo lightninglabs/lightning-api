@@ -3,7 +3,7 @@
         # Initialization code here.
         while True:
             # Parameters here can be set as arguments to the generator.
-            request = ln.{{ method.requestMessage.name }}({% if
+            request = {{ method.packageName }}.{{ method.requestMessage.shortName }}({% if
 	    method.requestMessage.params | length == 0 %}){% else %}{% for param in method.requestMessage.params %}
                 {{ param.name }}=<{{ param.type }}>,{% endfor %}
             ){% endif %}

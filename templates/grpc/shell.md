@@ -1,8 +1,8 @@
 ```shell
-{% if method.lncliCommand %}{% for description in method.lncliInfo.description %}
+{% if method.subcommand and method.commandInfo %}{% for description in method.commandInfo.description %}
 # {{ description }}{% endfor %}
 
-$ {{ method.lncliInfo.usage }}
-{% for option in method.lncliInfo.options %}
+$ {{ method.commandInfo.usage }}
+{% for option in method.commandInfo.options %}
 # {{ option }}{% endfor %}{% endif %}
 ```
