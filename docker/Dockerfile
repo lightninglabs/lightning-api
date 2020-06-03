@@ -28,7 +28,6 @@ RUN bundle config set path 'vendor/bundle' \
 
 COPY install_proto.sh /tmp/work/
 RUN /tmp/work/install_proto.sh
-RUN go get -v -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc
 
 # Compile both projects to have most dependencies and build steps cached.
 RUN git clone https://github.com/lightningnetwork/lnd /tmp/lnd \

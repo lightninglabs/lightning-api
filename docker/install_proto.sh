@@ -5,8 +5,9 @@ set -ev
 
 # See README.md in lnrpc why we need these specific versions/commits.
 PROTOC_VERSION=3.4.0
-GENPROTO_VERSION="a8101f21cf983e773d0c1133ebc5424792003214"
-GRPC_GATEWAY_VERSION="v1.8.6"
+GENPROTO_VERSION="20e1ac93f88cf06d2b1defb90b9e9e126c7dfff6"
+GRPC_GATEWAY_VERSION="v1.14.3"
+DOC_GENERATOR_VERSION="v1.3.2"
 
 # This script is specific to Travis CI so we only need to support linux x64.
 PROTOC_URL="https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip"
@@ -52,6 +53,20 @@ install_grpc_gateway() {
   popd
 }
 
+# install_doc_generator downloads and installs the protoc to markdown
+# generator.
+install_doc_generator() {
+  local install_path="$GOPATH/src/github.com/pseudomuto/protoc-gen-doc"
+  if [ ! -d "$install_path" ]; then
+    git clone https://github.com/pseudomuto/protoc-gen-doc "$install_path"
+  fi
+  pushd "$install_path"
+  git reset --hard $DOC_GENERATOR_VERSION
+  GO111MODULE=on go install ./...
+  popd
+}
+
 install_protoc
 install_genproto
 install_grpc_gateway
+install_doc_generator

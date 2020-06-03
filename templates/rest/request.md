@@ -1,5 +1,8 @@
 ### {{ endpoint.type }} {{ endpoint.path }}
-{{ endpoint.description }}
+{{ endpoint.summary }}{% if endpoint.description|length > 0 %}
+
+{{ endpoint.description }}{% endif %}
+
 {% if endpoint.requestParams|length == 0 %}
 This request has no parameters.
 {% else %}
