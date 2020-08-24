@@ -204,12 +204,11 @@ def parse_endpoints(json_endpoints, definitions, ws_enabled):
         # request and response paramaters.
         endpoints = []
         for request_type, request_properties in requests.items():
-            endpoint_request_description = parse_description(request_properties['summary'])
-
-            endpoint_request_params = parse_endpoint_request_params(
-                request_properties, definitions)
+            endpoint_request_params = parse_endpoint_request_params(request_properties, definitions)
 
             response_properties = request_properties['responses']['200']
+            description = ''
+            summary = ''
             if '$ref' in response_properties['schema']:
                 rawRef = response_properties['schema']['$ref']
                 isStreaming = 'x-stream-definitions' in rawRef
@@ -219,13 +218,20 @@ def parse_endpoints(json_endpoints, definitions, ws_enabled):
                 isStreaming = True
                 ref = parse_ref(response_properties['schema']['properties']['result']['$ref'])
 
+            if 'description' in request_properties:
+                description = parse_description(request_properties['description'])
+
+            if 'summary' in request_properties:
+                summary = parse_description(request_properties['summary'])
+
             endpoint_response_params = definitions[ref]['params']
 
             endpoint = {
                 'path': path,
                 'type': request_type.upper(),
                 'name': request_properties['operationId'],
-                'description': endpoint_request_description,
+                'summary': summary,
+                'description': description,
                 'requestParams': endpoint_request_params,
                 'responseParams': endpoint_response_params,
                 'isStreaming': isStreaming,

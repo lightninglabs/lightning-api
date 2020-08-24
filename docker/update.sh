@@ -40,7 +40,7 @@ function compile() {
 }
 
 # Generic options.
-WS_ENABLED="${WS_ENABLED:-false}"
+WS_ENABLED="${WS_ENABLED:-true}"
 LND_FORK="${LND_FORK:-lightningnetwork}"
 LND_COMMIT="${LND_COMMIT:-master}"
 LOOP_FORK="${LOOP_FORK:-lightninglabs}"
