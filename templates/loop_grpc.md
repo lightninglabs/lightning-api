@@ -61,8 +61,8 @@ API which is documented here](#loop-rest-api-reference).
 {{ method.description }}
 
 {% include 'grpc/shell.md' %}
-{% include 'grpc/loop_python.md' %}
-{% include 'grpc/loop_javascript.md' %}
+{% include 'grpc/other_python.md' %}
+{% include 'grpc/other_javascript.md' %}
 
 {% include 'grpc/request.md' %}
 {% include 'grpc/response.md' %}

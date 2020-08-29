@@ -10,7 +10,7 @@ const loaderOptions = {
 };
 const packageDefinition = protoLoader.loadSync('{{ method.fileName }}', loaderOptions);
 const {{ method.packageName }} = grpc.loadPackageDefinition(packageDefinition).{{ method.packageName }};
-const {{ method.serviceJS }} = new {{ method.packageName }}.{{ method.service }}('localhost:11010', grpc.credentials.createInsecure());
+const {{ method.serviceJS }} = new {{ method.packageName }}.{{ method.service }}('localhost:{{ grpcport }}', grpc.credentials.createInsecure());
 let request = {% if method.requestMessage.params|length == 0 %}{}{% else %}{ {% for param in method.requestMessage.params %}
   {{ param.name }}: <{{ param.type }}>, {% endfor %}
 };{% endif %}{% if not method.streamingRequest and not method.streamingResponse %}

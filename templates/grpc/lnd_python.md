@@ -7,7 +7,7 @@
 >>> os.environ['GRPC_SSL_CIPHER_SUITES'] = 'HIGH+ECDSA'
 >>> cert = open('LND_DIR/tls.cert', 'rb').read()
 >>> ssl_creds = grpc.ssl_channel_credentials(cert)
->>> channel = grpc.secure_channel('localhost:10009', ssl_creds)
+>>> channel = grpc.secure_channel('localhost:{{ grpcport }}', ssl_creds)
 >>> stub = {{ method.stubFileName }}stub.{{ method.service }}Stub(channel){% if method.streamingRequest %}
 {% include 'python/streaming_request.html' %}{% else %}
 {% include 'python/simple_request.html' %}{% endif %}{% if method.streamingResponse %}

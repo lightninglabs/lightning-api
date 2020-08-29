@@ -49,9 +49,9 @@ API which is documented here](#loop-grpc-api-reference).
 ## {{ basePath }}
 {% for endpoint in endpoints %}
 
-{% include 'rest/loop_shell.md' %}
-{% include 'rest/loop_python.md' %}
-{% include 'rest/loop_javascript.md' %}
+{% include 'rest/other_shell.md' %}
+{% include 'rest/other_python.md' %}
+{% include 'rest/other_javascript.md' %}
 
 {% include 'rest/request.md' %}
 {% include 'rest/response.md' %}

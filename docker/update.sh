@@ -63,6 +63,8 @@ EXCLUDE_PROTOS="none"
 EXPERIMENTAL_PACKAGES="signrpc walletrpc chainrpc invoicesrpc watchtowerrpc"
 INSTALL_CMD="make clean && make install tags=\"$EXPERIMENTAL_PACKAGES\""
 APPEND_TO_FILE=source/lnd.html.md
+GRPC_PORT=10009
+REST_PORT=8080
 compile
 
 ########################
@@ -77,4 +79,6 @@ EXCLUDE_PROTOS="server.proto"
 EXPERIMENTAL_PACKAGES=""
 INSTALL_CMD="go install ./..."
 APPEND_TO_FILE=source/loop.html.md
+GRPC_PORT=11010
+REST_PORT=8081
 compile
