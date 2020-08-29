@@ -11,7 +11,7 @@ docker run \
   -v $PWD/build:/tmp/work/build \
   -v $PWD/source:/tmp/work/source \
   guggero/lightning-api \
-  bundle exec middleman build --clean
+  bundle exec middleman build --verbose --clean
 
 echo "Docker built as root, need to give file permissions back to the user"
 sudo chown -R $USER build

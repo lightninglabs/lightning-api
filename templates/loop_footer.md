@@ -4,5 +4,6 @@ This is the gRPC and REST API reference for the `loopd` daemon. There are separa
 following daemons:
 
 - [LND API Reference](https://api.lightning.community/)
+- [Faraday API Reference](https://api.lightning.community/faraday.html)
 
 <br/><br/><br/>
