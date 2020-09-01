@@ -6,7 +6,7 @@ let requestBody = { {% for param in endpoint.requestParams %}
     {{ param.name }}: <{{ param.type }}>,{% endfor %}
 }{% endif %}
 let options = {
-  url: 'https://localhost:8080{{ endpoint.path }}',
+  url: 'https://localhost:{{ restport }}{{ endpoint.path }}',
   // Work-around for self-signed certificates.
   rejectUnauthorized: false,
   json: true, {% if endpoint.service != 'WalletUnlocker' %}
@@ -31,7 +31,7 @@ request.{{ endpoint.type|lower }}(options, function(error, response, body) {
 const WebSocket = require('ws');
 const fs = require('fs');
 const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
-let ws = new WebSocket('wss://localhost:8080{{ endpoint.path }}?method={{ endpoint.type }}', {
+let ws = new WebSocket('wss://localhost:{{ restport }}{{ endpoint.path }}?method={{ endpoint.type }}', {
   // Work-around for self-signed certificates.
   rejectUnauthorized: false,
   headers: {

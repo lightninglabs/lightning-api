@@ -10,7 +10,7 @@ a refresher, you may consider perusing our LND developer site featuring a
 tutorial, resources and guides at [dev.lightning.community](https://dev.lightning.community).
 
 The examples to the right assume that the there is a local `lnd` instance
-running and listening for REST connections on port 8080. `LND_DIR` will be used
+running and listening for REST connections on port {{ restport }}. `LND_DIR` will be used
 as a placeholder to denote the base directory of the `lnd` instance. By default,
 this is `~/.lnd` on Linux and `~/Library/Application Support/Lnd` on macOS.
 

@@ -17,6 +17,8 @@ COMPONENT = os.getenv('COMPONENT')
 WS_ENABLED = os.environ.get('WS_ENABLED')
 PROTO_SRC_DIR = os.environ.get('PROTO_SRC_DIR')
 APPEND_TO_FILE = os.environ.get('APPEND_TO_FILE')
+GRPC_PORT = os.environ.get('GRPC_PORT')
+REST_PORT = os.environ.get('REST_PORT')
 
 def render_grpc():
     """
@@ -105,7 +107,9 @@ def render_grpc():
         repoUrl=REPO_URL,
         commit=COMMIT,
         component=COMPONENT,
-        rpcdir=PROTO_SRC_DIR)
+        rpcdir=PROTO_SRC_DIR,
+        grpcport=GRPC_PORT,
+        restport=REST_PORT)
 
     # Write the file to the source directory.
     with open(APPEND_TO_FILE, 'a+') as f:
@@ -153,7 +157,9 @@ def render_rest():
         repoUrl=REPO_URL,
         commit=COMMIT,
         component=COMPONENT,
-        rpcdir=PROTO_SRC_DIR)
+        rpcdir=PROTO_SRC_DIR,
+        grpcport=GRPC_PORT,
+        restport=REST_PORT)
 
     with open(APPEND_TO_FILE, 'a+') as f:
         f.write(docs)

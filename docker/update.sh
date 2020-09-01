@@ -34,7 +34,7 @@ function compile() {
 
   # Render the new docs.
   cp templates/${COMPONENT}_header.md $APPEND_TO_FILE
-  export EXPERIMENTAL_PACKAGES PROTO_DIR PROTO_SRC_DIR WS_ENABLED COMMIT REPO_URL COMMAND COMPONENT APPEND_TO_FILE
+  export EXPERIMENTAL_PACKAGES PROTO_DIR PROTO_SRC_DIR WS_ENABLED COMMIT REPO_URL COMMAND COMPONENT APPEND_TO_FILE GRPC_PORT REST_PORT
   ./render.py
   cat templates/${COMPONENT}_footer.md >> $APPEND_TO_FILE
 }
@@ -45,6 +45,8 @@ LND_FORK="${LND_FORK:-lightningnetwork}"
 LND_COMMIT="${LND_COMMIT:-master}"
 LOOP_FORK="${LOOP_FORK:-lightninglabs}"
 LOOP_COMMIT="${LOOP_COMMIT:-master}"
+FARADAY_FORK="${FARADAY_FORK:-lightninglabs}"
+FARADAY_COMMIT="${FARADAY_COMMIT:-master}"
 PROTO_ROOT_DIR="build/protos"
 
 # Remove previously generated templates.
@@ -63,6 +65,8 @@ EXCLUDE_PROTOS="none"
 EXPERIMENTAL_PACKAGES="signrpc walletrpc chainrpc invoicesrpc watchtowerrpc"
 INSTALL_CMD="make clean && make install tags=\"$EXPERIMENTAL_PACKAGES\""
 APPEND_TO_FILE=source/lnd.html.md
+GRPC_PORT=10009
+REST_PORT=8080
 compile
 
 ########################
@@ -75,6 +79,24 @@ COMMAND=loop
 PROTO_SRC_DIR=looprpc
 EXCLUDE_PROTOS="server.proto"
 EXPERIMENTAL_PACKAGES=""
-INSTALL_CMD="go install ./..."
+INSTALL_CMD="make install"
 APPEND_TO_FILE=source/loop.html.md
+GRPC_PORT=11010
+REST_PORT=8081
+compile
+
+########################
+## Compile docs for faraday
+########################
+REPO_URL="https://github.com/${FARADAY_FORK}/faraday"
+CHECKOUT_COMMIT=$FARADAY_COMMIT
+COMPONENT=faraday
+COMMAND=frcli
+PROTO_SRC_DIR=frdrpc
+EXCLUDE_PROTOS="none"
+EXPERIMENTAL_PACKAGES=""
+INSTALL_CMD="make install"
+APPEND_TO_FILE=source/faraday.html.md
+GRPC_PORT=8465
+REST_PORT=8082
 compile

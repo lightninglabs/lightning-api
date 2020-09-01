@@ -11,7 +11,7 @@ time or you need a refresher, you may consider perusing our LND developer site
 featuring a tutorial, resources and guides at [dev.lightning.community](https://dev.lightning.community).
 
 The examples to the right assume that the there is a local `lnd` instance
-running and listening for gRPC connections on port 10009. `LND_DIR` will be used
+running and listening for gRPC connections on port {{ grpcport }}. `LND_DIR` will be used
 as a placeholder to denote the base directory of the `lnd` instance. By default,
 this is `~/.lnd` on Linux and `~/Library/Application Support/Lnd` on macOS.
 

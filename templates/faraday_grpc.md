@@ -1,30 +1,13 @@
-# Loop gRPC API Reference
+# Faraday gRPC API Reference
 
-Welcome to the gRPC API reference documentation for Lightning Loop.
+Welcome to the gRPC API reference documentation for Faraday.
 
-Lightning Loop is a non-custodial service offered by Lightning Labs to bridge
-on-chain and off-chain Bitcoin using submarine swaps. This repository is home to
-the Loop client and depends on the Lightning Network daemon lnd. All of lnd’s
-supported chain backends are fully supported when using the Loop client:
-Neutrino, Bitcoin Core, and btcd.
+Faraday is an external service intended to be run in conjunction with the [lnd](https://github.com/lightningnetwork/lnd)
+implementation of the [Lightning Network](https://lightning.network). It queries LND for information about its existing
+channels and provides channel close recommendations if channels are under-performing.
 
-The service can be used in various situations:
-
-* Acquiring inbound channel liquidity from arbitrary nodes on the Lightning
-  network
-* Depositing funds to a Bitcoin on-chain address without closing active
-  channels
-* Paying to on-chain fallback addresses in the case of insufficient route
-  liquidity
-* Refilling depleted channels with funds from cold-wallets or exchange
-  withdrawals
-* Servicing off-chain Lightning withdrawals using on-chain payments, with no
-  funds in channels required
-* As a failsafe payment method that can be used when channel liquidity along a
-  route is insufficient
-
-This site features the documentation for loop (CLI), and the API documentation
-for Python and JavaScript clients in order to communicate with a local `loopd`
+This site features the documentation for `frcli` (CLI), and the API documentation
+for Python and JavaScript clients in order to communicate with a local `faraday`
 instance through gRPC. Currently, this communication is unauthenticated, so
 exposing this service to the internet is not recommended.
 
@@ -36,7 +19,7 @@ can be found here:
 
 
 This is the reference for the **gRPC API**. Alternatively, there is also a [REST
-API which is documented here](#loop-rest-api-reference).
+API which is documented here](#faraday-rest-api-reference).
 
 <small>This documentation was
 [generated automatically](https://github.com/lightninglabs/lightning-api) against commit
