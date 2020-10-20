@@ -5,5 +5,6 @@ following daemons:
 
 - [LND API Reference](https://api.lightning.community/)
 - [Lightning Loop API Reference](https://lightning.engineering/loopapi/)
+- [Lightning Pool API Reference](https://lightning.engineering/poolapi/)
 
 <br/><br/><br/>

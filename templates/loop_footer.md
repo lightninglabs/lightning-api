@@ -5,5 +5,6 @@ following daemons:
 
 - [LND API Reference](https://api.lightning.community/)
 - [Faraday API Reference](https://api.lightning.community/faraday.html)
+- [Lightning Pool API Reference](https://lightning.engineering/poolapi/)
 
 <br/><br/><br/>

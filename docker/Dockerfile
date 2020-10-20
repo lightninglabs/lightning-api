@@ -39,7 +39,9 @@ RUN git clone https://github.com/lightningnetwork/lnd /tmp/lnd \
   && git clone https://github.com/lightninglabs/faraday /tmp/faraday \
   && cd /tmp/faraday \
   && make \
-  && rm -rf /tmp/lnd /tmp/loop /tmp/faraday
+  && git clone https://github.com/lightninglabs/pool /tmp/pool \
+  && cd /tmp/pool \
+  && make
 
 # Copy the rest of the files last so changes won't trigger a full rebuild of the image.
 COPY . /tmp/work

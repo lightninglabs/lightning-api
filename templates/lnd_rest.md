@@ -50,7 +50,7 @@ API which is documented here](#lnd-grpc-api-reference).
 {% endfor %}
 {% endfor %}
 
-# REST messages
+# REST Messages
 {% for property in properties %}
 {% include 'rest/property.md' %}
 {% endfor %}
