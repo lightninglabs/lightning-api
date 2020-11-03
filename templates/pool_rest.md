@@ -1,30 +1,29 @@
-# Loop REST API Reference
+# Pool REST API Reference
 
-Welcome to the REST API reference documentation for Lightning Loop.
+Welcome to the REST API reference documentation for Lightning Pool.
 
-Lightning Loop is a non-custodial service offered by Lightning Labs to bridge
-on-chain and off-chain Bitcoin using submarine swaps. This repository is home to
-the Loop client and depends on the Lightning Network daemon lnd. All of lnd’s
-supported chain backends are fully supported when using the Loop client:
-Neutrino, Bitcoin Core, and btcd.
+Lightning Pool is a non-custodial batched uniform clearing-price auction for
+Lightning Channel Lease (LCL). A LCL packages up inbound (or outbound!) channel
+liquidity (ability to send/receive funds) as a fixed incoming asset (earning
+interest over time) with a maturity date expressed in blocks. The maturity date
+of each of the channels is enforced by Bitcoin contracts, ensuring that the
+funds of the maker (the party that sold the channel) can't be swept until the
+maturity height. All cleared orders (purchased channels) are cleared in a
+single batched on-chain transaction.
+
+This repository is home to the Pool client and depends on the Lightning Network
+daemon lnd. All of lnd’s supported chain backends are fully supported when
+using the Pool client: Neutrino, Bitcoin Core, and btcd.
 
 The service can be used in various situations:
 
-* Acquiring inbound channel liquidity from arbitrary nodes on the Lightning
-  network
-* Depositing funds to a Bitcoin on-chain address without closing active
-  channels
-* Paying to on-chain fallback addresses in the case of insufficient route
-  liquidity
-* Refilling depleted channels with funds from cold-wallets or exchange
-  withdrawals
-* Servicing off-chain Lightning withdrawals using on-chain payments, with no
-  funds in channels required
-* As a failsafe payment method that can be used when channel liquidity along a
-  route is insufficient
+* Bootstrapping new users with side car channels
+* Bootstrapping new services to Lightning
+* Demand fueled routing node channel selection
+* Allowing users to instantly receive with a wallet
 
 This site features the API documentation for shell script (CLI), Python and
-JavaScript clients in order to communicate with a local `loopd` instance through
+JavaScript clients in order to communicate with a local `poold` instance through
 gRPC. Currently, this communication is unauthenticated, so exposing this service
 to the internet is not recommended.
 
@@ -39,7 +38,7 @@ representation of a raw byte array.
 
 
 This is the reference for the **REST API**. Alternatively, there is also a [gRPC
-API which is documented here](#loop-grpc-api-reference).
+API which is documented here](#pool-grpc-api-reference).
 
 <small>This documentation was
 [generated automatically](https://github.com/lightninglabs/lightning-api) against commit

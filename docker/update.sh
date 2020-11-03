@@ -6,7 +6,7 @@ function compile() {
   echo "Using ${COMPONENT} repo URL ${REPO_URL} and commit ${CHECKOUT_COMMIT}"
 
   PROTO_DIR=$PROTO_ROOT_DIR/$COMPONENT
-  LOCAL_REPO_PATH=/tmp/apidoc/$COMPONENT
+  LOCAL_REPO_PATH=/tmp/$COMPONENT
   if [[ ! -d $LOCAL_REPO_PATH ]]; then
     git clone $REPO_URL $LOCAL_REPO_PATH
   fi
@@ -34,7 +34,7 @@ function compile() {
 
   # Render the new docs.
   cp templates/${COMPONENT}_header.md $APPEND_TO_FILE
-  export EXPERIMENTAL_PACKAGES PROTO_DIR PROTO_SRC_DIR WS_ENABLED COMMIT REPO_URL COMMAND COMPONENT APPEND_TO_FILE GRPC_PORT REST_PORT
+  export EXPERIMENTAL_PACKAGES PROTO_DIR PROTO_SRC_DIR WS_ENABLED COMMIT REPO_URL COMMAND COMPONENT APPEND_TO_FILE GRPC_PORT REST_PORT EXCLUDE_SERVICES
   ./render.py
   cat templates/${COMPONENT}_footer.md >> $APPEND_TO_FILE
 }
@@ -47,6 +47,8 @@ LOOP_FORK="${LOOP_FORK:-lightninglabs}"
 LOOP_COMMIT="${LOOP_COMMIT:-master}"
 FARADAY_FORK="${FARADAY_FORK:-lightninglabs}"
 FARADAY_COMMIT="${FARADAY_COMMIT:-master}"
+POOL_FORK="${POOL_FORK:-lightninglabs}"
+POOL_COMMIT="${POOL_COMMIT:-master}"
 PROTO_ROOT_DIR="build/protos"
 
 # Remove previously generated templates.
@@ -99,4 +101,21 @@ INSTALL_CMD="make install"
 APPEND_TO_FILE=source/faraday.html.md
 GRPC_PORT=8465
 REST_PORT=8082
+compile
+
+########################
+## Compile docs for pool
+########################
+REPO_URL="https://github.com/${POOL_FORK}/pool"
+CHECKOUT_COMMIT=$POOL_COMMIT
+COMPONENT=pool
+COMMAND=pool
+PROTO_SRC_DIR=poolrpc
+EXCLUDE_PROTOS="none"
+EXCLUDE_SERVICES="ChannelAuctioneer"
+EXPERIMENTAL_PACKAGES=""
+INSTALL_CMD="make install"
+APPEND_TO_FILE=source/pool.html.md
+GRPC_PORT=12010
+REST_PORT=8281
 compile

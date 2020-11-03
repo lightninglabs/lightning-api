@@ -19,6 +19,7 @@ PROTO_SRC_DIR = os.environ.get('PROTO_SRC_DIR')
 APPEND_TO_FILE = os.environ.get('APPEND_TO_FILE')
 GRPC_PORT = os.environ.get('GRPC_PORT')
 REST_PORT = os.environ.get('REST_PORT')
+EXCLUDE_SERVICES = os.environ.get('EXCLUDE_SERVICES')
 
 def render_grpc():
     """
@@ -64,6 +65,10 @@ def render_grpc():
         grpc_methods.update(methods)
         grpc_services.update(services)
         grpc_enums.update(grpc.parse_enums(file['enums']))
+
+    # Exclude certain services that we don't want to display.
+    if EXCLUDE_SERVICES != None:
+        grpc_services = { key : service for key,service in grpc_services.items() if service['name'] not in EXCLUDE_SERVICES}
 
     # Parse the command help for each method.
     for _, service in grpc_services.items():
