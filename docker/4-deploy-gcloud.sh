@@ -22,3 +22,10 @@ docker run \
   -v $PWD/build:/tmp/work/build \
   guggero/lightning-api \
   gsutil -m rsync -d -r ./build/loop gs://lightning.engineering/loopapi
+
+docker run \
+  --rm \
+  -v $HOME/.config:/root/.config \
+  -v $PWD/build:/tmp/work/build \
+  guggero/lightning-api \
+  gsutil -m rsync -d -r ./build/pool gs://lightning.engineering/poolapi
