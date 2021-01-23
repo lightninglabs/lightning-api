@@ -1,9 +1,7 @@
 FROM golang:1.13-buster
 
 # Install all required packages. We need Ruby >= 2.3.1 and Python >= 2.7.0.
-RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
-  && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - \
-  && apt-get -y update \
+RUN apt-get -y update \
   && apt-get -y install \
     ruby-full \
     zlib1g-dev \
@@ -13,11 +11,10 @@ RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.c
     build-essential \
     rsync \
     nodejs \
-    google-cloud-sdk \
   && rm -rf /var/lib/apt/lists/*
 
 RUN gem install bundler \
- && pip3 install Jinja2 flask
+ && pip3 install Jinja2
 
 RUN mkdir /tmp/work && cd /tmp/work
 WORKDIR /tmp/work
