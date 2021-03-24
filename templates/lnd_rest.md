@@ -26,7 +26,9 @@ can be found here:
 {% endfor %}
 
 **NOTE**: The `byte` field type must be set as the base64 encoded string
-representation of a raw byte array.
+representation of a raw byte array. Also, any time this must be used in a URL path
+(ie. `/v1/abc/xyz/{payment_hash}`) the base64 string must replace `+` with `-`,
+`/` with `_`, and keep the trailing `=` as is. Url encoding (ie. `%2F`) will not work.
 
 
 This is the reference for the **REST API**. Alternatively, there is also a [gRPC
