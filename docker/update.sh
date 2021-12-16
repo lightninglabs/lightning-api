@@ -28,7 +28,6 @@ function compile() {
   pushd $PROTO_DIR
   proto_files=$(find . -name '*.proto' -not -name $EXCLUDE_PROTOS)
   protoc -I. -I/usr/local/include \
-    -I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
     --doc_out=json,generated.json:. $proto_files
   popd
 
@@ -78,8 +77,8 @@ REPO_URL="https://github.com/${LOOP_FORK}/loop"
 CHECKOUT_COMMIT=$LOOP_COMMIT
 COMPONENT=loop
 COMMAND=loop
-PROTO_SRC_DIR=looprpc
-EXCLUDE_PROTOS="server.proto"
+PROTO_SRC_DIR=""
+EXCLUDE_PROTOS="server.proto -not -name common.proto"
 EXPERIMENTAL_PACKAGES=""
 INSTALL_CMD="make install"
 APPEND_TO_FILE=source/loop.html.md
