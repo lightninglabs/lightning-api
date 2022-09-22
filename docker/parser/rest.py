@@ -166,10 +166,15 @@ def parse_endpoint_request_params(request_properties, definitions):
         # Parse the parameter's type.
         param_type = param.get('type')
         if param_type is None:
-            ref = parse_ref(param['schema']['$ref'])
-            schema_def = definitions[ref]
-            p['type'] = schema_def['name']
-            p['link'] = schema_def['link']
+            schema = param['schema']
+            
+            if schema.get('$ref'):
+                ref = parse_ref(['$ref'])
+                schema_def = definitions[ref]
+                p['type'] = schema_def['name']
+                p['link'] = schema_def['link']
+            elif p['name'] == 'body':
+                p['description'] = "The body object, containing any parameters that are not part of the URL. See list of parameters in above table of GET request."
         elif param_type == 'integer':
             p['type'] = param['format']
         else:
