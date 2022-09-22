@@ -49,6 +49,8 @@ FARADAY_COMMIT="${FARADAY_COMMIT:-master}"
 POOL_FORK="${POOL_FORK:-lightninglabs}"
 POOL_COMMIT="${POOL_COMMIT:-master}"
 PROTO_ROOT_DIR="build/protos"
+TARO_FORK="${TARO_FORK:-lightninglabs}"
+TARO_COMMIT="${TARO_COMMIT:-main}"
 
 # Remove previously generated templates.
 rm -rf $PROTO_ROOT_DIR
@@ -117,4 +119,20 @@ INSTALL_CMD="make install"
 APPEND_TO_FILE=source/pool.html.md
 GRPC_PORT=12010
 REST_PORT=8281
+compile
+
+########################
+## Compile docs for taro
+########################
+REPO_URL="https://github.com/${TARO_FORK}/taro"
+CHECKOUT_COMMIT=$TARO_COMMIT
+COMPONENT=taro
+COMMAND=tarocli
+PROTO_SRC_DIR=""
+EXCLUDE_PROTOS="none"
+EXPERIMENTAL_PACKAGES=""
+INSTALL_CMD="make install"
+APPEND_TO_FILE=source/taro.html.md
+GRPC_PORT=10029
+REST_PORT=8089
 compile

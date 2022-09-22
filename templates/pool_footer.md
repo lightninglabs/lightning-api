@@ -6,5 +6,6 @@ following daemons:
 - [LND API Reference](https://api.lightning.community/)
 - [Lightning Loop API Reference](https://lightning.engineering/loopapi/)
 - [Faraday API Reference](https://api.lightning.community/faraday.html)
+- [Taro API Reference](https://lightning.engineering/taroapi/)
 
 <br/><br/><br/>

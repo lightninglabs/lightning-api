@@ -38,6 +38,9 @@ RUN git clone https://github.com/lightningnetwork/lnd /tmp/lnd \
   && make \
   && git clone https://github.com/lightninglabs/pool /tmp/pool \
   && cd /tmp/pool \
+  && make \
+  && git clone https://github.com/lightninglabs/taro /tmp/taro \
+  && cd /tmp/taro \
   && make
 
 # Copy the rest of the files last so changes won't trigger a full rebuild of the image.
