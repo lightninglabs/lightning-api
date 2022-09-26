@@ -11,7 +11,7 @@ const loaderOptions = {
 };
 {% if method.fileName == 'lightning.proto' %}const packageDefinition = protoLoader.loadSync('{{ method.fileName }}', loaderOptions);{% endif %}{% if method.fileName != 'lightning.proto' %}const packageDefinition = protoLoader.loadSync(['lightning.proto', '{{ method.fileName }}'], loaderOptions);{% endif %}
 const {{ method.packageName }} = grpc.loadPackageDefinition(packageDefinition).{{ method.packageName }};
-const macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/simnet/admin.macaroon").toString('hex');
+const macaroon = fs.readFileSync("LND_DIR/data/chain/bitcoin/regtest/admin.macaroon").toString('hex');
 process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA';
 const lndCert = fs.readFileSync('LND_DIR/tls.cert');
 const sslCreds = grpc.credentials.createSsl(lndCert);{% if method.service == 'WalletUnlocker' %}

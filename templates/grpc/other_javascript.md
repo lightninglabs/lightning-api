@@ -1,4 +1,5 @@
 ```javascript
+const fs = require('fs');
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 const loaderOptions = {
@@ -10,7 +11,17 @@ const loaderOptions = {
 };
 const packageDefinition = protoLoader.loadSync('{{ method.fileName }}', loaderOptions);
 const {{ method.packageName }} = grpc.loadPackageDefinition(packageDefinition).{{ method.packageName }};
-const {{ method.serviceJS }} = new {{ method.packageName }}.{{ method.service }}('localhost:{{ grpcport }}', grpc.credentials.createInsecure());
+const macaroon = fs.readFileSync("{% filter upper %}{{ component }}{% endfilter %}_DIR/regtest/{{ component }}.macaroon").toString('hex');
+process.env.GRPC_SSL_CIPHER_SUITES = 'HIGH+ECDSA';
+const lndCert = fs.readFileSync('{% filter upper %}{{ component }}{% endfilter %}_DIR/tls.cert');
+const sslCreds = grpc.credentials.createSsl(lndCert);
+const macaroonCreds = grpc.credentials.createFromMetadataGenerator(function(args, callback) {
+    let metadata = new grpc.Metadata();
+    metadata.add('macaroon', macaroon);
+    callback(null, metadata);
+});
+let creds = grpc.credentials.combineChannelCredentials(sslCreds, macaroonCreds);
+const {{ method.serviceJS }} = new {{ method.packageName }}.{{ method.service }}('localhost:{{ grpcport }}', creds);
 let request = {% if method.requestMessage.params|length == 0 %}{}{% else %}{ {% for param in method.requestMessage.params %}
   {{ param.name }}: <{{ param.type }}>, {% endfor %}
 };{% endif %}{% if not method.streamingRequest and not method.streamingResponse %}

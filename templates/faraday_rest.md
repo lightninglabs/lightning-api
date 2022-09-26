@@ -8,8 +8,19 @@ channels and provides channel close recommendations if channels are under-perfor
 
 This site features the API documentation for shell script (CLI), Python and
 JavaScript clients in order to communicate with a local `faraday` instance through
-gRPC. Currently, this communication is unauthenticated, so exposing this service
-to the internet is not recommended.
+gRPC.
+
+The examples to the right assume that the there is a local `faraday` instance
+running and listening for REST connections on port {{ restport }}. `FARADAY_DIR`
+will be used as a placeholder to denote the base directory of the `faraday`
+instance. By default, this is `~/.faraday` on Linux and
+`~/Library/Application Support/Faraday` on macOS.
+
+At the time of writing this documentation, two things are needed in order to
+make an HTTP request to an `faraday` instance: a TLS/SSL connection and a
+macaroon used for RPC authentication. The examples to the right will show how
+these can be used in order to make a successful, secure, and authenticated HTTP
+request.
 
 The original `*.swagger.js` files from which the gRPC documentation was generated
 can be found here:

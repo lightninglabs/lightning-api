@@ -1,6 +1,9 @@
 ```python
 >>> import base64, json, requests
->>> url = 'http://localhost:{{ restport }}{{ endpoint.path }}'{% if endpoint.type == 'POST' %}
+>>> url = 'https://localhost:{{ restport }}{{ endpoint.path }}'
+>>> cert_path = '{% filter upper %}{{ component }}{% endfilter %}_DIR/tls.cert'
+>>> macaroon = codecs.encode(open('{% filter upper %}{{ component }}{% endfilter %}_DIR/regtest/{{ component }}.macaroon', 'rb').read(), 'hex')
+>>> headers = {'Grpc-Metadata-macaroon': macaroon}{% if endpoint.type == 'POST' %}
 >>> data = { {% for param in endpoint.requestParams %}
         '{{ param.name }}': {% if param.type == 'byte' %}base64.b64encode(<{{ param.type }}>).decode(){% else %}<{{ param.type }}>{% endif %}, {% endfor %}
     }{% endif %}

@@ -24,8 +24,18 @@ The service can be used in various situations:
 
 This site features the documentation for pool (CLI), and the API documentation
 for Python and JavaScript clients in order to communicate with a local `poold`
-instance through gRPC. Currently, this communication is unauthenticated, so
-exposing this service to the internet is not recommended.
+instance through gRPC.
+
+The examples to the right assume that the there is a local `poold` instance
+running and listening for gRPC connections on port {{ grpcport }}. `POOL_DIR`
+will be used as a placeholder to denote the base directory of the `poold`
+instance. By default, this is `~/.pool` on Linux and
+`~/Library/Application Support/Pool` on macOS.
+
+At the time of writing this documentation, two things are needed in order to
+make a gRPC request to a `pool` instance: a TLS/SSL connection and a macaroon
+used for RPC authentication. The examples to the right will show how these can
+be used in order to make a successful, secure, and authenticated gRPC request.
 
 The original `*.proto` files from which the gRPC documentation was generated
 can be found here:

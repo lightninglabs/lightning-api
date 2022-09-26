@@ -25,8 +25,18 @@ The service can be used in various situations:
 
 This site features the documentation for loop (CLI), and the API documentation
 for Python and JavaScript clients in order to communicate with a local `loopd`
-instance through gRPC. Currently, this communication is unauthenticated, so
-exposing this service to the internet is not recommended.
+instance through gRPC.
+
+The examples to the right assume that the there is a local `loopd` instance
+running and listening for gRPC connections on port {{ grpcport }}. `LOOP_DIR`
+will be used as a placeholder to denote the base directory of the `loopd`
+instance. By default, this is `~/.loop` on Linux and
+`~/Library/Application Support/Loop` on macOS.
+
+At the time of writing this documentation, two things are needed in order to
+make a gRPC request to a `loopd` instance: a TLS/SSL connection and a macaroon
+used for RPC authentication. The examples to the right will show how these can
+be used in order to make a successful, secure, and authenticated gRPC request.
 
 The original `*.proto` files from which the gRPC documentation was generated
 can be found here:

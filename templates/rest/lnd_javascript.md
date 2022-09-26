@@ -1,7 +1,7 @@
 ```javascript
 const fs = require('fs');
 const request = require('request');{% if endpoint.service != 'WalletUnlocker' %}
-const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');{% endif %}{% if endpoint.type == 'POST' %}
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/regtest/admin.macaroon').toString('hex');{% endif %}{% if endpoint.type == 'POST' %}
 let requestBody = { {% for param in endpoint.requestParams %}
     {{ param.name }}: <{{ param.type }}>,{% endfor %}
 }{% endif %}
@@ -30,7 +30,7 @@ request.{{ endpoint.type|lower }}(options, function(error, response, body) {
 // --------------------------
 const WebSocket = require('ws');
 const fs = require('fs');
-const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/simnet/admin.macaroon').toString('hex');
+const macaroon = fs.readFileSync('LND_DIR/data/chain/bitcoin/regtest/admin.macaroon').toString('hex');
 let ws = new WebSocket('wss://localhost:{{ restport }}{{ endpoint.path }}?method={{ endpoint.type }}', {
   // Work-around for self-signed certificates.
   rejectUnauthorized: false,
