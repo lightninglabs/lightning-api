@@ -1,4 +1,4 @@
-FROM golang:1.17-buster
+FROM golang:1.18-bullseye
 
 # Install all required packages. We need Ruby >= 2.3.1 and Python >= 2.7.0.
 RUN apt-get -y update \
